@@ -8,7 +8,6 @@ import os from 'os';
 import { Readable } from 'stream';
 import { Worker } from 'worker_threads';
 import { initializeEmbeddingModel, generateEmbedding } from './embedding'; // For search
-import { parseFile } from './parser';
 
 async function index(directory: string, clean: boolean) {
   if (clean) {
@@ -26,7 +25,7 @@ async function index(directory: string, clean: boolean) {
 
   console.log(`Found ${files.length} files to index.`);
 
-  // --- WORKER THREADS ARCHITECTURE ---
+  // --- WORKER THREADS ARCHITECTURE WITH BACKPRESSURE ---
 
   const chunkStream = new Readable({
     objectMode: true,
@@ -39,8 +38,34 @@ async function index(directory: string, clean: boolean) {
     const numWorkers = os.cpus().length;
     const fileQueue = [...files];
     let activeWorkers = 0;
+    let pausedWorkers: Worker[] = [];
 
     console.log(`Starting ${numWorkers} worker threads...`);
+
+    const processNextFile = (worker: Worker) => {
+      const file = fileQueue.pop();
+      if (file) {
+        worker.postMessage(file);
+      } else {
+        worker.terminate();
+        activeWorkers--;
+        if (activeWorkers === 0) {
+          chunkStream.push(null);
+          resolve();
+        }
+      }
+    };
+
+    const resumePausedWorkers = () => {
+      while (pausedWorkers.length > 0) {
+        const worker = pausedWorkers.pop();
+        if (worker) {
+          processNextFile(worker);
+        }
+      }
+    };
+
+    chunkStream.on('drain', resumePausedWorkers);
 
     for (let i = 0; i < numWorkers; i++) {
       const worker = new Worker(path.join(process.cwd(), 'dist', 'worker.js'));
@@ -49,8 +74,12 @@ async function index(directory: string, clean: boolean) {
           activeWorkers++;
           processNextFile(worker);
         } else if (message.status === 'done') {
-          message.data.forEach((chunk: CodeChunk) => chunkStream.push(chunk));
-          processNextFile(worker);
+          const canContinue = message.data.every((chunk: CodeChunk) => chunkStream.push(chunk));
+          if (canContinue) {
+            processNextFile(worker);
+          } else {
+            pausedWorkers.push(worker);
+          }
         } else if (message.status === 'error') {
           console.error(`Error from worker:`, message.error);
           processNextFile(worker);
@@ -61,21 +90,6 @@ async function index(directory: string, clean: boolean) {
         if (code !== 0) console.error(`Worker stopped with exit code ${code}`);
       });
     }
-
-    function processNextFile(worker: Worker) {
-      const file = fileQueue.pop();
-      if (file) {
-        worker.postMessage(file);
-      } else {
-        worker.terminate();
-        activeWorkers--;
-        if (activeWorkers === 0) {
-          console.log('All files have been processed. Closing the stream.');
-          chunkStream.push(null);
-          resolve();
-        }
-      }
-    }
   });
 
   await Promise.all([producerPromise, consumerPromise]);
@@ -83,6 +97,7 @@ async function index(directory: string, clean: boolean) {
   console.log('Indexing complete.');
 }
 
+// ... (search, references, and main functions remain the same) ...
 async function search(query: string) {
   await initializeEmbeddingModel();
   console.log(`Searching for: "${query}"`);
