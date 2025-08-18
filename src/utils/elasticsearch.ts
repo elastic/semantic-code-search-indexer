@@ -27,7 +27,7 @@ if (elasticsearchConfig.apiKey) {
   client = new Client(clientOptions);
 }
 
-const indexName = 'code-chunks';
+const indexName = elasticsearchConfig.index;
 const elserPipelineName = 'elser_ingest_pipeline_2';
 const elserModelId = elasticsearchConfig.model;
 
@@ -81,6 +81,9 @@ export async function createIndex(): Promise<void> {
       mappings: {
         properties: {
           filePath: { type: 'keyword' },
+          git_file_hash: { type: 'keyword' },
+          git_branch: { type: 'keyword' },
+          chunk_hash: { type: 'keyword' },
           startLine: { type: 'integer' },
           endLine: { type: 'integer' },
           content: { type: 'text' },
@@ -95,6 +98,9 @@ export async function createIndex(): Promise<void> {
 
 export interface CodeChunk {
   filePath: string;
+  git_file_hash: string;
+  git_branch: string;
+  chunk_hash: string;
   startLine: number;
   endLine: number;
   content: string;

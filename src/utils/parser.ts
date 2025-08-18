@@ -3,11 +3,16 @@ import TypeScript from 'tree-sitter-typescript';
 import JavaScript from 'tree-sitter-javascript';
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
+import { execSync } from 'child_process';
 
 const { Query } = Parser;
 
 interface CodeChunk {
   filePath: string;
+  git_file_hash: string;
+  git_branch: string;
+  chunk_hash: string;
   startLine: number;
   endLine: number;
   content: string;
@@ -71,7 +76,7 @@ function getQuery(fileExt: string): string | undefined {
  * @param filePath The path to the file to parse.
  * @returns An array of code chunks.
  */
-export function parseFile(filePath: string): CodeChunk[] {
+export function parseFile(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
   const fileExt = path.extname(filePath);
   const language = getParser(fileExt);
   const queryString = getQuery(fileExt);
@@ -88,14 +93,20 @@ export function parseFile(filePath: string): CodeChunk[] {
   const tree = parser.parse(sourceCode);
   const query = new Query(language, queryString);
   const matches = query.matches(tree.rootNode);
+  const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
 
   return matches.map(({ captures }) => {
     const node = captures[0].node;
+    const content = node.text;
+    const chunkHash = createHash('sha256').update(content).digest('hex');
     return {
-      filePath,
+      filePath: relativePath,
+      git_file_hash: gitFileHash,
+      git_branch: gitBranch,
+      chunk_hash: chunkHash,
       startLine: node.startPosition.row + 1,
       endLine: node.endPosition.row + 1,
-      content: node.text,
+      content: content,
     };
   });
 }

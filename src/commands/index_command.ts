@@ -6,6 +6,7 @@ import os from 'os';
 import { Worker } from 'worker_threads';
 import cliProgress from 'cli-progress';
 import PQueue from 'p-queue';
+import { execSync } from 'child_process';
 
 export async function index(directory: string, clean: boolean) {
   if (clean) {
@@ -40,6 +41,8 @@ export async function index(directory: string, clean: boolean) {
 
   let successCount = 0;
   let failureCount = 0;
+  const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory }).toString().trim();
+  const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
 
   const processFileWithWorker = (file: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -61,7 +64,8 @@ export async function index(directory: string, clean: boolean) {
         worker.terminate();
         reject(err);
       });
-      worker.postMessage(file);
+      const relativePath = path.relative(gitRoot, file);
+      worker.postMessage({ filePath: file, gitBranch, relativePath });
     });
   };
 
