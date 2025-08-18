@@ -98,6 +98,56 @@ export async function createIndex(): Promise<void> {
   }
 }
 
+export async function createSettingsIndex(): Promise<void> {
+  const settingsIndexName = `${indexName}_settings`;
+  const indexExists = await client.indices.exists({ index: settingsIndexName });
+  if (!indexExists) {
+    console.log(`Creating index "${settingsIndexName}"...`);
+    await client.indices.create({
+      index: settingsIndexName,
+      mappings: {
+        properties: {
+          branch: { type: 'keyword' },
+          commit_hash: { type: 'keyword' },
+          updated_at: { type: 'date' },
+        },
+      },
+    });
+  } else {
+    console.log(`Index "${settingsIndexName}" already exists.`);
+  }
+}
+
+export async function getLastIndexedCommit(branch: string): Promise<string | null> {
+  const settingsIndexName = `${indexName}_settings`;
+  try {
+    const response = await client.get<{ commit_hash: string }>({
+      index: settingsIndexName,
+      id: branch,
+    });
+    return response._source?.commit_hash ?? null;
+  } catch (error: any) {
+    if (error.meta?.statusCode === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function updateLastIndexedCommit(branch: string, commitHash: string): Promise<void> {
+  const settingsIndexName = `${indexName}_settings`;
+  await client.index({
+    index: settingsIndexName,
+    id: branch,
+    body: {
+      branch,
+      commit_hash: commitHash,
+      updated_at: new Date().toISOString(),
+    },
+    refresh: true,
+  });
+}
+
 export interface CodeChunk {
   filePath: string;
   git_file_hash: string;

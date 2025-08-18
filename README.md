@@ -88,3 +88,11 @@ npm run search -- "addTool"
 # Then, use the location to find all references
 npm run references -- src/utils/add_tool.ts:13:10
 ```
+
+### Incremental Indexing
+
+After an initial full index, you can use the `incremental-index` command to efficiently update the index with only the files that have changed since the last indexed commit.
+
+```bash
+npm run incremental-index -- ../../kibana
+```

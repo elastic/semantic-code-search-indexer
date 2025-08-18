@@ -1,6 +1,15 @@
 
 import { glob } from 'glob';
-import { createIndex, indexCodeChunks, deleteIndex, CodeChunk, setupElser } from '../utils';
+import {
+  createIndex,
+  indexCodeChunks,
+  deleteIndex,
+  CodeChunk,
+  setupElser,
+  createSettingsIndex,
+  updateLastIndexedCommit,
+  SUPPORTED_FILE_EXTENSIONS,
+} from '../utils';
 import path from 'path';
 import os from 'os';
 import { Worker } from 'worker_threads';
@@ -16,8 +25,9 @@ export async function index(directory: string, clean: boolean) {
   await setupElser();
   console.log(`Indexing directory: ${directory}`);
   await createIndex();
+  await createSettingsIndex();
 
-  const files = await glob('**/*.{ts,tsx,js,jsx}', {
+  const files = await glob(`**/*{${SUPPORTED_FILE_EXTENSIONS.join(',')}}`, {
     cwd: directory,
     ignore: ['node_modules/**', '**/*_lexer.ts', '**/*_parser.ts'],
     absolute: true,
@@ -91,10 +101,14 @@ export async function index(directory: string, clean: boolean) {
   await Promise.all([producerPromise, consumerPromise]);
   multibar.stop();
 
+  const commitHash = execSync('git rev-parse HEAD', { cwd: directory }).toString().trim();
+  await updateLastIndexedCommit(gitBranch, commitHash);
+
   console.log('\n---');
   console.log('Indexing Summary:');
   console.log(`  Successfully processed: ${successCount} files`);
   console.log(`  Failed to parse:      ${failureCount} files`);
+  console.log(`  HEAD commit hash:     ${commitHash}`);
   console.log('---');
   console.log('Indexing complete.');
 }

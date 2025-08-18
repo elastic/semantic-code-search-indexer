@@ -1,10 +1,9 @@
 import Parser from 'tree-sitter';
-import TypeScript from 'tree-sitter-typescript';
-import JavaScript from 'tree-sitter-javascript';
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { execSync } from 'child_process';
+import { parsers } from './constants';
 
 const { Query } = Parser;
 
@@ -19,13 +18,6 @@ interface CodeChunk {
   created_at: string;
   updated_at: string;
 }
-
-const parsers: { [key: string]: any } = {
-  '.ts': TypeScript.typescript,
-  '.tsx': TypeScript.tsx,
-  '.js': JavaScript,
-  '.jsx': JavaScript,
-};
 
 function getParser(fileExt: string): any | undefined {
   return parsers[fileExt];
