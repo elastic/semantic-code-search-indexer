@@ -36,14 +36,7 @@ Copy the example `.env` file and update it with your Elasticsearch endpoint.
 cp .env.example .env
 ```
 
-**`.env` file:**
-```
-# Elasticsearch configuration
-ELASTICSEARCH_ENDPOINT=http://localhost:9200
-# ELASTICSEARCH_USER=...
-# ELASTICSEARCH_PASSWORD=...
-# ELASTICSEARCH_API_KEY=...
-```
+See the [Configuration](#configuration) section for more details on the available environment variables.
 
 ### 4. Compile the Code
 
@@ -55,44 +48,77 @@ npm run build
 
 ---
 
-## Usage
+## Commands
 
-### Indexing a Codebase
+### `npm run index`
 
-Before you can search, you must index a codebase. The `index` command scans a directory and populates the Elasticsearch index.
+Indexes a codebase. This command scans a directory and populates the Elasticsearch index.
 
-**First-time indexing:**
-It is highly recommended to run with the `--clean` flag the first time to ensure a fresh start.
+**Arguments:**
+- `--clean`: (Optional) Deletes the existing index before starting. Recommended for first-time indexing.
+- `<directory>`: The path to the codebase to index.
 
+**Example:**
 ```bash
 # Index the Kibana monorepo located at ../../kibana
 npm run index -- --clean ../../kibana
 ```
 
-### Semantic Search
+### `npm run incremental-index`
 
-Use the `search` command to find code using natural language.
+After an initial full index, you can use this command to efficiently update the index with only the files that have changed since the last indexed commit.
 
+**Arguments:**
+- `<directory>`: The path to the codebase to index.
+
+**Example:**
+```bash
+npm run incremental-index -- ../../kibana
+```
+
+### `npm run search`
+
+Finds code using natural language.
+
+**Arguments:**
+- `<query>`: The natural language query to search for.
+
+**Example:**
 ```bash
 npm run search -- "a function that adds a new tool"
 ```
 
-### Finding References
+### `npm run references`
 
-Use the `references` command to get a compiler-accurate list of all usages for a specific symbol. The position argument is `path/to/file:LINE:CHARACTER` (0-indexed).
+Gets a compiler-accurate list of all usages for a specific symbol.
 
+**Arguments:**
+- `<position>`: The position of the symbol in the format `path/to/file:LINE:CHARACTER` (0-indexed).
+
+**Example:**
 ```bash
-# First, find a symbol's location with search
-npm run search -- "addTool"
-
-# Then, use the location to find all references
 npm run references -- src/utils/add_tool.ts:13:10
 ```
 
-### Incremental Indexing
+### `npm run build`
 
-After an initial full index, you can use the `incremental-index` command to efficiently update the index with only the files that have changed since the last indexed commit.
+Compiles the TypeScript code to JavaScript. This is required for the multi-threaded worker to function.
 
-```bash
-npm run incremental-index -- ../../kibana
-```
+### `npm run lint`
+
+Lints the codebase using ESLint.
+
+---
+
+## Configuration
+
+Configuration is managed via environment variables. You can set them in a `.env` file in the project root.
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `ELASTICSEARCH_ENDPOINT` | The URL of your Elasticsearch instance. | `http://localhost:9200` |
+| `ELASTICSEARCH_USER` | The username for Elasticsearch authentication. | |
+| `ELASTICSEARCH_PASSWORD` | The password for Elasticsearch authentication. | |
+| `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication. | |
+| `ELASTICSEARCH_MODEL` | The ID of the ELSER model to use. | `.elser_model_2` |
+| `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. | `code-chunks` |
