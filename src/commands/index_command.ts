@@ -16,6 +16,9 @@ import { Worker } from 'worker_threads';
 import cliProgress from 'cli-progress';
 import PQueue from 'p-queue';
 import { execSync } from 'child_process';
+import fs from 'fs';
+// @ts-ignore
+import ignore from 'ignore';
 
 export async function index(directory: string, clean: boolean) {
   if (clean) {
@@ -27,9 +30,17 @@ export async function index(directory: string, clean: boolean) {
   await createIndex();
   await createSettingsIndex();
 
+  const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
+  const ig = ignore();
+  const gitignorePath = path.join(gitRoot, '.gitignore');
+  if (fs.existsSync(gitignorePath)) {
+    ig.add(fs.readFileSync(gitignorePath, 'utf8'));
+  }
+  ig.add(['node_modules/**', '**/*_lexer.ts', '**/*_parser.ts']);
+
   const files = await glob(`**/*{${SUPPORTED_FILE_EXTENSIONS.join(',')}}`, {
     cwd: directory,
-    ignore: ['node_modules/**', '**/*_lexer.ts', '**/*_parser.ts'],
+    ignore: ig,
     absolute: true,
   });
 
@@ -52,7 +63,6 @@ export async function index(directory: string, clean: boolean) {
   let successCount = 0;
   let failureCount = 0;
   const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory }).toString().trim();
-  const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
 
   const processFileWithWorker = (file: string): Promise<void> => {
     return new Promise((resolve, reject) => {
