@@ -57,12 +57,14 @@ export async function index(directory: string, clean: boolean) {
   // We'll create the indexing bar later, when we know the total.
 
   const BATCH_SIZE = 500;
+  const MAX_QUEUE_SIZE = BATCH_SIZE * 3; // 3 batches
   const chunkQueue: CodeChunk[] = [];
-  const queue = new PQueue({ concurrency: os.cpus().length });
+  const queue = new PQueue({ concurrency: Math.max(1, Math.floor(os.cpus().length / 2)) });
 
   let successCount = 0;
   let failureCount = 0;
   const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory }).toString().trim();
+  let isProducerDone = false;
 
   const processFileWithWorker = (file: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -89,24 +91,38 @@ export async function index(directory: string, clean: boolean) {
     });
   };
 
-  // Producer Promise
-  const producerPromise = (async () => {
-    files.forEach(file => queue.add(() => processFileWithWorker(file)));
+  // Producer: Add file processing tasks to the queue
+  const producer = async () => {
+    for (const file of files) {
+      // Pause if the queue is full
+      while (chunkQueue.length > MAX_QUEUE_SIZE) {
+        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100ms
+      }
+      queue.add(() => processFileWithWorker(file));
+    }
     await queue.onIdle();
-  })();
+    isProducerDone = true;
+  };
 
-  // Consumer Promise
-  const consumerPromise = (async () => {
-    await producerPromise; // Wait for the producer to finish
-
-    const indexingBar = multibar.create(chunkQueue.length, 0, { task: 'Indexing chunks ' });
+  // Consumer: Index chunks from the queue
+  const consumer = async () => {
+    const indexingBar = multibar.create(files.length, 0, { task: 'Indexing chunks ' });
     
-    while (chunkQueue.length > 0) {
+    while (!isProducerDone || chunkQueue.length > 0) {
+      if (chunkQueue.length === 0) {
+        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for more chunks
+        continue;
+      }
+      
       const batch = chunkQueue.splice(0, BATCH_SIZE);
       await indexCodeChunks(batch);
       indexingBar.increment(batch.length);
     }
-  })();
+  };
+
+  // Run producer and consumer concurrently
+  const producerPromise = producer();
+  const consumerPromise = consumer();
 
   await Promise.all([producerPromise, consumerPromise]);
   multibar.stop();
