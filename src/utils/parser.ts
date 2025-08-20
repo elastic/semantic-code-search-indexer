@@ -75,11 +75,13 @@ function parseMarkdown(filePath: string, gitBranch: string, relativePath: string
     const chunks = content.split(/\n\s*\n/); // Split by paragraphs
     const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
 
-    return chunks.map((chunk, index) => {
+    return chunks
+      .filter(chunk => /[a-zA-Z0-9]/.test(chunk)) // Filter out chunks with no alphanumeric characters
+      .map((chunk, index) => {
         const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
         const endLine = startLine + (chunk.match(/\n/g) || []).length;
         const chunkHash = createHash('sha256').update(chunk).digest('hex');
-        return {
+        const codeChunk: Omit<CodeChunk, 'embedding_text'> = {
             type: 'doc',
             language: 'markdown',
             filePath: relativePath,
@@ -92,7 +94,23 @@ function parseMarkdown(filePath: string, gitBranch: string, relativePath: string
             created_at: now,
             updated_at: now,
         };
+        return {
+          ...codeChunk,
+          embedding_text: prepareContentForEmbedding(codeChunk),
+        }
     });
+}
+
+function prepareContentForEmbedding(chunk: Omit<CodeChunk, 'embedding_text' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'>): string {
+  let text = `filePath: ${chunk.filePath}\n`;
+  if (chunk.kind) {
+    text += `kind: ${chunk.kind}\n`;
+  }
+  if (chunk.containerPath) {
+    text += `containerPath: ${chunk.containerPath}\n`;
+  }
+  text += `\n${chunk.content}`;
+  return text;
 }
 
 export function parseFile(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
@@ -143,7 +161,7 @@ export function parseFile(filePath: string, gitBranch: string, relativePath: str
     }
     containerPath = containerPath.replace(/ > $/, '');
 
-    return {
+    const chunk: Omit<CodeChunk, 'embedding_text'> = {
       type: 'code',
       language: getLanguage(fileExt),
       kind: node.type,
@@ -158,6 +176,11 @@ export function parseFile(filePath: string, gitBranch: string, relativePath: str
       content: content,
       created_at: now,
       updated_at: now,
+    };
+
+    return {
+      ...chunk,
+      embedding_text: prepareContentForEmbedding(chunk),
     };
   });
 }

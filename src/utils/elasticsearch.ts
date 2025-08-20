@@ -61,10 +61,15 @@ export async function setupElser(): Promise<void> {
           model_id: elserModelId,
           input_output: [
             {
-              input_field: 'content',
+              input_field: 'embedding_text',
               output_field: 'content_embedding',
             },
           ],
+        },
+      },
+      {
+        remove: {
+          field: 'embedding_text',
         },
       },
     ],
@@ -166,6 +171,7 @@ export interface CodeChunk {
   startLine: number;
   endLine: number;
   content: string;
+  embedding_text: string;
   created_at: string;
   updated_at: string;
 }
