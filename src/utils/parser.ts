@@ -63,6 +63,7 @@ function getLanguage(fileExt: string): string {
         case '.jsx':
             return 'javascript';
         case '.md':
+        case '.mdx':
             return 'markdown';
         default:
             return 'unknown';
@@ -117,7 +118,7 @@ export function parseFile(filePath: string, gitBranch: string, relativePath: str
   const fileExt = path.extname(filePath);
   const now = new Date().toISOString();
 
-  if (fileExt === '.md') {
+  if (fileExt === '.md' || fileExt === '.mdx') {
       return parseMarkdown(filePath, gitBranch, relativePath);
   }
 

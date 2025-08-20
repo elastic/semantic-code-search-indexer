@@ -6,7 +6,7 @@ To accomplish this, you will use a specialized semantic code search tool that ha
 
 ## The Code Search Tool
 
-You have access to a powerful search tool that queries a unified Elasticsearch index. This index contains enriched data designed to give you, an AI agent, deep contextual understanding of the codebase. The index is located at `http://localhost:9200` (username: `elastic`, password: `changeme`).
+You have access to a powerful search tool that queries a unified Elasticsearch index named `code-chunks`. This index contains enriched data designed to give you, an AI agent, deep contextual understanding of the codebase. The index is located at `http://localhost:9200` (username: `elastic`, password: `changeme`).
 
 ### Enriched Index Fields
 
@@ -46,13 +46,15 @@ Here is a recommended "chain of investigation" to follow:
 
 3.  **Find Examples of Existing Tools:** Search for usages of the `addTool` function to see how other tools are implemented and registered. This will provide a clear pattern to follow for your new `code_search` tool.
 
-4.  **Stub out the `code_search` tool:** Create a new file for your tool. Based on the examples you found, create a new tool object with a `name` property set to `'code_search'` and a placeholder `execute` method.
+4.  **Stub out the `code_search` tool:** Create a new file for your tool. Based on the examples you found, create a new tool object with a `name` property set to `'code_search'` and a placeholder to handle the request. Create a description that explains how the tool works along with use cases that will help the LLM to be most effective with the tool. Mention it should use a "chain of investigation" with the tool.
 
-5.  **Implement the `execute` method:** The `execute` method should:
-    *   Accept a query string as an argument.
+5.  **Implement method to call the tool:** The method should:
+    *   Accept a semantic query string as an argument.
+    *   Accpet a KQL filter to allow additional filtering beyond semantic seach for the following fields: type, language, kind, imports, containerPath, filePath, startLine, endLine, created_at, updated_at
     *   Connect to the Elasticsearch server at `http://localhost:9200`.
-    *   Execute a search against the `semantic-code-search` index using the provided query.
+    *   Execute a search against the `code-chunks` index using the provided query with a `sparce_vector` query and filters created using a function that converts form KQL to Query DSL.
     *   Return the search results in the format expected by the MCP framework.
+    *   Create environment varibles to configure the Elasticsearch connection information (username, password, api_key, endpoint, index, inference_id)
 
 6.  **Register the New Tool:** Find the primary entry point for the MCP Dev Server (likely a `start` or `setup` function). Import your new `code_search` tool and call the `addTool` function to register it with the server instance.
 

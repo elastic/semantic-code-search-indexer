@@ -7,6 +7,7 @@ export const parsers: { [key: string]: any } = {
   '.js': JavaScript,
   '.jsx': JavaScript,
   '.md': null,
+  '.mdx': null,
 };
 
 export const SUPPORTED_FILE_EXTENSIONS = Object.keys(parsers);
