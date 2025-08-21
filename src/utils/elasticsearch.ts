@@ -1,30 +1,41 @@
-import { Client } from '@elastic/elasticsearch';
+import { Client, ClientOptions } from '@elastic/elasticsearch';
 import { elasticsearchConfig } from '../config';
-
-const clientOptions = {
-  node: elasticsearchConfig.endpoint,
-  requestTimeout: 90000, // 90 seconds
-};
 
 let client: Client;
 
-if (elasticsearchConfig.apiKey) {
+const baseOptions: Partial<ClientOptions> = {
+  requestTimeout: 90000, // 90 seconds
+};
+
+if (elasticsearchConfig.cloudId) {
   client = new Client({
-    ...clientOptions,
+    ...baseOptions,
+    cloud: {
+      id: elasticsearchConfig.cloudId,
+    },
     auth: {
-      apiKey: elasticsearchConfig.apiKey,
+      apiKey: elasticsearchConfig.apiKey || '',
     },
   });
-} else if (elasticsearchConfig.username && elasticsearchConfig.password) {
-  client = new Client({
-    ...clientOptions,
-    auth: {
+} else if (elasticsearchConfig.endpoint) {
+  const clientOptions: ClientOptions = {
+    ...baseOptions,
+    node: elasticsearchConfig.endpoint,
+  };
+
+  if (elasticsearchConfig.apiKey) {
+    clientOptions.auth = { apiKey: elasticsearchConfig.apiKey };
+  } else if (elasticsearchConfig.username && elasticsearchConfig.password) {
+    clientOptions.auth = {
       username: elasticsearchConfig.username,
       password: elasticsearchConfig.password,
-    },
-  });
-} else {
+    };
+  }
   client = new Client(clientOptions);
+} else {
+  throw new Error(
+    'Elasticsearch connection not configured. Please set ELASTICSEARCH_CLOUD_ID or ELASTICSEARCH_URL.'
+  );
 }
 
 const indexName = elasticsearchConfig.index;

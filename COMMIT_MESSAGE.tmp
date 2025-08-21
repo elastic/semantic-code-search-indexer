@@ -1,36 +1,15 @@
-Adds a webhook and persistent GCP worker for incremental indexing
+Adds Elastic Cloud support and increases VM disk size
 
-- Creates a secure webhook server on Cloud Run to receive GitHub push events.
-- Publishes events to a GCP Pub/Sub topic to decouple the webhook from the worker.
-- Implements a persistent worker on a GCP Compute Engine VM to handle large repositories efficiently.
-- Updates the `setup` command to `git pull` existing repos, ensuring code is always current.
-- Adds a `--log-mode` flag to the `incremental-index` command for better logging in a server environment.
-- Upgrades the project's required Node.js version to ">=20" to support modern dependencies.
-- Fixes module resolution errors by switching from barrel file imports to direct imports.
-- Creates a comprehensive deployment guide for the new GCP architecture, including local testing instructions.
-- Updates deployment guide to use Artifact Registry instead of the deprecated Container Registry.
+- Adds support for `ELASTICSEARCH_CLOUD_ID` and `ELASTICSEARCH_API_KEY` for a more secure and direct connection to Elastic Cloud.
+- Updates the Elasticsearch client logic to prioritize the Cloud ID connection method.
+- Increases the default boot disk size for the Compute Engine worker to 100GB in the deployment guide.
+- Updates the `.env.example` and deployment guide to reflect the new Elasticsearch connection variables.
 
 Prompts:
 
-- "I would like to create a webhook that would run on a GCP server that could be used by Github to trigger the incremental index command when the upstream repo changes. This needs to be secure. It also needs to be able to trigger the task asyncrously incase there are lots of files to index. Also develop a guide for deploying this webhook and setting it up on a GCP instance with monitoring using GCP tools. If you re-use the incremental index command, create a mode where it logs it's progress in a log format to the screen instead of using progress bars so it can be used for debugging issues. The repo for the web hook will initiall be setup using the new `setup` command so you can assume a copy of the git repo will be cloned in the `.repos` directory. Create a plan and await my approval."
-- "Can you present the plan?"
-- "yes"
-- "run `npm run build`"
-- "Can you update @docs/gcp_webhook_deployment_guide.md with instructions on how to test the webhook locally AND on the cloud?"
-- "For the ingremental-index, we need to pull the latest version from `origin` before we trigger the indexing."
-- "For the local testing in doc/gcp_webhook_deployment_guide.md what's the command for setp 4"
-- "When I run the local workder I get "Subscription topic does not exist""
-- "Shouldn't the local work use the GCP_PUBSUB_TOPIC="github-pushes""
-- "I'm getting this error in the `local-worker` script..."
-- "Could this be because the command is being run with node.js?"
-- "What about the rest of the imports?"
-- "We just need thse for the worker and local worker right? those are the only ones being called as javascript"
-- "Please continue."
-- "This is great... the test is working as expected. One question... where does the worker run in the cloud? Is it running on a long lived instance OR will it have to setup the git repo for every request?"
-- "The other problem is a git repo like Kibana is HUGE (a gigabyte or more). We need this to run on a GCP instance that is always "warm"... that will also give us a place to run `npm run setup` and `npm run index -- .repo/kibana` to start the indexing to the cloud instance of Elasticsarch. I think the PubSub part will work BUT I don't think having it be a GCP function will work."
-- "Yes"
-- "I'm getting this for step 3..."
-- "Now I'm getting this error..."
-- "I'm getting this error..."
+- "I need to make the worker instance disk larger"
+- "100GB would be sufficent"
+- "Is there an easy way to increase an existing one?"
+- "Can you add an env variable for the ELASTICSEARCH_CLOUD_ID and include that when available?"
 
 🤖 This commit was assisted by Gemini CLI

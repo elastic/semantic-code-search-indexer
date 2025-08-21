@@ -90,6 +90,7 @@ This is the core of the new architecture.
         --project=$GCP_PROJECT_ID \
         --zone=us-central1-a \
         --machine-type=e2-medium \
+        --boot-disk-size=100GB \
         --scopes=https://www.googleapis.com/auth/cloud-platform \
         --image-family=ubuntu-2204-lts \
         --image-project=ubuntu-os-cloud
@@ -142,10 +143,18 @@ This is the core of the new architecture.
 6.  **Configure and Run the Worker as a Service (using `systemd`)**:
     This ensures the worker runs continuously and restarts on failure or reboot.
 
-    -   **Create a `.env` file** in the `code-indexer` directory on the VM to hold your environment variables:
+    -   **Create a `.env` file** in the `code-indexer` directory on the VM to hold your environment variables. Use the Cloud ID and API Key for Elastic Cloud.
         ```ini
         # /home/user/code-indexer/.env
-        ELASTICSEARCH_URL=http://your-elasticsearch-instance:9200
+        # --- Elasticsearch Configuration ---
+        # Use ELASTICSEARCH_CLOUD_ID for Elastic Cloud (recommended)
+        ELASTICSEARCH_CLOUD_ID=<your-cloud-id>
+        ELASTICSEARCH_API_KEY=<your-base64-encoded-api-key>
+
+        # Or, for a self-managed instance, use ELASTICSEARCH_URL
+        # ELASTICSEARCH_URL=http://your-elasticsearch-instance:9200
+
+        # --- Pub/Sub Configuration ---
         GCP_PUBSUB_TOPIC=github-pushes
         GCP_PUBSUB_SUBSCRIPTION=github-pushes-sub-vm
         ```

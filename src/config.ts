@@ -6,8 +6,9 @@ import os from 'os';
 dotenv.config();
 
 export const elasticsearchConfig = {
-  endpoint: process.env.ELASTICSEARCH_ENDPOINT || 'http://localhost:9200',
-  username: process.env.ELASTICSEARCH_USER,
+  endpoint: process.env.ELASTICSEARCH_URL,
+  cloudId: process.env.ELASTICSEARCH_CLOUD_ID,
+  username: process.env.ELASTICSEARCH_USERNAME,
   password: process.env.ELASTICSEARCH_PASSWORD,
   apiKey: process.env.ELASTICSEARCH_API_KEY,
   model: process.env.ELASTICSEARCH_MODEL || '.elser_model_2',
