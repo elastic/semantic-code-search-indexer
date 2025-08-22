@@ -6,6 +6,7 @@ import {
   createSettingsIndex,
   updateLastIndexedCommit,
   CodeChunk,
+  indexCodeChunks,
 } from '../utils/elasticsearch';
 import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
 import { indexingConfig } from '../config';
@@ -54,41 +55,27 @@ export async function index(directory: string, clean: boolean) {
 
   const { batchSize, cpuCores } = indexingConfig;
   const producerQueue = new PQueue({ concurrency: cpuCores });
-  const consumerQueue = new PQueue({ concurrency: cpuCores });
+  const consumerQueue = new PQueue({ concurrency: 1 }); // Concurrency of 1 for Elasticsearch indexing
 
   let totalChunks = 0;
   let indexedChunks = 0;
-  let indexedBatchCount = 0;
   const chunkQueue: CodeChunk[] = [];
 
   const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
-  const consumerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'consumer_worker.js');
 
   const scheduleConsumer = () => {
     while (chunkQueue.length >= batchSize) {
       const batch = chunkQueue.splice(0, batchSize);
-      consumerQueue.add(() => new Promise<void>((resolve, reject) => {
-        const consumerWorker = new Worker(consumerWorkerPath);
-        consumerWorker.on('message', (msg) => {
-          if (msg.status === 'success') {
-            indexedChunks += batch.length;
-            indexedBatchCount++;
-            console.log(`Progress: Parsed ${successCount}/${files.length} files | Indexed ${indexedChunks}/${totalChunks} chunks`);
-          }
-          consumerWorker.terminate();
-          resolve();
-        });
-        consumerWorker.on('error', (err) => {
-          consumerWorker.terminate();
-          reject(err);
-        });
-        consumerWorker.postMessage(batch);
-      }));
+      consumerQueue.add(async () => {
+        indexedChunks += batch.length;
+        console.log(`Progress: Parsed ${successCount}/${files.length} files | Indexed ${indexedChunks} chunks`);
+        await indexCodeChunks(batch);
+      });
     }
   };
 
-  for (const file of files) {
-    await producerQueue.add(() => new Promise<void>((resolve, reject) => {
+  files.forEach(file => {
+    producerQueue.add(() => new Promise<void>((resolve, reject) => {
       const worker = new Worker(producerWorkerPath);
       const absolutePath = path.resolve(gitRoot, file);
       worker.on('message', message => {
@@ -108,31 +95,22 @@ export async function index(directory: string, clean: boolean) {
         worker.terminate();
         reject(err);
       });
-      const relativePath = path.relative(gitRoot, file);
+      // The `file` path from glob is already relative to gitRoot
+      const relativePath = file;
       worker.postMessage({ filePath: absolutePath, gitBranch, relativePath });
     }));
-  }
+  });
 
   await producerQueue.onIdle();
 
   // Schedule any remaining chunks
   if (chunkQueue.length > 0) {
     const batch = chunkQueue.splice(0, chunkQueue.length);
-    consumerQueue.add(() => new Promise<void>((resolve, reject) => {
-      const consumerWorker = new Worker(consumerWorkerPath);
-      consumerWorker.on('message', (msg) => {
-        if (msg.status === 'success') {
-          indexedChunks += batch.length;
-        }
-        consumerWorker.terminate();
-        resolve();
-      });
-      consumerWorker.on('error', (err) => {
-        consumerWorker.terminate();
-        reject(err);
-      });
-      consumerWorker.postMessage(batch);
-    }));
+    consumerQueue.add(async () => {
+      indexedChunks += batch.length;
+      console.log(`Progress: Parsed ${successCount}/${files.length} files | Indexed ${indexedChunks} chunks`);
+      await indexCodeChunks(batch);
+    });
   }
 
   await consumerQueue.onIdle();
