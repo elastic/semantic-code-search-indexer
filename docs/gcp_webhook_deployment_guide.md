@@ -89,7 +89,7 @@ This is the core of the new architecture.
     gcloud compute instances create persistent-indexer-worker \
         --project=$GCP_PROJECT_ID \
         --zone=us-central1-a \
-        --machine-type=e2-medium \
+        --machine-type=e2-standard-2 \
         --boot-disk-size=100GB \
         --scopes=https://www.googleapis.com/auth/cloud-platform \
         --image-family=ubuntu-2204-lts \
