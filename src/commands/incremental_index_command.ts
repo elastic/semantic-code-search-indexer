@@ -10,18 +10,13 @@ import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
 import { indexingConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
-import cliProgress from 'cli-progress';
 import PQueue from 'p-queue';
 import { execSync } from 'child_process';
+import { logger } from '../utils/logger';
 
-export async function incrementalIndex(
-  directory: string,
-  options: { logMode?: boolean } = {}
-) {
+export async function incrementalIndex(directory: string) {
+  logger.info('Starting incremental indexing process', { directory });
   await setupElser();
-  const { logMode } = options;
-
-    console.log(`Incrementally indexing directory: ${directory}`);
 
   const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory })
     .toString()
@@ -29,139 +24,146 @@ export async function incrementalIndex(
   const lastCommitHash = await getLastIndexedCommit(gitBranch);
 
   if (!lastCommitHash) {
-    console.log('No previous commit hash found. Please run a full index first.');
+    logger.warn('No previous commit hash found. Please run a full index first.', { gitBranch });
     return;
   }
 
-  console.log(`Last indexed commit hash: ${lastCommitHash}`);
+  logger.info(`Last indexed commit hash: ${lastCommitHash}`, { gitBranch });
 
-  console.log(`Pulling latest changes from origin/${gitBranch}...`);
-  execSync(`git pull origin ${gitBranch}`, { cwd: directory, stdio: 'inherit' });
-  console.log('Pull complete.');
+  logger.info('Pulling latest changes from remote', { gitBranch });
+  try {
+    execSync(`git pull origin ${gitBranch}`, { cwd: directory, stdio: 'pipe' });
+    logger.info('Pull complete.');
+  } catch (error: any) {
+    logger.error('Failed to pull latest changes.', { error: error.message });
+    return;
+  }
 
   const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
-  const changedFiles = execSync(`git diff --name-status ${lastCommitHash} HEAD`, {
+  const changedFilesRaw = execSync(`git diff --name-status ${lastCommitHash} HEAD`, {
     cwd: directory,
   })
     .toString()
-    .trim()
+    .trim();
+
+  const changedFiles = changedFilesRaw
     .split('\n')
     .filter(line => line)
     .map(line => {
       const [status, file] = line.split('\t');
-      return { status, file: path.join(gitRoot, file) };
+      return { status, file };
     });
 
   const deletedFiles = changedFiles
     .filter(f => f.status === 'D')
-    .map(f => path.relative(gitRoot, f.file));
+    .map(f => f.file);
+
   const addedOrModifiedFiles = changedFiles
     .filter(
       f =>
-        (f.status === 'A' || f.status === 'M') && SUPPORTED_FILE_EXTENSIONS.includes(path.extname(f.file))
+        (f.status === 'A' || f.status === 'M') &&
+        SUPPORTED_FILE_EXTENSIONS.includes(path.extname(f.file))
     )
     .map(f => f.file);
 
-  if (logMode) {
-    console.log(`Found ${changedFiles.length} changed files.`);
-    console.log(`  - ${addedOrModifiedFiles.length} added or modified`);
-    console.log(`  - ${deletedFiles.length} deleted`);
-  } else {
-    console.log(`Found ${changedFiles.length} changed files.`);
-    console.log(`  - ${addedOrModifiedFiles.length} added or modified`);
-    console.log(`  - ${deletedFiles.length} deleted`);
-  }
+  logger.info(`Found ${changedFiles.length} changed files`, {
+    addedOrModified: addedOrModifiedFiles.length,
+    deleted: deletedFiles.length,
+  });
 
   // Process deletions
   for (const file of deletedFiles) {
     await deleteDocumentsByFilePath(file);
-    if (logMode) {
-      console.log(`Deleted documents for file: ${file}`);
-    }
+    logger.info('Deleted documents for file', { file });
   }
 
   // Process additions/modifications
-  if (!logMode) {
-    console.log('Processing and indexing added/modified files...');
-  }
-  const multibar = !logMode ? new cliProgress.MultiBar({
-    clearOnComplete: false,
-    hideCursor: true,
-    format: '{bar} | {percentage}% | {value}/{total} | {task}',
-  }, cliProgress.Presets.shades_classic) : null;
+  if (addedOrModifiedFiles.length === 0) {
+    logger.info('No new or modified files to index.');
+  } else {
+    logger.info('Processing and indexing added/modified files...');
 
-  const fileProgressBar = multibar?.create(addedOrModifiedFiles.length, 0, { task: 'Processing files' });
-  const chunkIndexingBar = multibar?.create(0, 0, { task: 'Indexing chunks' });
+    let successCount = 0;
+    let failureCount = 0;
+    const { batchSize, cpuCores } = indexingConfig;
+    const producerQueue = new PQueue({ concurrency: cpuCores });
+    const consumerQueue = new PQueue({ concurrency: 1 });
 
-  const { batchSize } = indexingConfig;
-  let successCount = 0;
-  let failureCount = 0;
-  const chunkQueue: CodeChunk[] = [];
-  let totalChunks = 0;
+    let indexedChunks = 0;
+    const chunkQueue: CodeChunk[] = [];
 
-  const indexChunkBatch = async () => {
-    if (chunkQueue.length > 0) {
-      const batchToIndex = chunkQueue.splice(0, chunkQueue.length);
-      if (logMode) {
-        console.log(`Indexing ${batchToIndex.length} chunks...`);
-      } else {
-        chunkIndexingBar?.setTotal(totalChunks);
-        chunkIndexingBar?.update({ task: `Indexing ${batchToIndex.length} chunks...` });
+    const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
+
+    const scheduleConsumer = () => {
+      while (chunkQueue.length >= batchSize) {
+        const batch = chunkQueue.splice(0, batchSize);
+        consumerQueue.add(async () => {
+          indexedChunks += batch.length;
+          logger.info('Indexing batch of chunks', {
+            batchSize: batch.length,
+            totalIndexedChunks: indexedChunks,
+            filesParsed: successCount,
+            totalFiles: addedOrModifiedFiles.length,
+          });
+          await indexCodeChunks(batch);
+        });
       }
-      await indexCodeChunks(batchToIndex);
-      chunkIndexingBar?.increment(batchToIndex.length, { task: 'Indexing chunks' });
-    }
-  };
+    };
 
-  for (const file of addedOrModifiedFiles) {
-    await new Promise<void>((resolve, reject) => {
-      const worker = new Worker(path.join(process.cwd(), 'dist', 'utils', 'worker.js'));
-      worker.on('message', message => {
-        if (message.status === 'success') {
-          successCount++;
-          chunkQueue.push(...message.data);
-          totalChunks += message.data.length;
-        } else {
+    addedOrModifiedFiles.forEach(file => {
+      producerQueue.add(() => new Promise<void>((resolve, reject) => {
+        const worker = new Worker(producerWorkerPath);
+        const absolutePath = path.resolve(gitRoot, file);
+        worker.on('message', message => {
+          if (message.status === 'success') {
+            successCount++;
+            chunkQueue.push(...message.data);
+            scheduleConsumer();
+          } else if (message.status === 'failure') {
+            failureCount++;
+            logger.warn('Failed to parse file', { file: message.file, error: message.error });
+          }
+          worker.terminate();
+          resolve();
+        });
+        worker.on('error', err => {
           failureCount++;
-        }
-        if (logMode) {
-          console.log(`[${successCount + failureCount}/${addedOrModifiedFiles.length}] Processed: ${file}`);
-        }
-        worker.terminate();
-        resolve();
-      });
-      worker.on('error', err => {
-        failureCount++;
-        worker.terminate();
-        reject(err);
-      });
-      const relativePath = path.relative(gitRoot, file);
-      worker.postMessage({ filePath: file, gitBranch, relativePath });
+          logger.error('Worker thread error', { file, error: err.message });
+          worker.terminate();
+          reject(err);
+        });
+        const relativePath = file;
+        worker.postMessage({ filePath: absolutePath, gitBranch, relativePath });
+      }));
     });
 
-    if (chunkQueue.length >= batchSize) {
-      await indexChunkBatch();
+    await producerQueue.onIdle();
+
+    if (chunkQueue.length > 0) {
+      const batch = chunkQueue.splice(0, chunkQueue.length);
+      consumerQueue.add(async () => {
+        indexedChunks += batch.length;
+        logger.info('Indexing final batch of chunks', {
+          batchSize: batch.length,
+          totalIndexedChunks: indexedChunks,
+        });
+        await indexCodeChunks(batch);
+      });
     }
-    fileProgressBar?.increment();
+
+    await consumerQueue.onIdle();
+
+    logger.info('--- Incremental Indexing Summary (Additions/Modifications) ---');
+    logger.info(`Successfully processed: ${successCount} files`);
+    logger.info(`Failed to parse:      ${failureCount} files`);
+    logger.info(`Total chunks indexed: ${indexedChunks}`);
   }
-
-  // Index any remaining chunks
-  await indexChunkBatch();
-
-  multibar?.stop();
 
   const newCommitHash = execSync('git rev-parse HEAD', { cwd: directory }).toString().trim();
   await updateLastIndexedCommit(gitBranch, newCommitHash);
 
-  console.log('\n---');
-  console.log('Incremental Indexing Summary:');
-  console.log(`  Successfully processed: ${successCount} files`);
-  console.log(`  Failed to parse:      ${failureCount} files`);
-  console.log(`  New HEAD commit hash: ${newCommitHash}`);
-  console.log('---');
-  if (logMode) {
-    console.log('Incremental indexing complete.');
-  } else {
-    console.log('Incremental indexing complete.');
-  }
+  logger.info('---');
+  logger.info(`New HEAD commit hash: ${newCommitHash}`);
+  logger.info('---');
+  logger.info('Incremental indexing complete.');
 }

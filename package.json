@@ -3,19 +3,12 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "start": "ts-node src/index.ts",
     "build": "tsc",
     "lint": "eslint . --ext .ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "index": "NODE_OPTIONS=--max-old-space-size=8192 ts-node src/index.ts index",
     "search": "ts-node src/index.ts search",
-    "references": "ts-node src/index.ts references",
     "incremental-index": "ts-node src/index.ts incremental-index",
-    "setup": "ts-node src/index.ts setup",
-    "start:webhook": "node dist/webhook/server.js",
-    "start:local-worker": "node dist/webhook/local_worker.js",
-    "start:vm-worker": "node dist/webhook/vm_worker.js",
-    "index-and-search": "npm run index"
+    "setup": "ts-node src/index.ts setup"
   },
   "keywords": [],
   "author": "",

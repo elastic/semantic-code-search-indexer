@@ -17,17 +17,21 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 // @ts-ignore
 import ignore from 'ignore';
-import os from 'os';
+import { logger } from '../utils/logger';
 
 export async function index(directory: string, clean: boolean) {
+  logger.info('Starting full indexing process', { directory, clean });
   if (clean) {
+    logger.info('Clean flag is set, deleting existing index.');
     await deleteIndex();
   }
 
   await setupElser();
-  console.log(`Indexing directory: ${directory}`);
+  logger.info('Setting up ELSER...');
   await createIndex();
+  logger.info('Index created.');
   await createSettingsIndex();
+  logger.info('Settings index created.');
 
   const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
   const ig = ignore();
@@ -45,7 +49,7 @@ export async function index(directory: string, clean: boolean) {
   });
   const files = ig.filter(allFiles);
 
-  console.log(`Found ${files.length} files to index.`);
+  logger.info(`Found ${files.length} files to index.`);
 
   let successCount = 0;
   let failureCount = 0;
@@ -57,7 +61,6 @@ export async function index(directory: string, clean: boolean) {
   const producerQueue = new PQueue({ concurrency: cpuCores });
   const consumerQueue = new PQueue({ concurrency: 1 }); // Concurrency of 1 for Elasticsearch indexing
 
-  let totalChunks = 0;
   let indexedChunks = 0;
   const chunkQueue: CodeChunk[] = [];
 
@@ -68,7 +71,12 @@ export async function index(directory: string, clean: boolean) {
       const batch = chunkQueue.splice(0, batchSize);
       consumerQueue.add(async () => {
         indexedChunks += batch.length;
-        console.log(`Progress: Parsed ${successCount}/${files.length} files | Indexed ${indexedChunks} chunks`);
+        logger.info('Indexing batch of chunks', {
+          batchSize: batch.length,
+          totalIndexedChunks: indexedChunks,
+          filesParsed: successCount,
+          totalFiles: files.length,
+        });
         await indexCodeChunks(batch);
       });
     }
@@ -81,17 +89,18 @@ export async function index(directory: string, clean: boolean) {
       worker.on('message', message => {
         if (message.status === 'success') {
           successCount++;
-          totalChunks += message.data.length;
           chunkQueue.push(...message.data);
           scheduleConsumer();
         } else if (message.status === 'failure') {
           failureCount++;
+          logger.warn('Failed to parse file', { file: message.file, error: message.error });
         }
         worker.terminate();
         resolve();
       });
       worker.on('error', err => {
         failureCount++;
+        logger.error('Worker thread error', { file, error: err.message });
         worker.terminate();
         reject(err);
       });
@@ -108,7 +117,10 @@ export async function index(directory: string, clean: boolean) {
     const batch = chunkQueue.splice(0, chunkQueue.length);
     consumerQueue.add(async () => {
       indexedChunks += batch.length;
-      console.log(`Progress: Parsed ${successCount}/${files.length} files | Indexed ${indexedChunks} chunks`);
+      logger.info('Indexing final batch of chunks', {
+        batchSize: batch.length,
+        totalIndexedChunks: indexedChunks,
+      });
       await indexCodeChunks(batch);
     });
   }
@@ -118,12 +130,11 @@ export async function index(directory: string, clean: boolean) {
   const commitHash = execSync('git rev-parse HEAD', { cwd: directory }).toString().trim();
   await updateLastIndexedCommit(gitBranch, commitHash);
 
-  console.log('\n---');
-  console.log('Indexing Summary:');
-  console.log(`  Successfully processed: ${successCount} files`);
-  console.log(`  Failed to parse:      ${failureCount} files`);
-  console.log(`  Total chunks indexed: ${indexedChunks}`);
-  console.log(`  HEAD commit hash:     ${commitHash}`);
-  console.log('---');
-  console.log('Indexing complete.');
+  logger.info('--- Indexing Summary ---');
+  logger.info(`Successfully processed: ${successCount} files`);
+  logger.info(`Failed to parse:      ${failureCount} files`);
+  logger.info(`Total chunks indexed: ${indexedChunks}`);
+  logger.info(`HEAD commit hash:     ${commitHash}`);
+  logger.info('---');
+  logger.info('Full indexing complete.');
 }

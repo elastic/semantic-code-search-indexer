@@ -13,7 +13,7 @@ async function main() {
   if (command === 'index') {
     await index(argument || '.', clean);
   } else if (command === 'incremental-index') {
-    await incrementalIndex(argument || '.', { logMode });
+    await incrementalIndex(argument || '.');
   } else if (command === 'search') {
     if (!argument) {
       console.error('Please provide a search query.');
