@@ -5,8 +5,10 @@ import {
   setupElser,
   createSettingsIndex,
   updateLastIndexedCommit,
+  CodeChunk,
 } from '../utils/elasticsearch';
 import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
+import { indexingConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import cliProgress from 'cli-progress';
@@ -68,9 +70,32 @@ export async function index(directory: string, clean: boolean) {
   const consumerQueue = new PQueue({ concurrency: numCores });
 
   let totalChunks = 0;
+  const chunkQueue: CodeChunk[] = [];
+  const { batchSize } = indexingConfig;
 
   const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
   const consumerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'consumer_worker.js');
+
+  const scheduleConsumer = () => {
+    while (chunkQueue.length >= batchSize) {
+      const batch = chunkQueue.splice(0, batchSize);
+      consumerQueue.add(() => new Promise<void>((resolve, reject) => {
+        const consumerWorker = new Worker(consumerWorkerPath);
+        consumerWorker.on('message', (msg) => {
+          if (msg.status === 'success') {
+            chunkIndexingBar.increment(batch.length);
+          }
+          consumerWorker.terminate();
+          resolve();
+        });
+        consumerWorker.on('error', (err) => {
+          consumerWorker.terminate();
+          reject(err);
+        });
+        consumerWorker.postMessage(batch);
+      }));
+    }
+  };
 
   files.forEach(file => {
     producerQueue.add(() => new Promise<void>((resolve, reject) => {
@@ -81,21 +106,8 @@ export async function index(directory: string, clean: boolean) {
           successCount++;
           totalChunks += message.data.length;
           chunkIndexingBar.setTotal(totalChunks);
-          consumerQueue.add(() => new Promise<void>((resolve, reject) => {
-            const consumerWorker = new Worker(consumerWorkerPath);
-            consumerWorker.on('message', (msg) => {
-              if (msg.status === 'success') {
-                chunkIndexingBar.increment(message.data.length);
-              }
-              consumerWorker.terminate();
-              resolve();
-            });
-            consumerWorker.on('error', (err) => {
-              consumerWorker.terminate();
-              reject(err);
-            });
-            consumerWorker.postMessage(message.data);
-          }));
+          chunkQueue.push(...message.data);
+          scheduleConsumer();
         } else if (message.status === 'failure') {
           failureCount++;
         }
@@ -115,6 +127,27 @@ export async function index(directory: string, clean: boolean) {
   });
 
   await producerQueue.onIdle();
+
+  // Schedule any remaining chunks
+  if (chunkQueue.length > 0) {
+    const batch = chunkQueue.splice(0, chunkQueue.length);
+    consumerQueue.add(() => new Promise<void>((resolve, reject) => {
+      const consumerWorker = new Worker(consumerWorkerPath);
+      consumerWorker.on('message', (msg) => {
+        if (msg.status === 'success') {
+          chunkIndexingBar.increment(batch.length);
+        }
+        consumerWorker.terminate();
+        resolve();
+      });
+      consumerWorker.on('error', (err) => {
+        consumerWorker.terminate();
+        reject(err);
+      });
+      consumerWorker.postMessage(batch);
+    }));
+  }
+
   await consumerQueue.onIdle();
 
   multibar.stop();
