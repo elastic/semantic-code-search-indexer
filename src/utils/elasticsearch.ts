@@ -195,18 +195,31 @@ export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
     return;
   }
 
-  const bulkHelper = client.helpers.bulk({
-    datasource: chunks,
-    pipeline: elserPipelineName,
-    onDocument(doc) {
-      return { index: { _index: indexName } };
-    },
-    onDrop(doc) {
-      console.error('[ES Consumer] Document dropped:', doc);
-    },
-  });
+  const operations = chunks.flatMap(doc => [{ index: { _index: indexName, pipeline: elserPipelineName } }, doc]);
 
-  await bulkHelper;
+  const bulkResponse = await client.bulk({ refresh: false, operations });
+
+  if (bulkResponse.errors) {
+    const erroredDocuments: any[] = [];
+    // The items array has the same order of the dataset we just indexed.
+    // The presence of the `error` key indicates that the operation
+    // that we did for the document has failed.
+    bulkResponse.items.forEach((action: any, i: number) => {
+      const operation = Object.keys(action)[0];
+      if (action[operation].error) {
+        erroredDocuments.push({
+          // If the status is 429 it means that you can retry the document,
+          // otherwise it's very likely a mapping error, and you should
+          // fix the document before to try it again.
+          status: action[operation].status,
+          error: action[operation].error,
+          operation: operations[i * 2],
+          document: operations[i * 2 + 1]
+        });
+      }
+    });
+    console.error('[ES Consumer] Errors during bulk indexing:', JSON.stringify(erroredDocuments, null, 2));
+  }
 }
 
 export async function getClusterHealth(): Promise<any> {
