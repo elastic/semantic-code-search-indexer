@@ -65,13 +65,12 @@ export async function index(directory: string, clean: boolean) {
     .toString()
     .trim();
 
-  const numCores = os.cpus().length;
-  const producerQueue = new PQueue({ concurrency: numCores });
-  const consumerQueue = new PQueue({ concurrency: numCores });
+  const { batchSize, cpuCores } = indexingConfig;
+  const producerQueue = new PQueue({ concurrency: cpuCores });
+  const consumerQueue = new PQueue({ concurrency: cpuCores });
 
   let totalChunks = 0;
   const chunkQueue: CodeChunk[] = [];
-  const { batchSize } = indexingConfig;
 
   const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
   const consumerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'consumer_worker.js');
