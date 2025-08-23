@@ -13,6 +13,7 @@ export const elasticsearchConfig = {
   apiKey: process.env.ELASTICSEARCH_API_KEY,
   model: process.env.ELASTICSEARCH_MODEL || '.elser_model_2',
   index: process.env.ELASTICSEARCH_INDEX || 'code-chunks',
+  logging: process.env.ELASTICSEARCH_LOGGING === 'true',
 };
 
 export const indexingConfig = {

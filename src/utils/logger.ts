@@ -1,4 +1,9 @@
 // src/utils/logger.ts
+import { Client, ClientOptions } from '@elastic/elasticsearch';
+import { elasticsearchConfig } from '../config';
+import { findProjectRoot } from './find_project_root';
+import { execSync } from 'child_process';
+import os from 'os';
 
 enum LogLevel {
   INFO = 'INFO',
@@ -8,20 +13,93 @@ enum LogLevel {
 }
 
 interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
+  '@timestamp': string;
+  'log.level': LogLevel;
   message: string;
-  [key: string]: any; // For additional metadata
+  [key: string]: unknown;
 }
 
-function log(level: LogLevel, message: string, metadata: object = {}) {
+let esClient: Client | null = null;
+let gitInfo: { branch: string; remoteUrl: string; rootPath: string } | null = null;
+
+try {
+  const rootPath = findProjectRoot(process.cwd()) || process.cwd();
+  const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: rootPath }).toString().trim();
+  const remoteUrl = execSync('git config --get remote.origin.url', { cwd: rootPath }).toString().trim();
+  gitInfo = { branch, remoteUrl, rootPath };
+} catch (error) {
+  console.error('Could not get git info', error);
+}
+
+
+if (elasticsearchConfig.logging) {
+  const baseOptions: Partial<ClientOptions> = {
+    requestTimeout: 10000, // 10 seconds
+  };
+
+  if (elasticsearchConfig.cloudId) {
+    esClient = new Client({
+      ...baseOptions,
+      cloud: {
+        id: elasticsearchConfig.cloudId,
+      },
+      auth: {
+        apiKey: elasticsearchConfig.apiKey || '',
+      },
+    });
+  } else if (elasticsearchConfig.endpoint) {
+    const clientOptions: ClientOptions = {
+      ...baseOptions,
+      node: elasticsearchConfig.endpoint,
+    };
+
+    if (elasticsearchConfig.apiKey) {
+      clientOptions.auth = { apiKey: elasticsearchConfig.apiKey };
+    } else if (elasticsearchConfig.username && elasticsearchConfig.password) {
+      clientOptions.auth = {
+        username: elasticsearchConfig.username,
+        password: elasticsearchConfig.password,
+      };
+    }
+    esClient = new Client(clientOptions);
+  }
+}
+
+async function log(level: LogLevel, message: string, metadata: object = {}) {
   const logEntry: LogEntry = {
-    timestamp: new Date().toISOString(),
-    level,
+    '@timestamp': new Date().toISOString(),
+    'log.level': level,
     message,
+    data_stream: {
+      type: 'logs',
+      namespace: 'default',
+      dataset: 'semantic.codesearch',
+    },
+    codesearch: {
+      ...gitInfo,
+    },
+    host: {
+      hostname: os.hostname(),
+      type: os.type(),
+      platform: os.platform(),
+      architecture: os.arch(),
+      total_memory: os.totalmem(),
+    },
     ...metadata,
   };
+
   console.log(JSON.stringify(logEntry));
+
+  if (esClient) {
+    try {
+      await esClient.index({
+        index: 'logs-semantic.codesearch-default',
+        document: logEntry,
+      });
+    } catch (error) {
+      console.error('Failed to send log to Elasticsearch:', error);
+    }
+  }
 }
 
 export const logger = {
