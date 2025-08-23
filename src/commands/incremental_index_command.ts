@@ -121,7 +121,7 @@ export async function incrementalIndex(directory: string) {
             scheduleConsumer();
           } else if (message.status === 'failure') {
             failureCount++;
-            logger.warn('Failed to parse file', { file: message.file, error: message.error });
+            logger.warn('Failed to parse file', { file: message.filePath, error: message.error });
           }
           worker.terminate();
           resolve();

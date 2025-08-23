@@ -93,7 +93,7 @@ export async function index(directory: string, clean: boolean) {
           scheduleConsumer();
         } else if (message.status === 'failure') {
           failureCount++;
-          logger.warn('Failed to parse file', { file: message.file, error: message.error });
+          logger.warn('Failed to parse file', { file: message.filePath, error: message.error });
         }
         worker.terminate();
         resolve();
