@@ -34,6 +34,7 @@
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "devDependencies": {
+    "@marp-team/marp-cli": "^4.2.3",
     "@types/express": "^5.0.3",
     "@types/glob": "^8.1.0",
     "@types/node": "^24.3.0",
