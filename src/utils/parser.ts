@@ -12,7 +12,7 @@ const { Query } = Parser;
 export interface LanguageConfiguration {
   name: string;
   fileSuffixes: string[];
-  parser: any;
+  parser: any; // This can be a tree-sitter parser or null for custom parsers
   queries: string[];
 }
 
@@ -23,7 +23,7 @@ export class LanguageParser {
   constructor() {
     this.languages = new Map();
     this.fileSuffixMap = new Map();
-    const languageNames = (process.env.SEMANTIC_CODE_INDEXER_LANGUAGES || 'typescript,javascript,markdown').split(',');
+    const languageNames = (process.env.SEMANTIC_CODE_INDEXER_LANGUAGES || 'typescript,javascript,markdown,yaml').split(',');
     for (const name of languageNames) {
       const config = (languageConfigurations as { [key: string]: LanguageConfiguration })[name.trim()];
       if (config) {
@@ -47,8 +47,13 @@ export class LanguageParser {
       return [];
     }
 
-    if (langConfig.name === 'markdown') {
-      return this.parseMarkdown(filePath, gitBranch, relativePath);
+    if (langConfig.parser === null) {
+      if (langConfig.name === 'markdown') {
+        return this.parseMarkdown(filePath, gitBranch, relativePath);
+      }
+      if (langConfig.name === 'yaml') {
+        return this.parseYaml(filePath, gitBranch, relativePath);
+      }
     }
 
     return this.parseWithTreeSitter(filePath, gitBranch, relativePath, langConfig);
@@ -86,6 +91,43 @@ export class LanguageParser {
     });
   }
 
+  private parseYaml(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
+    const now = new Date().toISOString();
+    const content = fs.readFileSync(filePath, 'utf8');
+    const documents = content.split(/^---/m); // Split by document separator
+    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    const allChunks: CodeChunk[] = [];
+
+    documents.forEach(doc => {
+      if (/[a-zA-Z0-9]/.test(doc)) {
+        const lines = doc.trim().split('\n');
+        lines.forEach((line, index) => {
+          if (line.trim().length > 0) {
+            const chunkHash = createHash('sha256').update(line).digest('hex');
+            const codeChunk: Omit<CodeChunk, 'embedding_text'> = {
+              type: 'doc',
+              language: 'yaml',
+              filePath: relativePath,
+              git_file_hash: gitFileHash,
+              git_branch: gitBranch,
+              chunk_hash: chunkHash,
+              content: line,
+              startLine: index + 1,
+              endLine: index + 1,
+              created_at: now,
+              updated_at: now,
+            };
+            allChunks.push({
+              ...codeChunk,
+              embedding_text: this.prepareContentForEmbedding(codeChunk),
+            });
+          }
+        });
+      }
+    });
+    return allChunks;
+  }
+
   private parseWithTreeSitter(filePath: string, gitBranch: string, relativePath: string, langConfig: LanguageConfiguration): CodeChunk[] {
     const now = new Date().toISOString();
     const parser = new Parser();
@@ -109,16 +151,18 @@ export class LanguageParser {
 
       let containerPath = '';
       let parent = node.parent;
-      while (parent) {
-        if (parent.type === 'function_declaration' || parent.type === 'class_declaration' || parent.type === 'method_definition') {
-          const nameNode = parent.namedChildren.find(child => child.type === 'identifier');
+      if (parent) {
+        if (parent.type === 'class_body') {
+          parent = parent.parent;
+        }
+
+        if (parent && (parent.type === 'class_declaration' || parent.type === 'function_declaration')) {
+          const nameNode = parent.namedChildren.find(child => child.type === 'identifier' || child.type === 'type_identifier');
           if (nameNode) {
-            containerPath = `${nameNode.text} > ${containerPath}`;
+            containerPath = nameNode.text;
           }
         }
-        parent = parent.parent;
       }
-      containerPath = containerPath.replace(/ > $/, '');
 
       const chunk: Omit<CodeChunk, 'embedding_text'> = {
         type: 'code',

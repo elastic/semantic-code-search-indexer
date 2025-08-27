@@ -13,6 +13,7 @@ export const typescript: LanguageConfiguration = {
     '(function_declaration) @function',
     '(generator_function_declaration) @function',
     '(class_declaration) @class',
+    '(method_definition) @method',
     '(lexical_declaration) @variable',
     '(variable_declaration) @variable',
     '(type_alias_declaration) @type',

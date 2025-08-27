@@ -1,0 +1,7 @@
+document: one
+pair:
+  key: value
+---
+document: two
+another_pair:
+  nested_key: nested_value

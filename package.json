@@ -8,7 +8,8 @@
     "index": "NODE_OPTIONS=--max-old-space-size=8192 ts-node src/index.ts index",
     "search": "ts-node src/index.ts search",
     "incremental-index": "ts-node src/index.ts incremental-index",
-    "setup": "ts-node src/index.ts setup"
+    "setup": "ts-node src/index.ts setup",
+    "test": "jest --no-watchman"
   },
   "keywords": [],
   "author": "",
@@ -37,10 +38,13 @@
     "@marp-team/marp-cli": "^4.2.3",
     "@types/express": "^5.0.3",
     "@types/glob": "^8.1.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "eslint": "^9.33.0",
+    "jest": "^30.1.1",
+    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.40.0"
