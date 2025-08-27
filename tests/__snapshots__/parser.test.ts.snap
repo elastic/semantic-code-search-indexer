@@ -1,5 +1,168 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`LanguageParser should parse Go fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "4a829123137dd0f0247cac32033fcb516bf9b5581044a790840864e46c03e136",
+    "containerPath": "",
+    "content": ""fmt"",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/go.go
+kind: import_spec
+
+"fmt"",
+    "endLine": 3,
+    "filePath": "tests/fixtures/go.go",
+    "git_branch": "main",
+    "git_file_hash": "0c54a66d401cc5f0cb72a9e42d247ea930c71ef5",
+    "imports": [
+      ""fmt"",
+    ],
+    "kind": "import_spec",
+    "language": "go",
+    "startLine": 3,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "f4b5176566b5165c515ea28ee5770957c61ebf18ac84412262f3da978fc57d44",
+    "containerPath": "",
+    "content": "func myFunction() {
+    fmt.Println("Hello, Go!")
+}",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/go.go
+kind: function_declaration
+
+func myFunction() {
+    fmt.Println("Hello, Go!")
+}",
+    "endLine": 7,
+    "filePath": "tests/fixtures/go.go",
+    "git_branch": "main",
+    "git_file_hash": "0c54a66d401cc5f0cb72a9e42d247ea930c71ef5",
+    "imports": [
+      ""fmt"",
+    ],
+    "kind": "function_declaration",
+    "language": "go",
+    "startLine": 5,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "125de83243a2f4cb0869d974cf82881c1ea38b53de65ce3c8cf597555e74b6ac",
+    "containerPath": "",
+    "content": "type MyType struct {
+    name string
+}",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/go.go
+kind: type_declaration
+
+type MyType struct {
+    name string
+}",
+    "endLine": 11,
+    "filePath": "tests/fixtures/go.go",
+    "git_branch": "main",
+    "git_file_hash": "0c54a66d401cc5f0cb72a9e42d247ea930c71ef5",
+    "imports": [
+      ""fmt"",
+    ],
+    "kind": "type_declaration",
+    "language": "go",
+    "startLine": 9,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
+exports[`LanguageParser should parse Java fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "c7bf8cb907acb4b0d6e6fddaf47d772c5f0336e85f853a81815767441d7dff94",
+    "containerPath": "",
+    "content": "import java.util.List;",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/java.java
+kind: import_declaration
+
+import java.util.List;",
+    "endLine": 1,
+    "filePath": "tests/fixtures/java.java",
+    "git_branch": "main",
+    "git_file_hash": "14e04aba844af5a81e2c94f014713ea55bd90807",
+    "imports": [
+      "import java.util.List;",
+    ],
+    "kind": "import_declaration",
+    "language": "java",
+    "startLine": 1,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a7a75fe95323edd73fc60b92f12fc013a153efbcf98c98377199ebb1e887a209",
+    "containerPath": "",
+    "content": "class MyClass {
+    public void myMethod() {
+        System.out.println("Hello, Java!");
+    }
+}",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/java.java
+kind: class_declaration
+
+class MyClass {
+    public void myMethod() {
+        System.out.println("Hello, Java!");
+    }
+}",
+    "endLine": 7,
+    "filePath": "tests/fixtures/java.java",
+    "git_branch": "main",
+    "git_file_hash": "14e04aba844af5a81e2c94f014713ea55bd90807",
+    "imports": [
+      "import java.util.List;",
+    ],
+    "kind": "class_declaration",
+    "language": "java",
+    "startLine": 3,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "0b64c9f2f3e7d8bc006ab2841e2516f7eb1752ced4fccf76b9ccf9aa4562376d",
+    "containerPath": "MyClass",
+    "content": "public void myMethod() {
+        System.out.println("Hello, Java!");
+    }",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/java.java
+kind: method_declaration
+containerPath: MyClass
+
+public void myMethod() {
+        System.out.println("Hello, Java!");
+    }",
+    "endLine": 6,
+    "filePath": "tests/fixtures/java.java",
+    "git_branch": "main",
+    "git_file_hash": "14e04aba844af5a81e2c94f014713ea55bd90807",
+    "imports": [
+      "import java.util.List;",
+    ],
+    "kind": "method_declaration",
+    "language": "java",
+    "startLine": 4,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
 exports[`LanguageParser should parse JavaScript fixtures correctly 1`] = `
 [
   {
@@ -215,6 +378,107 @@ This is another paragraph.
     "language": "markdown",
     "startLine": 7,
     "type": "doc",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
+exports[`LanguageParser should parse Python fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "de2abade832c8e350a1bdc98cfcdb1e202ac4749c5fc51a4a970d41736b6df5c",
+    "containerPath": "",
+    "content": "import os",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/python.py
+kind: import_statement
+
+import os",
+    "endLine": 1,
+    "filePath": "tests/fixtures/python.py",
+    "git_branch": "main",
+    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
+    "imports": [
+      "import os",
+    ],
+    "kind": "import_statement",
+    "language": "python",
+    "startLine": 1,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "4416cd8dd5bbde8d874fb5633b664d25cb2cf0056bb279836527e32e4dd1cf0e",
+    "containerPath": "",
+    "content": "class MyClass:
+    def my_method(self):
+        print("Hello, Python!")",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/python.py
+kind: class_definition
+
+class MyClass:
+    def my_method(self):
+        print("Hello, Python!")",
+    "endLine": 5,
+    "filePath": "tests/fixtures/python.py",
+    "git_branch": "main",
+    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
+    "imports": [
+      "import os",
+    ],
+    "kind": "class_definition",
+    "language": "python",
+    "startLine": 3,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b8cb7ef3b47294cb6d26e1a0479dba320243ecd0cf40e6336775f3d049a1de70",
+    "containerPath": "",
+    "content": "def my_method(self):
+        print("Hello, Python!")",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/python.py
+kind: function_definition
+
+def my_method(self):
+        print("Hello, Python!")",
+    "endLine": 5,
+    "filePath": "tests/fixtures/python.py",
+    "git_branch": "main",
+    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
+    "imports": [
+      "import os",
+    ],
+    "kind": "function_definition",
+    "language": "python",
+    "startLine": 4,
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "bd34f0510bd5068fefbe1d3c56e0d5f858f1e3f16d72e6fb86cdb32dcac37244",
+    "containerPath": "",
+    "content": "def my_function():
+    pass",
+    "created_at": "[TIMESTAMP]",
+    "embedding_text": "filePath: tests/fixtures/python.py
+kind: function_definition
+
+def my_function():
+    pass",
+    "endLine": 8,
+    "filePath": "tests/fixtures/python.py",
+    "git_branch": "main",
+    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
+    "imports": [
+      "import os",
+    ],
+    "kind": "function_definition",
+    "language": "python",
+    "startLine": 7,
+    "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
 ]
@@ -448,7 +712,7 @@ interface MyInterface {
 ]
 `;
 
-exports[`LanguageParser should parse YAML fixtures correctly 1`] =
+exports[`LanguageParser should parse YAML fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "7faf28cc86373c82f34b2d4885392ed863a17a33a23fa5ef55caf75a9b798085",

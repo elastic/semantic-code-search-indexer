@@ -8,7 +8,7 @@ describe('LanguageParser', () => {
   let parser: LanguageParser;
 
   beforeAll(() => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,javascript,markdown,yaml';
+    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,javascript,markdown,yaml,java,go,python';
     parser = new LanguageParser();
   });
 
@@ -41,6 +41,24 @@ describe('LanguageParser', () => {
   it('should parse YAML fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
     const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
+    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+  });
+
+  it('should parse Java fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/java.java');
+    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
+    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+  });
+
+  it('should parse Go fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/go.go');
+    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/go.go');
+    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+  });
+
+  it('should parse Python fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/python.py');
+    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/python.py');
     expect(cleanTimestamps(chunks)).toMatchSnapshot();
   });
 });

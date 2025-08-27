@@ -156,7 +156,7 @@ export class LanguageParser {
           parent = parent.parent;
         }
 
-        if (parent && (parent.type === 'class_declaration' || parent.type === 'function_declaration')) {
+        if (parent && (parent.type === 'class_declaration' || parent.type === 'function_declaration' || parent.type === 'class_definition')) {
           const nameNode = parent.namedChildren.find(child => child.type === 'identifier' || child.type === 'type_identifier');
           if (nameNode) {
             containerPath = nameNode.text;
