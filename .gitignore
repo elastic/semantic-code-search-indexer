@@ -5,3 +5,4 @@ commit_message.txt
 \n.repos/
 .repos/
 COMMIT_MESSAGE.tmp
+.marprc.js
