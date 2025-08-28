@@ -41,7 +41,10 @@ export async function index(directory: string, clean: boolean) {
   ig.add(['**/*_lexer.ts', '**/*_parser.ts']);
 
   const relativeSearchDir = path.relative(gitRoot, directory);
-  const globPattern = path.join(relativeSearchDir, `**/*{${supportedFileExtensions.join(',')}}`);
+
+  // Only surround the extensions with {} when there is more that one
+  const extensionPattern = supportedFileExtensions.length === 1 ? supportedFileExtensions.join(',') : `{${supportedFileExtensions.join(',')}}`;
+  const globPattern = path.join(relativeSearchDir, `**/*${extensionPattern}`);
 
   const allFiles = await glob(globPattern, {
     cwd: gitRoot,
