@@ -23,7 +23,7 @@ export class LanguageParser {
   constructor() {
     this.languages = new Map();
     this.fileSuffixMap = new Map();
-    const languageNames = (process.env.SEMANTIC_CODE_INDEXER_LANGUAGES || 'typescript,javascript,markdown,yaml').split(',');
+    const languageNames = (process.env.SEMANTIC_CODE_INDEXER_LANGUAGES || 'typescript,javascript,markdown,yaml,java,go,python').split(',');
     for (const name of languageNames) {
       const config = (languageConfigurations as { [key: string]: LanguageConfiguration })[name.trim()];
       if (config) {
@@ -71,7 +71,7 @@ export class LanguageParser {
         const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
         const endLine = startLine + (chunk.match(/\n/g) || []).length;
         const chunkHash = createHash('sha256').update(chunk).digest('hex');
-        const codeChunk: Omit<CodeChunk, 'embedding_text'> = {
+        const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
             type: 'doc',
             language: 'markdown',
             filePath: relativePath,
@@ -85,9 +85,9 @@ export class LanguageParser {
             updated_at: now,
         };
         return {
-          ...codeChunk,
-          embedding_text: this.prepareContentForEmbedding(codeChunk),
-        }
+          ...baseChunk,
+          semantic_text: this.prepareSemanticText(baseChunk),
+        } as CodeChunk;
     });
   }
 
@@ -104,7 +104,7 @@ export class LanguageParser {
         lines.forEach((line, index) => {
           if (line.trim().length > 0) {
             const chunkHash = createHash('sha256').update(line).digest('hex');
-            const codeChunk: Omit<CodeChunk, 'embedding_text'> = {
+            const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
               type: 'doc',
               language: 'yaml',
               filePath: relativePath,
@@ -118,9 +118,9 @@ export class LanguageParser {
               updated_at: now,
             };
             allChunks.push({
-              ...codeChunk,
-              embedding_text: this.prepareContentForEmbedding(codeChunk),
-            });
+              ...baseChunk,
+              semantic_text: this.prepareSemanticText(baseChunk),
+            } as CodeChunk);
           }
         });
       }
@@ -164,7 +164,7 @@ export class LanguageParser {
         }
       }
 
-      const chunk: Omit<CodeChunk, 'embedding_text'> = {
+      const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
         type: 'code',
         language: langConfig.name,
         kind: node.type,
@@ -182,13 +182,13 @@ export class LanguageParser {
       };
 
       return {
-        ...chunk,
-        embedding_text: this.prepareContentForEmbedding(chunk),
-      };
+        ...baseChunk,
+        semantic_text: this.prepareSemanticText(baseChunk),
+      } as CodeChunk;
     });
   }
 
-  private prepareContentForEmbedding(chunk: Omit<CodeChunk, 'embedding_text' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'>): string {
+  private prepareSemanticText(chunk: Omit<CodeChunk, 'semantic_text' | 'code_vector' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'>): string {
     let text = `filePath: ${chunk.filePath}\n`;
     if (chunk.kind) {
       text += `kind: ${chunk.kind}\n`;

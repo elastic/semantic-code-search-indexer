@@ -29,11 +29,8 @@ export async function index(directory: string, clean: boolean) {
   }
 
   await setupElser();
-  logger.info('Setting up ELSER...');
   await createIndex();
-  logger.info('Index created.');
   await createSettingsIndex();
-  logger.info('Settings index created.');
 
   const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
   const ig = ignore();

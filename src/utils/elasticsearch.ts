@@ -1,5 +1,6 @@
 import { Client, ClientOptions } from '@elastic/elasticsearch';
 import { elasticsearchConfig } from '../config';
+import { logger } from './logger';
 
 let client: Client;
 
@@ -39,61 +40,36 @@ if (elasticsearchConfig.cloudId) {
 }
 
 const indexName = elasticsearchConfig.index;
-const elserPipelineName = 'elser_ingest_pipeline_2';
 const elserModelId = elasticsearchConfig.model;
+const codeSimilarityPipeline = 'code-similarity-pipeline';
 
 export async function setupElser(): Promise<void> {
-  console.log('Checking for ELSER model and pipeline...');
-  const pipelineExists = await client.ingest.getPipeline({ id: elserPipelineName }).catch(() => false);
-  if (pipelineExists) {
-    console.log('ELSER ingest pipeline already exists.');
-    return;
-  }
+  logger.info('Checking for ELSER model deployment...');
   try {
-    await client.ml.getTrainedModels({ model_id: elserModelId });
+    const stats = await client.ml.getTrainedModelsStats({ model_id: elserModelId });
+    if (stats.trained_model_stats[0]?.deployment_stats?.state !== 'started') {
+      logger.info('Starting ELSER model deployment...');
+      await client.ml.startTrainedModelDeployment({ model_id: elserModelId, wait_for: 'started' });
+    }
+    logger.info('ELSER model is deployed and ready.');
   } catch (error) {
-    console.error(`ELSER model '${elserModelId}' not found on the cluster.`);
-    console.error('Please download it via the Kibana UI (Machine Learning > Trained Models) before running the indexer.');
-    throw new Error('ELSER model not found.');
+    logger.error(`ELSER model '${elserModelId}' not found or failed to deploy.`, { error });
+    logger.error('Please deploy it via the Kibana UI (Machine Learning > Trained Models) before running the indexer.');
+    throw new Error('ELSER model setup failed.');
   }
-  const stats = await client.ml.getTrainedModelsStats({ model_id: elserModelId });
-  if (stats.trained_model_stats[0]?.deployment_stats?.state !== 'started') {
-    console.log('Starting ELSER model deployment...');
-    await client.ml.startTrainedModelDeployment({ model_id: elserModelId, wait_for: 'started' });
-  }
-  console.log('ELSER model is deployed.');
-  console.log(`Creating ELSER ingest pipeline: ${elserPipelineName}...`);
-  await client.ingest.putPipeline({
-    id: elserPipelineName,
-    description: 'Ingest pipeline for ELSER on code chunks',
-    processors: [
-      {
-        inference: {
-          model_id: elserModelId,
-          input_output: [
-            {
-              input_field: 'embedding_text',
-              output_field: 'content_embedding',
-            },
-          ],
-        },
-      },
-      {
-        remove: {
-          field: 'embedding_text',
-        },
-      },
-    ],
-  });
-  console.log('ELSER setup complete.');
 }
 
 export async function createIndex(): Promise<void> {
   const indexExists = await client.indices.exists({ index: indexName });
   if (!indexExists) {
-    console.log(`Creating index "${indexName}"...`);
+    logger.info(`Creating index "${indexName}"...`);
     await client.indices.create({
       index: indexName,
+      settings: {
+        index: {
+          default_pipeline: codeSimilarityPipeline,
+        },
+      },
       mappings: {
         properties: {
           type: { type: 'keyword' },
@@ -108,14 +84,22 @@ export async function createIndex(): Promise<void> {
           startLine: { type: 'integer' },
           endLine: { type: 'integer' },
           content: { type: 'text' },
-          content_embedding: { type: 'sparse_vector' },
+          semantic_text: {
+            type: 'semantic_text',
+          },
+          code_vector: {
+            type: 'dense_vector',
+            dims: 768, // Based on microsoft/codebert-base
+            index: true,
+            similarity: 'cosine',
+          },
           created_at: { type: 'date' },
           updated_at: { type: 'date' },
         },
       },
     });
   } else {
-    console.log(`Index "${indexName}" already exists.`);
+    logger.info(`Index "${indexName}" already exists.`);
   }
 }
 
@@ -123,7 +107,7 @@ export async function createSettingsIndex(): Promise<void> {
   const settingsIndexName = `${indexName}_settings`;
   const indexExists = await client.indices.exists({ index: settingsIndexName });
   if (!indexExists) {
-    console.log(`Creating index "${settingsIndexName}"...`);
+    logger.info(`Creating index "${settingsIndexName}"...`);
     await client.indices.create({
       index: settingsIndexName,
       mappings: {
@@ -135,14 +119,14 @@ export async function createSettingsIndex(): Promise<void> {
       },
     });
   } else {
-    console.log(`Index "${settingsIndexName}" already exists.`);
+    logger.info(`Index "${settingsIndexName}" already exists.`);
   }
 }
 
 export async function getLastIndexedCommit(branch: string): Promise<string | null> {
   const settingsIndexName = `${indexName}_settings`;
   try {
-    const response = await client.get<{ commit_hash: string }>({
+    const response = await client.get<{ commit_hash: string  }>({
       index: settingsIndexName,
       id: branch,
     });
@@ -160,7 +144,7 @@ export async function updateLastIndexedCommit(branch: string, commitHash: string
   await client.index({
     index: settingsIndexName,
     id: branch,
-    body: {
+    document: {
       branch,
       commit_hash: commitHash,
       updated_at: new Date().toISOString(),
@@ -182,35 +166,27 @@ export interface CodeChunk {
   startLine: number;
   endLine: number;
   content: string;
-  embedding_text: string;
+  semantic_text: string;
+  code_vector?: number[];
   created_at: string;
   updated_at: string;
 }
 
-/**
- * Indexes an array of code chunks into Elasticsearch using the high-level bulk helper.
- */
 export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
   if (chunks.length === 0) {
     return;
   }
 
-  const operations = chunks.flatMap(doc => [{ index: { _index: indexName, pipeline: elserPipelineName } }, doc]);
+  const operations = chunks.flatMap(doc => [{ index: { _index: indexName } }, doc]);
 
   const bulkResponse = await client.bulk({ refresh: false, operations });
 
   if (bulkResponse.errors) {
     const erroredDocuments: any[] = [];
-    // The items array has the same order of the dataset we just indexed.
-    // The presence of the `error` key indicates that the operation
-    // that we did for the document has failed.
     bulkResponse.items.forEach((action: any, i: number) => {
       const operation = Object.keys(action)[0];
       if (action[operation].error) {
         erroredDocuments.push({
-          // If the status is 429 it means that you can retry the document,
-          // otherwise it's very likely a mapping error, and you should
-          // fix the document before to try it again.
           status: action[operation].status,
           error: action[operation].error,
           operation: operations[i * 2],
@@ -218,7 +194,7 @@ export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
         });
       }
     });
-    console.error('[ES Consumer] Errors during bulk indexing:', JSON.stringify(erroredDocuments, null, 2));
+    logger.error('[ES Consumer] Errors during bulk indexing:', { errors: JSON.stringify(erroredDocuments, null, 2) });
   }
 }
 
@@ -230,13 +206,14 @@ export async function searchCodeChunks(query: string): Promise<any[]> {
   const response = await client.search({
     index: indexName,
     query: {
-      sparse_vector: {
-        field: 'content_embedding',
-        inference_id: elserModelId,
-        query: query,
+      text_expansion: {
+        semantic_text: {
+          model_id: elserModelId,
+          model_text: query,
+        },
       },
     },
-  } as any);
+  });
   return response.hits.hits.map((hit: any) => ({
     ...hit._source,
     score: hit._score,
@@ -246,17 +223,21 @@ export async function searchCodeChunks(query: string): Promise<any[]> {
 export async function deleteIndex(): Promise<void> {
   const indexExists = await client.indices.exists({ index: indexName });
   if (indexExists) {
-    console.log(`Deleting index "${indexName}"...`);
+    logger.info(`Deleting index "${indexName}"...`);
     await client.indices.delete({ index: indexName });
   } else {
-    console.log(`Index "${indexName}" does not exist, skipping deletion.`);
+    logger.info(`Index "${indexName}" does not exist, skipping deletion.`);
   }
 }
 
 export async function deleteDocumentsByFilePath(filePath: string): Promise<void> {
   await client.deleteByQuery({
     index: indexName,
-    q: `filePath:"${filePath}"`,
+    query: {
+      term: {
+        filePath: filePath,
+      },
+    },
     refresh: true,
   });
 }
