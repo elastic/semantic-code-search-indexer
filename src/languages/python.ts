@@ -11,4 +11,8 @@ export const pythonConfig: LanguageConfiguration = {
     '(import_statement) @import',
     '(import_from_statement) @import',
   ],
+  symbolQueries: [
+    '(class_definition name: (identifier) @symbol)',
+    '(function_definition name: (identifier) @symbol)',
+  ],
 };

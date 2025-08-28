@@ -23,6 +23,13 @@ describe('LanguageParser', () => {
   it('should parse TypeScript fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
     const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
+    const symbols = chunks[0].symbols;
+    expect(symbols).toContain('myFunction');
+    expect(symbols).toContain('MyClass');
+    expect(symbols).toContain('myMethod');
+    expect(symbols).toContain('myVar');
+    expect(symbols).toContain('MyType');
+    expect(symbols).toContain('MyInterface');
     expect(cleanTimestamps(chunks)).toMatchSnapshot();
   });
 

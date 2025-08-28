@@ -8,7 +8,8 @@ async function main() {
 
   const clean = args.includes('--clean');
   const logMode = args.includes('--log-mode');
-  const argument = args.filter(arg => arg !== '--clean' && arg !== '--log-mode').join(' ');
+  const aggregateSymbols = args.includes('--aggregate-symbols');
+  const argument = args.filter(arg => arg !== '--clean' && arg !== '--log-mode' && arg !== '--aggregate-symbols').join(' ');
 
   if (command === 'index') {
     await index(argument || '.', clean);
@@ -19,7 +20,7 @@ async function main() {
       console.error('Please provide a search query.');
       process.exit(1);
     }
-    await search(argument);
+    await search(argument, aggregateSymbols);
   } else if (command === 'references') {
     if (!argument) {
       console.error('Please provide a file path and position, e.g., src/index.ts:10:5');
@@ -40,7 +41,7 @@ async function main() {
     console.log(
       '  npm run incremental-index [directory] [--log-mode] - Incrementally index a directory'
     );
-    console.log('  npm run search <query>                     - Search for code');
+    console.log('  npm run search <query> [--aggregate-symbols] - Search for code, optionally aggregating by symbols');
     console.log('  npm run references <path:line:char>        - Find all references for a symbol');
   }
 }

@@ -19,4 +19,13 @@ export const typescript: LanguageConfiguration = {
     '(type_alias_declaration) @type',
     '(interface_declaration) @interface',
   ],
+  symbolQueries: [
+    '(function_declaration name: (identifier) @symbol)',
+    '(generator_function_declaration name: (identifier) @symbol)',
+    '(class_declaration name: (type_identifier) @symbol)',
+    '(method_definition name: (property_identifier) @symbol)',
+    '(variable_declarator name: (identifier) @symbol)',
+    '(type_alias_declaration name: (type_identifier) @symbol)',
+    '(interface_declaration name: (type_identifier) @symbol)',
+  ],
 };

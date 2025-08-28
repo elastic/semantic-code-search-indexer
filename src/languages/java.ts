@@ -10,4 +10,8 @@ export const javaConfig: LanguageConfiguration = {
     '(method_declaration) @method',
     '(import_declaration) @import',
   ],
+  symbolQueries: [
+    '(class_declaration name: (identifier) @symbol)',
+    '(method_declaration name: (identifier) @symbol)',
+  ],
 };

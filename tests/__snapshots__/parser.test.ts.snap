@@ -7,10 +7,6 @@ exports[`LanguageParser should parse Go fixtures correctly 1`] = `
     "containerPath": "",
     "content": ""fmt"",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/go.go
-kind: import_spec
-
-"fmt"",
     "endLine": 3,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -20,7 +16,15 @@ kind: import_spec
     ],
     "kind": "import_spec",
     "language": "go",
+    "semantic_text": "filePath: tests/fixtures/go.go
+kind: import_spec
+
+"fmt"",
     "startLine": 3,
+    "symbols": [
+      "myFunction",
+      "MyType",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -31,12 +35,6 @@ kind: import_spec
     fmt.Println("Hello, Go!")
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/go.go
-kind: function_declaration
-
-func myFunction() {
-    fmt.Println("Hello, Go!")
-}",
     "endLine": 7,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -46,7 +44,17 @@ func myFunction() {
     ],
     "kind": "function_declaration",
     "language": "go",
+    "semantic_text": "filePath: tests/fixtures/go.go
+kind: function_declaration
+
+func myFunction() {
+    fmt.Println("Hello, Go!")
+}",
     "startLine": 5,
+    "symbols": [
+      "myFunction",
+      "MyType",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -57,12 +65,6 @@ func myFunction() {
     name string
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/go.go
-kind: type_declaration
-
-type MyType struct {
-    name string
-}",
     "endLine": 11,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -72,7 +74,17 @@ type MyType struct {
     ],
     "kind": "type_declaration",
     "language": "go",
+    "semantic_text": "filePath: tests/fixtures/go.go
+kind: type_declaration
+
+type MyType struct {
+    name string
+}",
     "startLine": 9,
+    "symbols": [
+      "myFunction",
+      "MyType",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -86,10 +98,6 @@ exports[`LanguageParser should parse Java fixtures correctly 1`] = `
     "containerPath": "",
     "content": "import java.util.List;",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/java.java
-kind: import_declaration
-
-import java.util.List;",
     "endLine": 1,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
@@ -99,7 +107,15 @@ import java.util.List;",
     ],
     "kind": "import_declaration",
     "language": "java",
+    "semantic_text": "filePath: tests/fixtures/java.java
+kind: import_declaration
+
+import java.util.List;",
     "startLine": 1,
+    "symbols": [
+      "MyClass",
+      "myMethod",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -112,14 +128,6 @@ import java.util.List;",
     }
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/java.java
-kind: class_declaration
-
-class MyClass {
-    public void myMethod() {
-        System.out.println("Hello, Java!");
-    }
-}",
     "endLine": 7,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
@@ -129,7 +137,19 @@ class MyClass {
     ],
     "kind": "class_declaration",
     "language": "java",
+    "semantic_text": "filePath: tests/fixtures/java.java
+kind: class_declaration
+
+class MyClass {
+    public void myMethod() {
+        System.out.println("Hello, Java!");
+    }
+}",
     "startLine": 3,
+    "symbols": [
+      "MyClass",
+      "myMethod",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -140,13 +160,6 @@ class MyClass {
         System.out.println("Hello, Java!");
     }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/java.java
-kind: method_declaration
-containerPath: MyClass
-
-public void myMethod() {
-        System.out.println("Hello, Java!");
-    }",
     "endLine": 6,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
@@ -156,7 +169,18 @@ public void myMethod() {
     ],
     "kind": "method_declaration",
     "language": "java",
+    "semantic_text": "filePath: tests/fixtures/java.java
+kind: method_declaration
+containerPath: MyClass
+
+public void myMethod() {
+        System.out.println("Hello, Java!");
+    }",
     "startLine": 4,
+    "symbols": [
+      "MyClass",
+      "myMethod",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -170,10 +194,6 @@ exports[`LanguageParser should parse JavaScript fixtures correctly 1`] = `
     "containerPath": "",
     "content": "// This is a comment",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/javascript.js
-kind: comment
-
-// This is a comment",
     "endLine": 1,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -183,7 +203,17 @@ kind: comment
     ],
     "kind": "comment",
     "language": "javascript",
+    "semantic_text": "filePath: tests/fixtures/javascript.js
+kind: comment
+
+// This is a comment",
     "startLine": 1,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -192,10 +222,6 @@ kind: comment
     "containerPath": "",
     "content": "import { a } from 'b';",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/javascript.js
-kind: import_statement
-
-import { a } from 'b';",
     "endLine": 2,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -205,7 +231,17 @@ import { a } from 'b';",
     ],
     "kind": "import_statement",
     "language": "javascript",
+    "semantic_text": "filePath: tests/fixtures/javascript.js
+kind: import_statement
+
+import { a } from 'b';",
     "startLine": 2,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -216,12 +252,6 @@ import { a } from 'b';",
   console.log('hello');
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/javascript.js
-kind: function_declaration
-
-function myFunction() {
-  console.log('hello');
-}",
     "endLine": 6,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -231,7 +261,19 @@ function myFunction() {
     ],
     "kind": "function_declaration",
     "language": "javascript",
+    "semantic_text": "filePath: tests/fixtures/javascript.js
+kind: function_declaration
+
+function myFunction() {
+  console.log('hello');
+}",
     "startLine": 4,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -240,10 +282,6 @@ function myFunction() {
     "containerPath": "",
     "content": "console.log('hello')",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/javascript.js
-kind: call_expression
-
-console.log('hello')",
     "endLine": 5,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -253,7 +291,17 @@ console.log('hello')",
     ],
     "kind": "call_expression",
     "language": "javascript",
+    "semantic_text": "filePath: tests/fixtures/javascript.js
+kind: call_expression
+
+console.log('hello')",
     "startLine": 5,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -266,14 +314,6 @@ console.log('hello')",
   }
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/javascript.js
-kind: class_declaration
-
-class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
     "endLine": 12,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -283,7 +323,21 @@ class MyClass {
     ],
     "kind": "class_declaration",
     "language": "javascript",
+    "semantic_text": "filePath: tests/fixtures/javascript.js
+kind: class_declaration
+
+class MyClass {
+  myMethod() {
+    return 1;
+  }
+}",
     "startLine": 8,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -292,10 +346,6 @@ class MyClass {
     "containerPath": "",
     "content": "const myVar = () => {};",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/javascript.js
-kind: lexical_declaration
-
-const myVar = () => {};",
     "endLine": 14,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -305,7 +355,17 @@ const myVar = () => {};",
     ],
     "kind": "lexical_declaration",
     "language": "javascript",
+    "semantic_text": "filePath: tests/fixtures/javascript.js
+kind: lexical_declaration
+
+const myVar = () => {};",
     "startLine": 14,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -318,14 +378,14 @@ exports[`LanguageParser should parse Markdown fixtures correctly 1`] = `
     "chunk_hash": "ed09ca2736773c6ceb4e8e5499e71d1a80fd6a4a346efff7a88a2d6c3ff27274",
     "content": "# Markdown Fixture",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/markdown.md
-
-# Markdown Fixture",
     "endLine": 1,
     "filePath": "tests/fixtures/markdown.md",
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
+    "semantic_text": "filePath: tests/fixtures/markdown.md
+
+# Markdown Fixture",
     "startLine": 1,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -334,14 +394,14 @@ exports[`LanguageParser should parse Markdown fixtures correctly 1`] = `
     "chunk_hash": "152f882642f9c50be75eeade70c1ea1e2cfbe7901db4a0a46b2f9d25159c755f",
     "content": "This is a paragraph.",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/markdown.md
-
-This is a paragraph.",
     "endLine": 3,
     "filePath": "tests/fixtures/markdown.md",
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
+    "semantic_text": "filePath: tests/fixtures/markdown.md
+
+This is a paragraph.",
     "startLine": 3,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -350,14 +410,14 @@ This is a paragraph.",
     "chunk_hash": "6a71ffba5e7729a8faef7020e41476963c3a49ca90958e41ce8eb234ed005d08",
     "content": "## This is a heading",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/markdown.md
-
-## This is a heading",
     "endLine": 5,
     "filePath": "tests/fixtures/markdown.md",
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
+    "semantic_text": "filePath: tests/fixtures/markdown.md
+
+## This is a heading",
     "startLine": 5,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -367,15 +427,15 @@ This is a paragraph.",
     "content": "This is another paragraph.
 ",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/markdown.md
-
-This is another paragraph.
-",
     "endLine": 8,
     "filePath": "tests/fixtures/markdown.md",
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
+    "semantic_text": "filePath: tests/fixtures/markdown.md
+
+This is another paragraph.
+",
     "startLine": 7,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -390,10 +450,6 @@ exports[`LanguageParser should parse Python fixtures correctly 1`] = `
     "containerPath": "",
     "content": "import os",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/python.py
-kind: import_statement
-
-import os",
     "endLine": 1,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -403,7 +459,16 @@ import os",
     ],
     "kind": "import_statement",
     "language": "python",
+    "semantic_text": "filePath: tests/fixtures/python.py
+kind: import_statement
+
+import os",
     "startLine": 1,
+    "symbols": [
+      "MyClass",
+      "my_method",
+      "my_function",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -414,12 +479,6 @@ import os",
     def my_method(self):
         print("Hello, Python!")",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/python.py
-kind: class_definition
-
-class MyClass:
-    def my_method(self):
-        print("Hello, Python!")",
     "endLine": 5,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -429,7 +488,18 @@ class MyClass:
     ],
     "kind": "class_definition",
     "language": "python",
+    "semantic_text": "filePath: tests/fixtures/python.py
+kind: class_definition
+
+class MyClass:
+    def my_method(self):
+        print("Hello, Python!")",
     "startLine": 3,
+    "symbols": [
+      "MyClass",
+      "my_method",
+      "my_function",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -439,11 +509,6 @@ class MyClass:
     "content": "def my_method(self):
         print("Hello, Python!")",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/python.py
-kind: function_definition
-
-def my_method(self):
-        print("Hello, Python!")",
     "endLine": 5,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -453,7 +518,17 @@ def my_method(self):
     ],
     "kind": "function_definition",
     "language": "python",
+    "semantic_text": "filePath: tests/fixtures/python.py
+kind: function_definition
+
+def my_method(self):
+        print("Hello, Python!")",
     "startLine": 4,
+    "symbols": [
+      "MyClass",
+      "my_method",
+      "my_function",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -463,11 +538,6 @@ def my_method(self):
     "content": "def my_function():
     pass",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/python.py
-kind: function_definition
-
-def my_function():
-    pass",
     "endLine": 8,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -477,7 +547,17 @@ def my_function():
     ],
     "kind": "function_definition",
     "language": "python",
+    "semantic_text": "filePath: tests/fixtures/python.py
+kind: function_definition
+
+def my_function():
+    pass",
     "startLine": 7,
+    "symbols": [
+      "MyClass",
+      "my_method",
+      "my_function",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -491,10 +571,6 @@ exports[`LanguageParser should parse TypeScript fixtures correctly 1`] = `
     "containerPath": "",
     "content": "// This is a comment",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: comment
-
-// This is a comment",
     "endLine": 1,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -504,7 +580,19 @@ kind: comment
     ],
     "kind": "comment",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: comment
+
+// This is a comment",
     "startLine": 1,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -513,10 +601,6 @@ kind: comment
     "containerPath": "",
     "content": "import { a } from 'b';",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: import_statement
-
-import { a } from 'b';",
     "endLine": 2,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -526,7 +610,19 @@ import { a } from 'b';",
     ],
     "kind": "import_statement",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: import_statement
+
+import { a } from 'b';",
     "startLine": 2,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -537,12 +633,6 @@ import { a } from 'b';",
   console.log('hello');
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: function_declaration
-
-function myFunction() {
-  console.log('hello');
-}",
     "endLine": 6,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -552,7 +642,21 @@ function myFunction() {
     ],
     "kind": "function_declaration",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: function_declaration
+
+function myFunction() {
+  console.log('hello');
+}",
     "startLine": 4,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -561,10 +665,6 @@ function myFunction() {
     "containerPath": "",
     "content": "console.log('hello')",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: call_expression
-
-console.log('hello')",
     "endLine": 5,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -574,7 +674,19 @@ console.log('hello')",
     ],
     "kind": "call_expression",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: call_expression
+
+console.log('hello')",
     "startLine": 5,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -587,14 +699,6 @@ console.log('hello')",
   }
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: class_declaration
-
-class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
     "endLine": 12,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -604,7 +708,23 @@ class MyClass {
     ],
     "kind": "class_declaration",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: class_declaration
+
+class MyClass {
+  myMethod() {
+    return 1;
+  }
+}",
     "startLine": 8,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -615,13 +735,6 @@ class MyClass {
     return 1;
   }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: method_definition
-containerPath: MyClass
-
-myMethod() {
-    return 1;
-  }",
     "endLine": 11,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -631,7 +744,22 @@ myMethod() {
     ],
     "kind": "method_definition",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: method_definition
+containerPath: MyClass
+
+myMethod() {
+    return 1;
+  }",
     "startLine": 9,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -640,10 +768,6 @@ myMethod() {
     "containerPath": "",
     "content": "const myVar = () => {};",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: lexical_declaration
-
-const myVar = () => {};",
     "endLine": 14,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -653,7 +777,19 @@ const myVar = () => {};",
     ],
     "kind": "lexical_declaration",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: lexical_declaration
+
+const myVar = () => {};",
     "startLine": 14,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -664,12 +800,6 @@ const myVar = () => {};",
   name: string;
 };",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: type_alias_declaration
-
-type MyType = {
-  name: string;
-};",
     "endLine": 18,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -679,7 +809,21 @@ type MyType = {
     ],
     "kind": "type_alias_declaration",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: type_alias_declaration
+
+type MyType = {
+  name: string;
+};",
     "startLine": 16,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -690,12 +834,6 @@ type MyType = {
   id: number;
 }",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/typescript.ts
-kind: interface_declaration
-
-interface MyInterface {
-  id: number;
-}",
     "endLine": 22,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
@@ -705,7 +843,21 @@ interface MyInterface {
     ],
     "kind": "interface_declaration",
     "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: interface_declaration
+
+interface MyInterface {
+  id: number;
+}",
     "startLine": 20,
+    "symbols": [
+      "myFunction",
+      "MyClass",
+      "myMethod",
+      "myVar",
+      "MyType",
+      "MyInterface",
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -718,14 +870,14 @@ exports[`LanguageParser should parse YAML fixtures correctly 1`] = `
     "chunk_hash": "7faf28cc86373c82f34b2d4885392ed863a17a33a23fa5ef55caf75a9b798085",
     "content": "document: one",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/yaml.yml
-
-document: one",
     "endLine": 1,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
+    "semantic_text": "filePath: tests/fixtures/yaml.yml
+
+document: one",
     "startLine": 1,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -734,14 +886,14 @@ document: one",
     "chunk_hash": "42b8143ee2f453a99da7d620fa6e4098ce5b58a81e47ee92787784673290acc1",
     "content": "pair:",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/yaml.yml
-
-pair:",
     "endLine": 2,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
+    "semantic_text": "filePath: tests/fixtures/yaml.yml
+
+pair:",
     "startLine": 2,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -750,14 +902,14 @@ pair:",
     "chunk_hash": "f61f046945e572e3c609093a9bb46677315f28cb523f1d4df55f2a96e8e00a10",
     "content": "  key: value",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/yaml.yml
-
-  key: value",
     "endLine": 3,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
+    "semantic_text": "filePath: tests/fixtures/yaml.yml
+
+  key: value",
     "startLine": 3,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -766,14 +918,14 @@ pair:",
     "chunk_hash": "546d6629778413283752817130f850389ab7f46b2a45ed5e9cd45a5e32ae18b0",
     "content": "document: two",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/yaml.yml
-
-document: two",
     "endLine": 1,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
+    "semantic_text": "filePath: tests/fixtures/yaml.yml
+
+document: two",
     "startLine": 1,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -782,14 +934,14 @@ document: two",
     "chunk_hash": "ac0cddc5cbd16b18271a122ebc7fd418edd369c3bb11e941a823acd63ea91b9c",
     "content": "another_pair:",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/yaml.yml
-
-another_pair:",
     "endLine": 2,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
+    "semantic_text": "filePath: tests/fixtures/yaml.yml
+
+another_pair:",
     "startLine": 2,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
@@ -798,14 +950,14 @@ another_pair:",
     "chunk_hash": "3255b416a16255d96420a3c3fbed1c6c8e36bb9929283c23d741904a51770ace",
     "content": "  nested_key: nested_value",
     "created_at": "[TIMESTAMP]",
-    "embedding_text": "filePath: tests/fixtures/yaml.yml
-
-  nested_key: nested_value",
     "endLine": 3,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
+    "semantic_text": "filePath: tests/fixtures/yaml.yml
+
+  nested_key: nested_value",
     "startLine": 3,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",

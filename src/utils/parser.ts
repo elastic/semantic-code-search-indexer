@@ -14,6 +14,7 @@ export interface LanguageConfiguration {
   fileSuffixes: string[];
   parser: any; // This can be a tree-sitter parser or null for custom parsers
   queries: string[];
+  symbolQueries?: string[];
 }
 
 export class LanguageParser {
@@ -144,6 +145,13 @@ export class LanguageParser {
     );
     const imports = importNodes.map(m => m.captures[0].node.text);
 
+    let symbols: string[] = [];
+    if (langConfig.symbolQueries) {
+      const symbolQuery = new Query(langConfig.parser, langConfig.symbolQueries.join('\n'));
+      const symbolMatches = symbolQuery.matches(tree.rootNode);
+      symbols = symbolMatches.map(m => m.captures[0].node.text);
+    }
+
     return matches.map(({ captures }) => {
       const node = captures[0].node;
       const content = node.text;
@@ -169,6 +177,7 @@ export class LanguageParser {
         language: langConfig.name,
         kind: node.type,
         imports,
+        symbols,
         containerPath,
         filePath: relativePath,
         git_file_hash: gitFileHash,

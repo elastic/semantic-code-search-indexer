@@ -1,8 +1,23 @@
+import { searchCodeChunks, aggregateBySymbols } from '../utils/elasticsearch';
 
-import { searchCodeChunks } from '../utils/elasticsearch';
+export async function search(query: string, aggregateSymbols: boolean) {
+  if (aggregateSymbols) {
+    console.log(`Aggregating symbols for query: \"${query}\"`);
+    const results = await aggregateBySymbols(query);
+    console.log('Aggregation results:');
+    if (Object.keys(results).length === 0) {
+      console.log('No results found.');
+      return;
+    }
+    for (const filePath in results) {
+      console.log('---');
+      console.log(`File: ${filePath}`);
+      console.log(`Symbols: ${results[filePath].join(', ')}`);
+    }
+    return;
+  }
 
-export async function search(query: string) {
-  console.log(`Searching for: "${query}"`);
+  console.log(`Searching for: \"${query}\"`);
   const results = await searchCodeChunks(query);
 
   console.log('Search results:');

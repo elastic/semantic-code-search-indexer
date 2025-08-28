@@ -62,7 +62,7 @@ export async function setupElser(): Promise<void> {
 export async function createIndex(): Promise<void> {
   const indexExists = await client.indices.exists({ index: indexName });
   if (!indexExists) {
-    logger.info(`Creating index "${indexName}"...`);
+    logger.info(`Creating index \"${indexName}\"...`);
     await client.indices.create({
       index: indexName,
       settings: {
@@ -76,6 +76,7 @@ export async function createIndex(): Promise<void> {
           language: { type: 'keyword' },
           kind: { type: 'keyword' },
           imports: { type: 'keyword' },
+          symbols: { type: 'keyword' },
           containerPath: { type: 'text' },
           filePath: { type: 'keyword' },
           git_file_hash: { type: 'keyword' },
@@ -99,7 +100,7 @@ export async function createIndex(): Promise<void> {
       },
     });
   } else {
-    logger.info(`Index "${indexName}" already exists.`);
+    logger.info(`Index \"${indexName}\" already exists.`);
   }
 }
 
@@ -158,6 +159,7 @@ export interface CodeChunk {
   language: string;
   kind?: string;
   imports?: string[];
+  symbols?: string[];
   containerPath?: string;
   filePath: string;
   git_file_hash: string;
@@ -216,6 +218,46 @@ export async function searchCodeChunks(query: string): Promise<any[]> {
     ...hit._source,
     score: hit._score,
   }));
+}
+
+export async function aggregateBySymbols(query: string): Promise<Record<string, string[]>> {
+  const response = await client.search({
+    index: indexName,
+    query: {
+      query_string: {
+        query,
+      },
+    },
+    aggs: {
+      files: {
+        terms: {
+          field: 'filePath',
+          size: 1000,
+        },
+        aggs: {
+          symbols: {
+            terms: {
+              field: 'symbols',
+              size: 1000,
+            },
+          },
+        },
+      },
+    },
+    size: 0,
+  });
+
+  const results: Record<string, string[]> = {};
+  if (response.aggregations) {
+    const files = response.aggregations.files as any;
+    for (const bucket of files.buckets) {
+      const filePath = bucket.key;
+      const symbols = bucket.symbols.buckets.map((b: any) => b.key);
+      results[filePath] = symbols;
+    }
+  }
+
+  return results;
 }
 
 export async function deleteIndex(): Promise<void> {
