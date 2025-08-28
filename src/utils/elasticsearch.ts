@@ -206,11 +206,9 @@ export async function searchCodeChunks(query: string): Promise<any[]> {
   const response = await client.search({
     index: indexName,
     query: {
-      text_expansion: {
-        semantic_text: {
-          model_id: elserModelId,
-          model_text: query,
-        },
+      semantic: {
+        field: 'semantic_text',
+        query: query,
       },
     },
   });
