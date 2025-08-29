@@ -1,8 +1,10 @@
 import { Client, ClientOptions } from '@elastic/elasticsearch';
+import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import { elasticsearchConfig } from '../config';
+export { elasticsearchConfig };
 import { logger } from './logger';
 
-let client: Client;
+export let client: Client;
 
 const baseOptions: Partial<ClientOptions> = {
   requestTimeout: 90000, // 90 seconds
@@ -233,14 +235,10 @@ export async function searchCodeChunks(query: string): Promise<any[]> {
   }));
 }
 
-export async function aggregateBySymbols(query: string): Promise<Record<string, SymbolInfo[]>> {
+export async function aggregateBySymbols(query: QueryDslQueryContainer): Promise<Record<string, SymbolInfo[]>> {
   const response = await client.search({
     index: indexName,
-    query: {
-      query_string: {
-        query,
-      },
-    },
+    query,
     aggs: {
       files: {
         terms: {

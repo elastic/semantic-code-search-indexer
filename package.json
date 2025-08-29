@@ -1,9 +1,13 @@
 {
   "name": "code-indexer",
   "version": "1.0.0",
+  "bin": {
+    "mcp-server": "dist/src/mcp_server/bin.js"
+  },
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "postbuild": "mkdir -p dist/libs/es-query/src/kuery/grammar && cp libs/es-query/src/kuery/grammar/grammar.js dist/libs/es-query/src/kuery/grammar/grammar.js && mkdir -p dist/src/mcp_server/tools && cp src/mcp_server/tools/*.md dist/src/mcp_server/tools/",
     "build:kql": "npx peggy -o libs/es-query/src/kuery/grammar/grammar.js libs/es-query/src/kuery/grammar/grammar.peggy",
     "lint": "eslint . --ext .ts",
     "index": "NODE_OPTIONS=--max-old-space-size=8192 ts-node src/index.ts index",
@@ -22,6 +26,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^9.1.1",
     "@google-cloud/pubsub": "^5.2.0",
+    "@modelcontextprotocol/sdk": "^1.17.4",
     "@types/cli-progress": "^3.11.6",
     "@types/lodash": "^4.17.20",
     "@types/moment": "^2.11.29",

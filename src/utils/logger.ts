@@ -32,7 +32,7 @@ try {
 }
 
 
-if (elasticsearchConfig.logging) {
+if (elasticsearchConfig.logging && !process.env.MCP_SERVER_MODE) {
   const baseOptions: Partial<ClientOptions> = {
     requestTimeout: 10000, // 10 seconds
   };
@@ -87,6 +87,12 @@ async function log(level: LogLevel, message: string, metadata: object = {}) {
     },
     ...metadata,
   };
+
+  if (process.env.MCP_SERVER_MODE) {
+    // In MCP server mode, we don't want to write to stdout
+    // as it will interfere with the stdio transport.
+    return;
+  }
 
   if (process.env.LOG_FORMAT === 'text') {
     const metadataString = Object.keys(metadata).length > 0 ? ` ${JSON.stringify(metadata)}` : '';

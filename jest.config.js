@@ -4,4 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.ts'],
   modulePathIgnorePatterns: ['<rootDir>/.repos/'],
+  moduleNameMapper: {
+    '^@xenova/transformers$': '<rootDir>/tests/mocks/transformers.js',
+  },
 };

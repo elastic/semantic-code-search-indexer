@@ -1,9 +1,13 @@
 import { searchCodeChunks, aggregateBySymbols } from '../utils/elasticsearch';
+import { fromKueryExpression, toElasticsearchQuery } from '../../libs/es-query';
 
 export async function search(query: string, aggregateSymbols: boolean) {
   if (aggregateSymbols) {
-    console.log(`Aggregating symbols for query: \"${query}\"`);
-    const results = await aggregateBySymbols(query);
+    console.log(`Aggregating symbols for query: "${query}"`);
+    const ast = fromKueryExpression(query);
+    const dsl = toElasticsearchQuery(ast);
+    const results = await aggregateBySymbols(dsl);
+
     console.log('Aggregation results:');
     if (Object.keys(results).length === 0) {
       console.log('No results found.');
