@@ -2,8 +2,9 @@ package main
 
 import "fmt"
 
-func myFunction() {
-    fmt.Println("Hello, Go!")
+// Hello is a function that prints a greeting.
+func Hello() {
+	fmt.Println("Hello, Go!")
 }
 
 type MyType struct {

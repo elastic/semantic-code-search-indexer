@@ -1,6 +1,17 @@
 import { searchCodeChunks, aggregateBySymbols } from '../utils/elasticsearch';
 import { fromKueryExpression, toElasticsearchQuery } from '../../libs/es-query';
 
+/**
+ * The main function for the `search` command.
+ *
+ * This function is responsible for orchestrating the search process. It can
+ * perform either a semantic search or a symbol aggregation, depending on the
+ * value of the `aggregateSymbols` flag.
+ *
+ * @param query The search query.
+ * @param aggregateSymbols Whether to perform a symbol aggregation instead of a
+ * semantic search.
+ */
 export async function search(query: string, aggregateSymbols: boolean) {
   if (aggregateSymbols) {
     console.log(`Aggregating symbols for query: "${query}"`);
@@ -24,7 +35,7 @@ export async function search(query: string, aggregateSymbols: boolean) {
     return;
   }
 
-  console.log(`Searching for: \"${query}\"`);
+  console.log(`Searching for: "${query}"`);
   const results = await searchCodeChunks(query);
 
   console.log('Search results:');

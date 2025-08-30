@@ -1,8 +1,11 @@
 // This is a comment
 import { a } from 'b';
 
-function myFunction() {
-  console.log('hello');
+/**
+ * This is a JSDoc comment.
+ */
+function hello() {
+  console.log('Hello, world!');
 }
 
 class MyClass {

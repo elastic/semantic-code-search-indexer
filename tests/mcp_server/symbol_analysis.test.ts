@@ -21,13 +21,23 @@ describe('symbol_analysis', () => {
             {
               key: 'src/index.ts',
               kinds: {
-                buckets: [{ key: 'function_declaration' }, { key: 'import_statement' }],
+                buckets: [
+                  {
+                    key: 'function_declaration',
+                    startLines: {
+                      buckets: [{ key: 10 }],
+                    },
+                  },
+                  {
+                    key: 'import_statement',
+                    startLines: {
+                      buckets: [{ key: 1 }],
+                    },
+                  },
+                ],
               },
               languages: {
                 buckets: [{ key: 'typescript' }],
-              },
-              startLines: {
-                buckets: [{ key: 10 }],
               },
             },
             {
@@ -37,9 +47,6 @@ describe('symbol_analysis', () => {
               },
               languages: {
                 buckets: [{ key: 'markdown' }],
-              },
-              startLines: {
-                buckets: [],
               },
             },
           ],
@@ -76,17 +83,19 @@ describe('symbol_analysis', () => {
                 field: 'kind',
                 size: 100,
               },
+              aggs: {
+                startLines: {
+                  terms: {
+                    field: 'startLine',
+                    size: 100,
+                  },
+                },
+              },
             },
             languages: {
               terms: {
                 field: 'language',
                 size: 10,
-              },
-            },
-            startLines: {
-              terms: {
-                field: 'startLine',
-                size: 100,
               },
             },
           },
@@ -97,7 +106,14 @@ describe('symbol_analysis', () => {
 
     expect(report.primaryDefinitions).toHaveLength(1);
     expect(report.primaryDefinitions[0].filePath).toBe('src/index.ts');
-    expect(report.primaryDefinitions[0].startLines).toEqual([10]);
+    expect(report.primaryDefinitions[0].kinds).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'function_declaration',
+          startLines: [10],
+        }),
+      ])
+    );
     expect(report.importReferences).toHaveLength(1);
     expect(report.importReferences[0].filePath).toBe('src/index.ts');
     expect(report.documentation).toHaveLength(1);

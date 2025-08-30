@@ -10,14 +10,62 @@ export const typescript: LanguageConfiguration = {
     '(call_expression) @call',
     '(import_statement) @import',
     '(comment) @comment',
-    '(function_declaration) @function',
-    '(generator_function_declaration) @function',
-    '(class_declaration) @class',
-    '(method_definition) @method',
-    '(lexical_declaration) @variable',
-    '(variable_declaration) @variable',
-    '(type_alias_declaration) @type',
-    '(interface_declaration) @interface',
+    `
+    (
+      (comment)+ @doc
+      .
+      (function_declaration) @function
+    ) @function_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (generator_function_declaration) @function
+    ) @function_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (class_declaration) @class
+    ) @class_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (method_definition) @method
+    ) @method_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (lexical_declaration) @variable
+    ) @variable_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (variable_declaration) @variable
+    ) @variable_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (type_alias_declaration) @type
+    ) @type_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (interface_declaration) @interface
+    ) @interface_with_doc
+    `,
   ],
   symbolQueries: [
     '(function_declaration name: (identifier) @function.name)',

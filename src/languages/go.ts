@@ -5,11 +5,31 @@ export const goConfig: LanguageConfiguration = {
   name: 'go',
   fileSuffixes: ['.go'],
   parser: go,
-  queries: [
-    '(function_declaration) @function',
-    '(method_declaration) @method',
-    '(type_declaration) @type',
-    '(import_spec) @import',
+    queries: [
+    '(call_expression) @call',
+    '(import_declaration) @import',
+    '(comment) @comment',
+    `
+    (
+      (comment)+ @doc
+      .
+      (function_declaration) @function
+    ) @function_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (type_declaration) @type
+    ) @type_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (method_declaration) @method
+    ) @method_with_doc
+    `,
   ],
   symbolQueries: [
     '(function_declaration name: (identifier) @function.name)',

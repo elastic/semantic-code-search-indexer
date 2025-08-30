@@ -26,7 +26,7 @@ describe('LanguageParser', () => {
     const symbols = chunks[0].symbols;
     expect(symbols).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'myFunction', kind: 'function' }),
+        expect.objectContaining({ name: 'hello', kind: 'function' }),
         expect.objectContaining({ name: 'MyClass', kind: 'class' }),
         expect.objectContaining({ name: 'myMethod', kind: 'method' }),
         expect.objectContaining({ name: 'myVar', kind: 'variable' }),

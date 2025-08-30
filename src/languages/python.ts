@@ -5,11 +5,24 @@ export const pythonConfig: LanguageConfiguration = {
   name: 'python',
   fileSuffixes: ['.py'],
   parser: python,
-  queries: [
-    '(class_definition) @class',
-    '(function_definition) @function',
+    queries: [
+    '(call) @call',
     '(import_statement) @import',
-    '(import_from_statement) @import',
+    '(comment) @comment',
+    `
+    (
+      (comment)+ @doc
+      .
+      (function_definition) @function
+    ) @function_with_doc
+    `,
+    `
+    (
+      (comment)+ @doc
+      .
+      (class_definition) @class
+    ) @class_with_doc
+    `,
   ],
   symbolQueries: [
     '(class_definition name: (identifier) @class.name)',

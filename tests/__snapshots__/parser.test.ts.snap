@@ -3,33 +3,33 @@
 exports[`LanguageParser should parse Go fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "4a829123137dd0f0247cac32033fcb516bf9b5581044a790840864e46c03e136",
+    "chunk_hash": "fd68edbadc1535917a1bca6848f45e93c6588249f923c24958981b6c28f2a045",
     "containerPath": "",
-    "content": ""fmt"",
+    "content": "import "fmt"",
     "created_at": "[TIMESTAMP]",
     "endLine": 3,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
-    "git_file_hash": "0c54a66d401cc5f0cb72a9e42d247ea930c71ef5",
+    "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
     "imports": [
-      ""fmt"",
+      "import "fmt"",
     ],
-    "kind": "import_spec",
+    "kind": "import_declaration",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
-kind: import_spec
+kind: import_declaration
 
-"fmt"",
+import "fmt"",
     "startLine": 3,
     "symbols": [
       {
         "kind": "function",
-        "line": 5,
-        "name": "myFunction",
+        "line": 6,
+        "name": "Hello",
       },
       {
         "kind": "type",
-        "line": 9,
+        "line": 10,
         "name": "MyType",
       },
     ],
@@ -37,37 +37,33 @@ kind: import_spec
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f4b5176566b5165c515ea28ee5770957c61ebf18ac84412262f3da978fc57d44",
+    "chunk_hash": "0c01bc050a86f2516932d9c238e35e968f09510f2fa933e224bc9e66e4a3781c",
     "containerPath": "",
-    "content": "func myFunction() {
-    fmt.Println("Hello, Go!")
-}",
+    "content": "// Hello is a function that prints a greeting.",
     "created_at": "[TIMESTAMP]",
-    "endLine": 7,
+    "endLine": 5,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
-    "git_file_hash": "0c54a66d401cc5f0cb72a9e42d247ea930c71ef5",
+    "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
     "imports": [
-      ""fmt"",
+      "import "fmt"",
     ],
-    "kind": "function_declaration",
+    "kind": "comment",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
-kind: function_declaration
+kind: comment
 
-func myFunction() {
-    fmt.Println("Hello, Go!")
-}",
+// Hello is a function that prints a greeting.",
     "startLine": 5,
     "symbols": [
       {
         "kind": "function",
-        "line": 5,
-        "name": "myFunction",
+        "line": 6,
+        "name": "Hello",
       },
       {
         "kind": "type",
-        "line": 9,
+        "line": 10,
         "name": "MyType",
       },
     ],
@@ -75,37 +71,67 @@ func myFunction() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "125de83243a2f4cb0869d974cf82881c1ea38b53de65ce3c8cf597555e74b6ac",
+    "chunk_hash": "0c01bc050a86f2516932d9c238e35e968f09510f2fa933e224bc9e66e4a3781c",
     "containerPath": "",
-    "content": "type MyType struct {
-    name string
-}",
+    "content": "// Hello is a function that prints a greeting.",
     "created_at": "[TIMESTAMP]",
-    "endLine": 11,
+    "endLine": 5,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
-    "git_file_hash": "0c54a66d401cc5f0cb72a9e42d247ea930c71ef5",
+    "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
     "imports": [
-      ""fmt"",
+      "import "fmt"",
     ],
-    "kind": "type_declaration",
+    "kind": "comment",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
-kind: type_declaration
+kind: comment
 
-type MyType struct {
-    name string
-}",
-    "startLine": 9,
+// Hello is a function that prints a greeting.",
+    "startLine": 5,
     "symbols": [
       {
         "kind": "function",
-        "line": 5,
-        "name": "myFunction",
+        "line": 6,
+        "name": "Hello",
       },
       {
         "kind": "type",
-        "line": 9,
+        "line": 10,
+        "name": "MyType",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "60182a39609bfe8bdda418af2ef400cdd9f97a08d48122566e1f760112d05b8d",
+    "containerPath": "",
+    "content": "fmt.Println("Hello, Go!")",
+    "created_at": "[TIMESTAMP]",
+    "endLine": 7,
+    "filePath": "tests/fixtures/go.go",
+    "git_branch": "main",
+    "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
+    "imports": [
+      "import "fmt"",
+    ],
+    "kind": "call_expression",
+    "language": "go",
+    "semantic_text": "filePath: tests/fixtures/go.go
+kind: call_expression
+
+fmt.Println("Hello, Go!")",
+    "startLine": 7,
+    "symbols": [
+      {
+        "kind": "function",
+        "line": 6,
+        "name": "Hello",
+      },
+      {
+        "kind": "type",
+        "line": 10,
         "name": "MyType",
       },
     ],
@@ -125,7 +151,7 @@ exports[`LanguageParser should parse Java fixtures correctly 1`] = `
     "endLine": 1,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
-    "git_file_hash": "14e04aba844af5a81e2c94f014713ea55bd90807",
+    "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
     "imports": [
       "import java.util.List;",
     ],
@@ -144,7 +170,7 @@ import java.util.List;",
       },
       {
         "kind": "method",
-        "line": 4,
+        "line": 7,
         "name": "myMethod",
       },
     ],
@@ -152,70 +178,28 @@ import java.util.List;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a7a75fe95323edd73fc60b92f12fc013a153efbcf98c98377199ebb1e887a209",
-    "containerPath": "",
-    "content": "class MyClass {
-    public void myMethod() {
-        System.out.println("Hello, Java!");
-    }
-}",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 7,
-    "filePath": "tests/fixtures/java.java",
-    "git_branch": "main",
-    "git_file_hash": "14e04aba844af5a81e2c94f014713ea55bd90807",
-    "imports": [
-      "import java.util.List;",
-    ],
-    "kind": "class_declaration",
-    "language": "java",
-    "semantic_text": "filePath: tests/fixtures/java.java
-kind: class_declaration
-
-class MyClass {
-    public void myMethod() {
-        System.out.println("Hello, Java!");
-    }
-}",
-    "startLine": 3,
-    "symbols": [
-      {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 4,
-        "name": "myMethod",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "0b64c9f2f3e7d8bc006ab2841e2516f7eb1752ced4fccf76b9ccf9aa4562376d",
+    "chunk_hash": "01fb998a1b76939bde6bbce21bbd358fe186be860339025492b71218b0248574",
     "containerPath": "MyClass",
-    "content": "public void myMethod() {
-        System.out.println("Hello, Java!");
-    }",
+    "content": "/**
+     * This is a Javadoc comment.
+     */",
     "created_at": "[TIMESTAMP]",
     "endLine": 6,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
-    "git_file_hash": "14e04aba844af5a81e2c94f014713ea55bd90807",
+    "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
     "imports": [
       "import java.util.List;",
     ],
-    "kind": "method_declaration",
+    "kind": "block_comment",
     "language": "java",
     "semantic_text": "filePath: tests/fixtures/java.java
-kind: method_declaration
+kind: block_comment
 containerPath: MyClass
 
-public void myMethod() {
-        System.out.println("Hello, Java!");
-    }",
+/**
+     * This is a Javadoc comment.
+     */",
     "startLine": 4,
     "symbols": [
       {
@@ -225,7 +209,80 @@ public void myMethod() {
       },
       {
         "kind": "method",
-        "line": 4,
+        "line": 7,
+        "name": "myMethod",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "01fb998a1b76939bde6bbce21bbd358fe186be860339025492b71218b0248574",
+    "containerPath": "MyClass",
+    "content": "/**
+     * This is a Javadoc comment.
+     */",
+    "created_at": "[TIMESTAMP]",
+    "endLine": 6,
+    "filePath": "tests/fixtures/java.java",
+    "git_branch": "main",
+    "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
+    "imports": [
+      "import java.util.List;",
+    ],
+    "kind": "block_comment",
+    "language": "java",
+    "semantic_text": "filePath: tests/fixtures/java.java
+kind: block_comment
+containerPath: MyClass
+
+/**
+     * This is a Javadoc comment.
+     */",
+    "startLine": 4,
+    "symbols": [
+      {
+        "kind": "class",
+        "line": 3,
+        "name": "MyClass",
+      },
+      {
+        "kind": "method",
+        "line": 7,
+        "name": "myMethod",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "5a6f7755ddd7f02c160e744130e3ef226397b9fd3cbca4d7743d1e8bd129accf",
+    "containerPath": "",
+    "content": "System.out.println("Hello, Java!")",
+    "created_at": "[TIMESTAMP]",
+    "endLine": 8,
+    "filePath": "tests/fixtures/java.java",
+    "git_branch": "main",
+    "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
+    "imports": [
+      "import java.util.List;",
+    ],
+    "kind": "method_invocation",
+    "language": "java",
+    "semantic_text": "filePath: tests/fixtures/java.java
+kind: method_invocation
+
+System.out.println("Hello, Java!")",
+    "startLine": 8,
+    "symbols": [
+      {
+        "kind": "class",
+        "line": 3,
+        "name": "MyClass",
+      },
+      {
+        "kind": "method",
+        "line": 7,
         "name": "myMethod",
       },
     ],
@@ -245,7 +302,7 @@ exports[`LanguageParser should parse JavaScript fixtures correctly 1`] = `
     "endLine": 1,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
-    "git_file_hash": "05dc17876438f75088d77a3e118b1b4c8cc5385d",
+    "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
     "imports": [
       "import { a } from 'b';",
     ],
@@ -259,22 +316,22 @@ kind: comment
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
     ],
@@ -289,7 +346,7 @@ kind: comment
     "endLine": 2,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
-    "git_file_hash": "05dc17876438f75088d77a3e118b1b4c8cc5385d",
+    "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
     "imports": [
       "import { a } from 'b';",
     ],
@@ -303,22 +360,22 @@ import { a } from 'b';",
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
     ],
@@ -326,47 +383,47 @@ import { a } from 'b';",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "62d83893874d1e8701dc414b00e8e52bcacf5b54fb31e216e283ec7235619c45",
+    "chunk_hash": "7879ae4ab38bdc5513c4af4a422cd870415b4e829ebd550543748ead16e0f1a4",
     "containerPath": "",
-    "content": "function myFunction() {
-  console.log('hello');
-}",
+    "content": "/**
+ * This is a JSDoc comment.
+ */",
     "created_at": "[TIMESTAMP]",
     "endLine": 6,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
-    "git_file_hash": "05dc17876438f75088d77a3e118b1b4c8cc5385d",
+    "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
     "imports": [
       "import { a } from 'b';",
     ],
-    "kind": "function_declaration",
+    "kind": "comment",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
-kind: function_declaration
+kind: comment
 
-function myFunction() {
-  console.log('hello');
-}",
+/**
+ * This is a JSDoc comment.
+ */",
     "startLine": 4,
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
     ],
@@ -374,14 +431,62 @@ function myFunction() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "46289932de1604479260f0178bba3a5f7019d133b263efc139c9a18d856bebf1",
+    "chunk_hash": "7879ae4ab38bdc5513c4af4a422cd870415b4e829ebd550543748ead16e0f1a4",
     "containerPath": "",
-    "content": "console.log('hello')",
+    "content": "/**
+ * This is a JSDoc comment.
+ */",
     "created_at": "[TIMESTAMP]",
-    "endLine": 5,
+    "endLine": 6,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
-    "git_file_hash": "05dc17876438f75088d77a3e118b1b4c8cc5385d",
+    "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
+    "imports": [
+      "import { a } from 'b';",
+    ],
+    "kind": "comment",
+    "language": "javascript",
+    "semantic_text": "filePath: tests/fixtures/javascript.js
+kind: comment
+
+/**
+ * This is a JSDoc comment.
+ */",
+    "startLine": 4,
+    "symbols": [
+      {
+        "kind": "function",
+        "line": 7,
+        "name": "hello",
+      },
+      {
+        "kind": "class",
+        "line": 11,
+        "name": "MyClass",
+      },
+      {
+        "kind": "method",
+        "line": 12,
+        "name": "myMethod",
+      },
+      {
+        "kind": "variable",
+        "line": 17,
+        "name": "myVar",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b8059cfb1ea623e79efbf432db31595df213c99c6534c58bec9d5f5e069344df",
+    "containerPath": "",
+    "content": "console.log('Hello, world!')",
+    "created_at": "[TIMESTAMP]",
+    "endLine": 8,
+    "filePath": "tests/fixtures/javascript.js",
+    "git_branch": "main",
+    "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
     "imports": [
       "import { a } from 'b';",
     ],
@@ -390,123 +495,27 @@ function myFunction() {
     "semantic_text": "filePath: tests/fixtures/javascript.js
 kind: call_expression
 
-console.log('hello')",
-    "startLine": 5,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "myFunction",
-      },
-      {
-        "kind": "class",
-        "line": 8,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 9,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 14,
-        "name": "myVar",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "6fd7f5fcd99232f0e49797bebada48669972e9c870171a3848c61eebca7f22dd",
-    "containerPath": "",
-    "content": "class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 12,
-    "filePath": "tests/fixtures/javascript.js",
-    "git_branch": "main",
-    "git_file_hash": "05dc17876438f75088d77a3e118b1b4c8cc5385d",
-    "imports": [
-      "import { a } from 'b';",
-    ],
-    "kind": "class_declaration",
-    "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-kind: class_declaration
-
-class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
+console.log('Hello, world!')",
     "startLine": 8,
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
-        "name": "myVar",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "b4debc24bebfb7484ed5e08c2e47765e7b7449130b923b7c89c7079823b5c73a",
-    "containerPath": "",
-    "content": "const myVar = () => {};",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 14,
-    "filePath": "tests/fixtures/javascript.js",
-    "git_branch": "main",
-    "git_file_hash": "05dc17876438f75088d77a3e118b1b4c8cc5385d",
-    "imports": [
-      "import { a } from 'b';",
-    ],
-    "kind": "lexical_declaration",
-    "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-kind: lexical_declaration
-
-const myVar = () => {};",
-    "startLine": 14,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "myFunction",
-      },
-      {
-        "kind": "class",
-        "line": 8,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 9,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
     ],
@@ -597,7 +606,7 @@ exports[`LanguageParser should parse Python fixtures correctly 1`] = `
     "endLine": 1,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
-    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
+    "git_file_hash": "deccc575415922af2636d83dab41365c1cd68f33",
     "imports": [
       "import os",
     ],
@@ -629,110 +638,24 @@ import os",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "4416cd8dd5bbde8d874fb5633b664d25cb2cf0056bb279836527e32e4dd1cf0e",
+    "chunk_hash": "12bc33d9722a0828233d0d9bf5fa151caa0521f490ef4fe5ca7bcc3b6faeeaeb",
     "containerPath": "",
-    "content": "class MyClass:
-    def my_method(self):
-        print("Hello, Python!")",
+    "content": "print("Hello, Python!")",
     "created_at": "[TIMESTAMP]",
     "endLine": 5,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
-    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
+    "git_file_hash": "deccc575415922af2636d83dab41365c1cd68f33",
     "imports": [
       "import os",
     ],
-    "kind": "class_definition",
+    "kind": "call",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
-kind: class_definition
+kind: call
 
-class MyClass:
-    def my_method(self):
-        print("Hello, Python!")",
-    "startLine": 3,
-    "symbols": [
-      {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "my_method",
-      },
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "my_function",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "b8cb7ef3b47294cb6d26e1a0479dba320243ecd0cf40e6336775f3d049a1de70",
-    "containerPath": "",
-    "content": "def my_method(self):
-        print("Hello, Python!")",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 5,
-    "filePath": "tests/fixtures/python.py",
-    "git_branch": "main",
-    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
-    "imports": [
-      "import os",
-    ],
-    "kind": "function_definition",
-    "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-kind: function_definition
-
-def my_method(self):
-        print("Hello, Python!")",
-    "startLine": 4,
-    "symbols": [
-      {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "my_method",
-      },
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "my_function",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "bd34f0510bd5068fefbe1d3c56e0d5f858f1e3f16d72e6fb86cdb32dcac37244",
-    "containerPath": "",
-    "content": "def my_function():
-    pass",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 8,
-    "filePath": "tests/fixtures/python.py",
-    "git_branch": "main",
-    "git_file_hash": "b61b1aadac260e768de0eafb1ea81783ab04db64",
-    "imports": [
-      "import os",
-    ],
-    "kind": "function_definition",
-    "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-kind: function_definition
-
-def my_function():
-    pass",
-    "startLine": 7,
+print("Hello, Python!")",
+    "startLine": 5,
     "symbols": [
       {
         "kind": "class",
@@ -766,7 +689,7 @@ exports[`LanguageParser should parse TypeScript fixtures correctly 1`] = `
     "endLine": 1,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
+    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
     "imports": [
       "import { a } from 'b';",
     ],
@@ -780,32 +703,32 @@ kind: comment
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 16,
+        "line": 19,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 20,
+        "line": 23,
         "name": "MyInterface",
       },
     ],
@@ -820,7 +743,7 @@ kind: comment
     "endLine": 2,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
+    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
     "imports": [
       "import { a } from 'b';",
     ],
@@ -834,32 +757,32 @@ import { a } from 'b';",
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 16,
+        "line": 19,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 20,
+        "line": 23,
         "name": "MyInterface",
       },
     ],
@@ -867,57 +790,57 @@ import { a } from 'b';",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "62d83893874d1e8701dc414b00e8e52bcacf5b54fb31e216e283ec7235619c45",
+    "chunk_hash": "7879ae4ab38bdc5513c4af4a422cd870415b4e829ebd550543748ead16e0f1a4",
     "containerPath": "",
-    "content": "function myFunction() {
-  console.log('hello');
-}",
+    "content": "/**
+ * This is a JSDoc comment.
+ */",
     "created_at": "[TIMESTAMP]",
     "endLine": 6,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
+    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
     "imports": [
       "import { a } from 'b';",
     ],
-    "kind": "function_declaration",
+    "kind": "comment",
     "language": "typescript",
     "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: function_declaration
+kind: comment
 
-function myFunction() {
-  console.log('hello');
-}",
+/**
+ * This is a JSDoc comment.
+ */",
     "startLine": 4,
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 16,
+        "line": 19,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 20,
+        "line": 23,
         "name": "MyInterface",
       },
     ],
@@ -925,14 +848,72 @@ function myFunction() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "46289932de1604479260f0178bba3a5f7019d133b263efc139c9a18d856bebf1",
+    "chunk_hash": "7879ae4ab38bdc5513c4af4a422cd870415b4e829ebd550543748ead16e0f1a4",
     "containerPath": "",
-    "content": "console.log('hello')",
+    "content": "/**
+ * This is a JSDoc comment.
+ */",
     "created_at": "[TIMESTAMP]",
-    "endLine": 5,
+    "endLine": 6,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
+    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "imports": [
+      "import { a } from 'b';",
+    ],
+    "kind": "comment",
+    "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: comment
+
+/**
+ * This is a JSDoc comment.
+ */",
+    "startLine": 4,
+    "symbols": [
+      {
+        "kind": "function",
+        "line": 7,
+        "name": "hello",
+      },
+      {
+        "kind": "class",
+        "line": 11,
+        "name": "MyClass",
+      },
+      {
+        "kind": "method",
+        "line": 12,
+        "name": "myMethod",
+      },
+      {
+        "kind": "variable",
+        "line": 17,
+        "name": "myVar",
+      },
+      {
+        "kind": "type",
+        "line": 19,
+        "name": "MyType",
+      },
+      {
+        "kind": "interface",
+        "line": 23,
+        "name": "MyInterface",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b8059cfb1ea623e79efbf432db31595df213c99c6534c58bec9d5f5e069344df",
+    "containerPath": "",
+    "content": "console.log('Hello, world!')",
+    "created_at": "[TIMESTAMP]",
+    "endLine": 8,
+    "filePath": "tests/fixtures/typescript.ts",
+    "git_branch": "main",
+    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
     "imports": [
       "import { a } from 'b';",
     ],
@@ -941,328 +922,37 @@ function myFunction() {
     "semantic_text": "filePath: tests/fixtures/typescript.ts
 kind: call_expression
 
-console.log('hello')",
-    "startLine": 5,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "myFunction",
-      },
-      {
-        "kind": "class",
-        "line": 8,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 9,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 14,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 16,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 20,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "6fd7f5fcd99232f0e49797bebada48669972e9c870171a3848c61eebca7f22dd",
-    "containerPath": "",
-    "content": "class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 12,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
-    "imports": [
-      "import { a } from 'b';",
-    ],
-    "kind": "class_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: class_declaration
-
-class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
+console.log('Hello, world!')",
     "startLine": 8,
     "symbols": [
       {
         "kind": "function",
-        "line": 4,
-        "name": "myFunction",
+        "line": 7,
+        "name": "hello",
       },
       {
         "kind": "class",
-        "line": 8,
+        "line": 11,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 9,
+        "line": 12,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 14,
+        "line": 17,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 16,
+        "line": 19,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 20,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "4f9ff60fb6e9d9218195c5b2af2e37c126497b9dbda6838356718ce7fe4d4b7a",
-    "containerPath": "MyClass",
-    "content": "myMethod() {
-    return 1;
-  }",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 11,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
-    "imports": [
-      "import { a } from 'b';",
-    ],
-    "kind": "method_definition",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: method_definition
-containerPath: MyClass
-
-myMethod() {
-    return 1;
-  }",
-    "startLine": 9,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "myFunction",
-      },
-      {
-        "kind": "class",
-        "line": 8,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 9,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 14,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 16,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 20,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "b4debc24bebfb7484ed5e08c2e47765e7b7449130b923b7c89c7079823b5c73a",
-    "containerPath": "",
-    "content": "const myVar = () => {};",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 14,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
-    "imports": [
-      "import { a } from 'b';",
-    ],
-    "kind": "lexical_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: lexical_declaration
-
-const myVar = () => {};",
-    "startLine": 14,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "myFunction",
-      },
-      {
-        "kind": "class",
-        "line": 8,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 9,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 14,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 16,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 20,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "ffbaa67156c5c6797b6e979ae7b40d09c839ede749416ea15b140a5e806bdc14",
-    "containerPath": "",
-    "content": "type MyType = {
-  name: string;
-};",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 18,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
-    "imports": [
-      "import { a } from 'b';",
-    ],
-    "kind": "type_alias_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: type_alias_declaration
-
-type MyType = {
-  name: string;
-};",
-    "startLine": 16,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "myFunction",
-      },
-      {
-        "kind": "class",
-        "line": 8,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 9,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 14,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 16,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 20,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "7c078235ad80c07bc55176f61a080b5dfc580d9c6db2f51138f43cef0620d72a",
-    "containerPath": "",
-    "content": "interface MyInterface {
-  id: number;
-}",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 22,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "a47497f7bcf1232772c3b09f3de7db1dd02b2d9f",
-    "imports": [
-      "import { a } from 'b';",
-    ],
-    "kind": "interface_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: interface_declaration
-
-interface MyInterface {
-  id: number;
-}",
-    "startLine": 20,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "myFunction",
-      },
-      {
-        "kind": "class",
-        "line": 8,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 9,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 14,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 16,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 20,
+        "line": 23,
         "name": "MyInterface",
       },
     ],

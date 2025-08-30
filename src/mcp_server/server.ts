@@ -10,15 +10,23 @@ import { randomUUID } from 'crypto';
 import { semanticCodeSearch, semanticCodeSearchSchema } from './tools/semantic_code_search';
 import { listSymbolsByQuery, listSymbolsByQuerySchema } from './tools/list_symbols_by_query';
 import { symbolAnalysis, symbolAnalysisSchema } from './tools/symbol_analysis';
+import { readFile, readFileSchema } from './tools/read_file';
 
+/**
+ * The main MCP server class.
+ *
+ * This class is responsible for creating and managing the MCP server,
+ * registering tools, and starting the server with either a stdio or HTTP
+ * transport.
+ */
 export class McpServer {
   private server: SdkServer;
 
   constructor() {
     this.server = new SdkServer({
-      name: 'code-indexer',
+      name: 'semantic-code-search',
       version: '0.0.1',
-      title: 'Code Indexer MCP Server',
+      title: 'MCP Server for the Semantic Code Search Indexer',
     });
     this.registerTools();
   }
@@ -54,13 +62,38 @@ export class McpServer {
       },
       symbolAnalysis
     );
+
+    const readFileDescription = fs.readFileSync(path.join(__dirname, 'tools/read_file.md'), 'utf-8');
+    this.server.registerTool(
+      'read_file_from_chunks',
+      {
+        description: readFileDescription,
+        inputSchema: readFileSchema.shape,
+      },
+      readFile
+    );
   }
 
+  /**
+   * Starts the MCP server with a stdio transport.
+   *
+   * This is the default mode, and is used when the server is run from the
+   * command line without any arguments.
+   */
   public async start() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
   }
 
+  /**
+   * Starts the MCP server with an HTTP transport.
+   *
+   * This mode is used when the server is run with the `http` argument. It
+   * creates an Express server and uses the `StreamableHTTPServerTransport`
+   * to handle MCP requests over HTTP.
+   *
+   * @param port The port to listen on.
+   */
   public async startHttp(port: number) {
     const app = express();
     app.use(express.json());
@@ -101,6 +134,12 @@ export class McpServer {
       await transport.handleRequest(req, res, req.body);
     });
 
+    /**
+     * A reusable handler for GET and DELETE requests that require a session ID.
+     *
+     * @param req The Express request object.
+     * @param res The Express response object.
+     */
     const handleSessionRequest = async (req: express.Request, res: express.Response) => {
       const sessionId = req.headers['mcp-session-id'] as string | undefined;
       if (!sessionId || !transports[sessionId]) {

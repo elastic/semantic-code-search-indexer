@@ -4,6 +4,13 @@ import { elasticsearchConfig } from '../config';
 export { elasticsearchConfig };
 import { logger } from './logger';
 
+/**
+ * The Elasticsearch client instance.
+ *
+ * This client is configured to connect to the Elasticsearch cluster specified
+ * in the environment variables. It is used for all communication with
+ * Elasticsearch.
+ */
 export let client: Client;
 
 const baseOptions: Partial<ClientOptions> = {
@@ -45,6 +52,12 @@ const indexName = elasticsearchConfig.index;
 const elserModelId = elasticsearchConfig.model;
 const codeSimilarityPipeline = 'code-similarity-pipeline';
 
+/**
+ * Sets up the ELSER model for semantic search.
+ *
+ * This function checks if the ELSER model is deployed and started in the
+ * Elasticsearch cluster. If it's not, it attempts to start the deployment.
+ */
 export async function setupElser(): Promise<void> {
   logger.info('Checking for ELSER model deployment...');
   try {
@@ -61,10 +74,16 @@ export async function setupElser(): Promise<void> {
   }
 }
 
+/**
+ * Creates the Elasticsearch index for storing code chunks.
+ *
+ * This function checks if the index already exists. If it doesn't, it creates
+ * the index with the correct mappings for the code chunk documents.
+ */
 export async function createIndex(): Promise<void> {
   const indexExists = await client.indices.exists({ index: indexName });
   if (!indexExists) {
-    logger.info(`Creating index \"${indexName}\"...`);
+    logger.info(`Creating index "${indexName}"...`);
     await client.indices.create({
       index: indexName,
       settings: {
@@ -109,7 +128,7 @@ export async function createIndex(): Promise<void> {
       },
     });
   } else {
-    logger.info(`Index \"${indexName}\" already exists.`);
+    logger.info(`Index "${indexName}" already exists.`);
   }
 }
 
@@ -189,6 +208,14 @@ export interface CodeChunk {
   updated_at: string;
 }
 
+/**
+ * Indexes an array of code chunks into Elasticsearch.
+ *
+ * This function uses the Elasticsearch bulk API to efficiently index a large
+ * number of documents at once.
+ *
+ * @param chunks An array of `CodeChunk` objects to index.
+ */
 export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
   if (chunks.length === 0) {
     return;
@@ -219,6 +246,12 @@ export async function getClusterHealth(): Promise<any> {
   return client.cluster.health();
 }
 
+/**
+ * Performs a semantic search on the code chunks in the index.
+ *
+ * @param query The natural language query to search for.
+ * @returns A promise that resolves to an array of search results.
+ */
 export async function searchCodeChunks(query: string): Promise<any[]> {
   const response = await client.search({
     index: indexName,
@@ -235,6 +268,15 @@ export async function searchCodeChunks(query: string): Promise<any[]> {
   }));
 }
 
+/**
+ * Aggregates symbols by file path.
+ *
+ * This function is used by the `symbol_analysis` tool to find all the symbols
+ * in a set of files that match a given query.
+ *
+ * @param query The Elasticsearch query to use for the search.
+ * @returns A promise that resolves to a record of file paths to symbol info.
+ */
 export async function aggregateBySymbols(query: QueryDslQueryContainer): Promise<Record<string, SymbolInfo[]>> {
   const response = await client.search({
     index: indexName,

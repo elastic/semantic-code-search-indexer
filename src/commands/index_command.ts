@@ -19,6 +19,16 @@ import fs from 'fs';
 import ignore from 'ignore';
 import { logger } from '../utils/logger';
 
+/**
+ * The main function for the `index` command.
+ *
+ * This function is responsible for orchestrating the entire indexing process.
+ * It discovers files, manages producer and consumer queues for parsing and
+ * indexing, and updates the last indexed commit hash at the end.
+ *
+ * @param directory The directory to index.
+ * @param clean Whether to delete the existing index before indexing.
+ */
 export async function index(directory: string, clean: boolean) {
   const languageParser = new LanguageParser();
   const supportedFileExtensions = Array.from(languageParser.fileSuffixMap.keys());

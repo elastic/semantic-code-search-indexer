@@ -5,4 +5,5 @@ class MyClass:
         print("Hello, Python!")
 
 def my_function():
+    """This is a docstring."""
     pass
