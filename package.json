@@ -15,7 +15,7 @@
     "incremental-index": "ts-node src/index.ts incremental-index",
     "setup": "ts-node src/index.ts setup",
     "test": "jest",
-    "prepare": "npm run build",,
+    "prepare": "npm run build",
     "mcp-server": "ts-node src/mcp_server/bin.ts",
     "mcp-server:http": "ts-node src/mcp_server/bin.ts http"
   },
