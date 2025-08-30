@@ -7,7 +7,8 @@ export const pythonConfig: LanguageConfiguration = {
   parser: python,
     queries: [
     '(call) @call',
-    '(import_statement) @import',
+    '(import_statement name: (dotted_name) @import.path)',
+    '(import_from_statement module_name: (dotted_name) @import.path)',
     '(comment) @comment',
     `
     (

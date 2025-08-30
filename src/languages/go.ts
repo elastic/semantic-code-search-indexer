@@ -8,6 +8,7 @@ export const goConfig: LanguageConfiguration = {
     queries: [
     '(call_expression) @call',
     '(import_declaration) @import',
+    '(import_spec path: (interpreted_string_literal) @import.path)',
     '(comment) @comment',
     `
     (

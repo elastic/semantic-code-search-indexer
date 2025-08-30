@@ -11,8 +11,12 @@ exports[`LanguageParser should parse Go fixtures correctly 1`] = `
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
     "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
+    "imported_files": [],
+    "imported_modules": [
+      "fmt",
+    ],
     "imports": [
-      "import "fmt"",
+      "fmt",
     ],
     "kind": "import_declaration",
     "language": "go",
@@ -20,6 +24,44 @@ exports[`LanguageParser should parse Go fixtures correctly 1`] = `
 kind: import_declaration
 
 import "fmt"",
+    "startLine": 3,
+    "symbols": [
+      {
+        "kind": "function",
+        "line": 6,
+        "name": "Hello",
+      },
+      {
+        "kind": "type",
+        "line": 10,
+        "name": "MyType",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "4a829123137dd0f0247cac32033fcb516bf9b5581044a790840864e46c03e136",
+    "containerPath": "",
+    "content": ""fmt"",
+    "created_at": "[TIMESTAMP]",
+    "endLine": 3,
+    "filePath": "tests/fixtures/go.go",
+    "git_branch": "main",
+    "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
+    "imported_files": [],
+    "imported_modules": [
+      "fmt",
+    ],
+    "imports": [
+      "fmt",
+    ],
+    "kind": "interpreted_string_literal",
+    "language": "go",
+    "semantic_text": "filePath: tests/fixtures/go.go
+kind: interpreted_string_literal
+
+"fmt"",
     "startLine": 3,
     "symbols": [
       {
@@ -45,8 +87,12 @@ import "fmt"",
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
     "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
+    "imported_files": [],
+    "imported_modules": [
+      "fmt",
+    ],
     "imports": [
-      "import "fmt"",
+      "fmt",
     ],
     "kind": "comment",
     "language": "go",
@@ -79,8 +125,12 @@ kind: comment
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
     "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
+    "imported_files": [],
+    "imported_modules": [
+      "fmt",
+    ],
     "imports": [
-      "import "fmt"",
+      "fmt",
     ],
     "kind": "comment",
     "language": "go",
@@ -113,8 +163,12 @@ kind: comment
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
     "git_file_hash": "3617ff140f9ed70e1b2ee35bb62bf5929961447a",
+    "imported_files": [],
+    "imported_modules": [
+      "fmt",
+    ],
     "imports": [
-      "import "fmt"",
+      "fmt",
     ],
     "kind": "call_expression",
     "language": "go",
@@ -144,23 +198,27 @@ fmt.Println("Hello, Go!")",
 exports[`LanguageParser should parse Java fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "c7bf8cb907acb4b0d6e6fddaf47d772c5f0336e85f853a81815767441d7dff94",
+    "chunk_hash": "a0fb13f6304249a5d3753d85ba6366fa2050325efb0b79a2ea7549843fb50391",
     "containerPath": "",
-    "content": "import java.util.List;",
+    "content": "java.util.List",
     "created_at": "[TIMESTAMP]",
     "endLine": 1,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
     "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
-    "imports": [
-      "import java.util.List;",
+    "imported_files": [],
+    "imported_modules": [
+      "java.util.List",
     ],
-    "kind": "import_declaration",
+    "imports": [
+      "java.util.List",
+    ],
+    "kind": "scoped_identifier",
     "language": "java",
     "semantic_text": "filePath: tests/fixtures/java.java
-kind: import_declaration
+kind: scoped_identifier
 
-import java.util.List;",
+java.util.List",
     "startLine": 1,
     "symbols": [
       {
@@ -188,8 +246,12 @@ import java.util.List;",
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
     "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
+    "imported_files": [],
+    "imported_modules": [
+      "java.util.List",
+    ],
     "imports": [
-      "import java.util.List;",
+      "java.util.List",
     ],
     "kind": "block_comment",
     "language": "java",
@@ -227,8 +289,12 @@ containerPath: MyClass
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
     "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
+    "imported_files": [],
+    "imported_modules": [
+      "java.util.List",
+    ],
     "imports": [
-      "import java.util.List;",
+      "java.util.List",
     ],
     "kind": "block_comment",
     "language": "java",
@@ -264,8 +330,12 @@ containerPath: MyClass
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
     "git_file_hash": "676cf70813c5f27e977bf1c08dd977ddfd4d4906",
+    "imported_files": [],
+    "imported_modules": [
+      "java.util.List",
+    ],
     "imports": [
-      "import java.util.List;",
+      "java.util.List",
     ],
     "kind": "method_invocation",
     "language": "java",
@@ -303,8 +373,12 @@ exports[`LanguageParser should parse JavaScript fixtures correctly 1`] = `
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
     "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "comment",
     "language": "javascript",
@@ -339,23 +413,27 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ed8291088a1a5a73b9864543d1ce1e9a65ff0a84fc7b2e84bb51d4394d593245",
+    "chunk_hash": "fa34b15a4eb8e91ebeff64edba51d21905e1ac8ce2bff8865da08055bced0dd4",
     "containerPath": "",
-    "content": "import { a } from 'b';",
+    "content": "'b'",
     "created_at": "[TIMESTAMP]",
     "endLine": 2,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
     "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
-    "imports": [
-      "import { a } from 'b';",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
     ],
-    "kind": "import_statement",
+    "imports": [
+      "b",
+    ],
+    "kind": "string",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
-kind: import_statement
+kind: string
 
-import { a } from 'b';",
+'b'",
     "startLine": 2,
     "symbols": [
       {
@@ -393,8 +471,12 @@ import { a } from 'b';",
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
     "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "comment",
     "language": "javascript",
@@ -441,8 +523,12 @@ kind: comment
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
     "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "comment",
     "language": "javascript",
@@ -487,8 +573,12 @@ kind: comment
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
     "git_file_hash": "66a4426da26b3dd783dd4f065db3fcb5be3c99c4",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "call_expression",
     "language": "javascript",
@@ -599,23 +689,27 @@ This is another paragraph.
 exports[`LanguageParser should parse Python fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "de2abade832c8e350a1bdc98cfcdb1e202ac4749c5fc51a4a970d41736b6df5c",
+    "chunk_hash": "840a8dcfeae95966a870b0b5257997ce94cbc19dd979409d1671d2e93a9e0de6",
     "containerPath": "",
-    "content": "import os",
+    "content": "os",
     "created_at": "[TIMESTAMP]",
     "endLine": 1,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
     "git_file_hash": "deccc575415922af2636d83dab41365c1cd68f33",
-    "imports": [
-      "import os",
+    "imported_files": [],
+    "imported_modules": [
+      "os",
     ],
-    "kind": "import_statement",
+    "imports": [
+      "os",
+    ],
+    "kind": "dotted_name",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
-kind: import_statement
+kind: dotted_name
 
-import os",
+os",
     "startLine": 1,
     "symbols": [
       {
@@ -646,8 +740,12 @@ import os",
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
     "git_file_hash": "deccc575415922af2636d83dab41365c1cd68f33",
+    "imported_files": [],
+    "imported_modules": [
+      "os",
+    ],
     "imports": [
-      "import os",
+      "os",
     ],
     "kind": "call",
     "language": "python",
@@ -690,8 +788,12 @@ exports[`LanguageParser should parse TypeScript fixtures correctly 1`] = `
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
     "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "comment",
     "language": "typescript",
@@ -736,23 +838,27 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ed8291088a1a5a73b9864543d1ce1e9a65ff0a84fc7b2e84bb51d4394d593245",
+    "chunk_hash": "fa34b15a4eb8e91ebeff64edba51d21905e1ac8ce2bff8865da08055bced0dd4",
     "containerPath": "",
-    "content": "import { a } from 'b';",
+    "content": "'b'",
     "created_at": "[TIMESTAMP]",
     "endLine": 2,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
     "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
-    "imports": [
-      "import { a } from 'b';",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
     ],
-    "kind": "import_statement",
+    "imports": [
+      "b",
+    ],
+    "kind": "string",
     "language": "typescript",
     "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: import_statement
+kind: string
 
-import { a } from 'b';",
+'b'",
     "startLine": 2,
     "symbols": [
       {
@@ -800,8 +906,12 @@ import { a } from 'b';",
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
     "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "comment",
     "language": "typescript",
@@ -858,8 +968,12 @@ kind: comment
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
     "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "comment",
     "language": "typescript",
@@ -914,8 +1028,12 @@ kind: comment
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
     "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "imported_files": [],
+    "imported_modules": [
+      "b",
+    ],
     "imports": [
-      "import { a } from 'b';",
+      "b",
     ],
     "kind": "call_expression",
     "language": "typescript",

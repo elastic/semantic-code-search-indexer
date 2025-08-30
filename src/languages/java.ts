@@ -7,7 +7,7 @@ export const javaConfig: LanguageConfiguration = {
   parser: java,
     queries: [
     '(method_invocation) @call',
-    '(import_declaration) @import',
+    '(import_declaration (scoped_identifier) @import.path)',
     '(line_comment) @comment',
     '(block_comment) @comment',
     `

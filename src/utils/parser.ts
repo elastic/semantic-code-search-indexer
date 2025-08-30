@@ -141,9 +141,23 @@ export class LanguageParser {
     const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
 
     const importNodes = matches.filter(
-      m => m.captures.some(c => c.name === 'import')
+      m => m.captures.some(c => c.name === 'import.path')
     );
-    const imports = importNodes.map(m => m.captures[0].node.text);
+    const imports = importNodes.map(m => m.captures[0].node.text.replace(/['"]/g, ''));
+
+    const importedFiles: string[] = [];
+    const importedModules: string[] = [];
+
+    for (const importPath of imports) {
+      if (importPath.startsWith('.')) {
+        const resolvedPath = path.resolve(path.dirname(filePath), importPath);
+        const gitRoot = execSync('git rev-parse --show-toplevel').toString().trim();
+        const projectRelativePath = path.relative(gitRoot, resolvedPath);
+        importedFiles.push(projectRelativePath);
+      } else {
+        importedModules.push(importPath);
+      }
+    }
 
     let symbols: SymbolInfo[] = [];
     if (langConfig.symbolQueries) {
@@ -185,6 +199,8 @@ export class LanguageParser {
         language: langConfig.name,
         kind: node.type,
         imports,
+        imported_files: importedFiles,
+        imported_modules: importedModules,
         symbols,
         containerPath,
         filePath: relativePath,

@@ -97,6 +97,8 @@ export async function createIndex(): Promise<void> {
           language: { type: 'keyword' },
           kind: { type: 'keyword' },
           imports: { type: 'keyword' },
+          imported_files: { type: 'keyword' },
+          imported_modules: { type: 'keyword' },
           symbols: {
             type: 'nested',
             properties: {
@@ -193,6 +195,8 @@ export interface CodeChunk {
   language: string;
   kind?: string;
   imports?: string[];
+  imported_files?: string[];
+  imported_modules?: string[];
   symbols?: SymbolInfo[];
   containerPath?: string;
   filePath: string;

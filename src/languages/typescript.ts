@@ -8,7 +8,7 @@ export const typescript: LanguageConfiguration = {
   parser: ts.typescript,
   queries: [
     '(call_expression) @call',
-    '(import_statement) @import',
+    '(import_statement source: (string) @import.path)',
     '(comment) @comment',
     `
     (
