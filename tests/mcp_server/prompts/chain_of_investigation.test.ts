@@ -1,4 +1,4 @@
-import { createStartChainOfInvestigationHandler } from '../../src/mcp_server/tools/chain_of_investigation';
+import { createStartChainOfInvestigationHandler } from '../../../src/mcp_server/prompts/chain_of_investigation';
 
 describe('startChainOfInvestigation', () => {
   it('should return a a chain of investigation workflow', async () => {

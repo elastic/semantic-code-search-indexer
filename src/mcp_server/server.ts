@@ -15,7 +15,7 @@ import { documentSymbols, documentSymbolsSchema } from './tools/document_symbols
 import {
   createStartChainOfInvestigationHandler,
   startChainOfInvestigationSchema,
-} from './tools/chain_of_investigation';
+} from './prompts/chain_of_investigation';
 
 /**
  * The main MCP server class.
@@ -89,7 +89,7 @@ export class McpServer {
     );
 
     const chainOfInvestigationMarkdown = fs.readFileSync(
-      path.join(__dirname, 'tools/chain_of_investigation.md'),
+      path.join(__dirname, 'prompts/chain_of_investigation.md'),
       'utf-8'
     );
 
