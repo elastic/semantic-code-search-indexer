@@ -139,6 +139,17 @@ ELASTICSEARCH_ENDPOINT=http://localhost:9200 npx github:elastic/semantic-code-se
 PORT=8080 ELASTICSEARCH_ENDPOINT=http://localhost:9200 npx github:elastic/semantic-code-search-indexer http
 ```
 
+### Available Prompts
+
+| Prompt | Description |
+| --- | --- |
+| `StartInvestigation` | A prompt that guides the user through a "chain of investigation" to understand a codebase and accomplish a task. |
+
+**Example:**
+```
+/StartInvestigation --task="add a new route to the kibana server"
+```
+
 ### Available Tools
 
 The MCP server provides the following tools:
@@ -150,7 +161,6 @@ The MCP server provides the following tools:
 | `symbol_analysis` | Analyzes a symbol and returns a report of its definitions, call sites, and references. This is useful for understanding the role of a symbol in the codebase. |
 | `read_file_from_chunks` | Reads the content of a file from the index, providing a reconstructed view based on the most important indexed chunks. |
 | `document_symbols` | Analyzes a file to identify the key symbols that would most benefit from documentation. This is useful for automating the process of improving the semantic quality of a codebase. |
-| `StartInvestigation` | A prompt that guides the user through a "chain of investigation" to understand a codebase and accomplish a task. |
 
 ---
 
