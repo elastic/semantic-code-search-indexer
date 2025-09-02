@@ -18,6 +18,11 @@ parentPort?.on('message', ({ filePath, gitBranch, relativePath }: { filePath: st
 
   try {
     const chunks = languageParser.parseFile(filePath, gitBranch, relativePath);
+    chunks.forEach(chunk => {
+      if (chunk.imports && chunk.imports.length > 0) {
+        console.log('Worker thread imports:', JSON.stringify(chunk.imports, null, 2));
+      }
+    });
     parentPort?.postMessage({ status: 'success', data: chunks, filePath });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
