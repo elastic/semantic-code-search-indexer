@@ -1,7 +1,5 @@
 import { Client, ClientOptions } from '@elastic/elasticsearch';
 import {
-  AggregationsAggregate,
-  BulkResponse,
   ClusterHealthResponse,
   QueryDslQueryContainer,
 } from '@elastic/elasticsearch/lib/api/types';
@@ -252,7 +250,7 @@ export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
 
   if (bulkResponse.errors) {
     const erroredDocuments: ErroredDocument[] = [];
-    bulkResponse.items.forEach((action: any, i: number) => {
+    bulkResponse.items.forEach((action, i) => {
       const operation = Object.keys(action)[0];
       if (action[operation].error) {
         erroredDocuments.push({
