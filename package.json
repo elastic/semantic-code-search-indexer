@@ -4,11 +4,11 @@
   "bin": {
     "mcp-server": "dist/src/mcp_server/bin.js"
   },
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc",
-    "postbuild": "mkdir -p dist/libs/es-query/src/kuery/grammar && cp libs/es-query/src/kuery/grammar/grammar.js dist/libs/es-query/src/kuery/grammar/grammar.js && mkdir -p dist/src/mcp_server/prompts && cp src/mcp_server/prompts/*.md dist/src/mcp_server/prompts/",
+    "postbuild": "mkdir -p dist/libs/es-query/src/kuery/grammar && cp libs/es-query/src/kuery/grammar/grammar.js dist/libs/es-query/src/kuery/grammar/grammar.js && mkdir -p dist/src/mcp_server/prompts && cp src/mcp_server/prompts/*.md dist/src/mcp_server/prompts/ && mkdir -p dist/src/mcp_server/tools && cp src/mcp_server/tools/*.md dist/src/mcp_server/tools/ && chmod +x dist/src/mcp_server/bin.js dist/src/index.js",
     "build:kql": "npx peggy -o libs/es-query/src/kuery/grammar/grammar.js libs/es-query/src/kuery/grammar/grammar.peggy",
     "lint": "eslint . --ext .ts",
     "index": "NODE_OPTIONS=--max-old-space-size=8192 ts-node src/index.ts index",
