@@ -187,22 +187,24 @@ export class LanguageParser {
     if (langConfig.importQueries) {
       const importQuery = new Query(langConfig.parser, langConfig.importQueries.join('\n'));
       const importMatches = importQuery.matches(tree.rootNode);
-      const importNodes = importMatches.filter(m =>
-        m.captures.some(c => c.name.startsWith('import'))
-      );
 
-      for (const match of importNodes) {
+      for (const match of importMatches) {
         let importPath = '';
         const symbols: string[] = [];
+        let pathFound = false;
+
         for (const capture of match.captures) {
           if (capture.name === 'import.path') {
             importPath = capture.node.text.replace(/['"]/g, '');
+            pathFound = true;
           } else if (capture.name === 'import.symbol') {
             symbols.push(capture.node.text);
           }
         }
 
-        if (importPath) {
+        // Only create an import object if a path was successfully extracted.
+        // This prevents the creation of malformed entries when a query fails to parse a statement.
+        if (pathFound && importPath) {
           const line = match.captures[0].node.startPosition.row + 1;
           if (!importsByLine[line]) {
             importsByLine[line] = [];

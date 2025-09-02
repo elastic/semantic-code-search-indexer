@@ -1,5 +1,6 @@
 // This is a comment
 import { a } from 'b';
+import type { c } from 'd';
 
 /**
  * This is a JSDoc comment.

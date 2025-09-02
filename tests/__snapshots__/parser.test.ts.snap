@@ -1394,7 +1394,7 @@ exports[`LanguageParser should parse TypeScript fixtures correctly 1`] = `
     "endLine": 1,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [],
     "kind": "comment",
     "language": "typescript",
@@ -1406,32 +1406,32 @@ kind: comment
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
         "name": "MyInterface",
       },
     ],
@@ -1446,7 +1446,7 @@ kind: comment
     "endLine": 2,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [
       {
         "path": "b",
@@ -1471,32 +1471,104 @@ import { a } from 'b';",
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
+        "name": "MyInterface",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "fc03a7a56a6c7477498dd5f46ad95998a6d99807342cda67891126f40d25d0d3",
+    "containerPath": "",
+    "content": "import type { c } from 'd';",
+    "created_at": "[TIMESTAMP]",
+    "endLine": 3,
+    "filePath": "tests/fixtures/typescript.ts",
+    "git_branch": "main",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
+    "imports": [
+      {
+        "path": "d",
+        "symbols": [
+          "c",
+        ],
+        "type": "module",
+      },
+      {
+        "path": "d",
+        "symbols": [],
+        "type": "module",
+      },
+      {
+        "path": "d",
+        "symbols": [
+          "c",
+        ],
+        "type": "module",
+      },
+    ],
+    "kind": "import_statement",
+    "language": "typescript",
+    "semantic_text": "filePath: tests/fixtures/typescript.ts
+kind: import_statement
+
+import type { c } from 'd';",
+    "startLine": 3,
+    "symbols": [
+      {
+        "kind": "function",
+        "line": 8,
+        "name": "hello",
+      },
+      {
+        "kind": "class",
+        "line": 12,
+        "name": "MyClass",
+      },
+      {
+        "kind": "method",
+        "line": 13,
+        "name": "myMethod",
+      },
+      {
+        "kind": "variable",
+        "line": 18,
+        "name": "myVar",
+      },
+      {
+        "kind": "type",
+        "line": 20,
+        "name": "MyType",
+      },
+      {
+        "kind": "interface",
+        "line": 24,
         "name": "MyInterface",
       },
     ],
@@ -1510,10 +1582,10 @@ import { a } from 'b';",
  * This is a JSDoc comment.
  */",
     "created_at": "[TIMESTAMP]",
-    "endLine": 6,
+    "endLine": 7,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [],
     "kind": "comment",
     "language": "typescript",
@@ -1523,36 +1595,36 @@ kind: comment
 /**
  * This is a JSDoc comment.
  */",
-    "startLine": 4,
+    "startLine": 5,
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
         "name": "MyInterface",
       },
     ],
@@ -1566,10 +1638,10 @@ kind: comment
   console.log('Hello, world!');
 }",
     "created_at": "[TIMESTAMP]",
-    "endLine": 9,
+    "endLine": 10,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [],
     "kind": "function_declaration",
     "language": "typescript",
@@ -1579,36 +1651,36 @@ kind: function_declaration
 function hello() {
   console.log('Hello, world!');
 }",
-    "startLine": 7,
+    "startLine": 8,
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
         "name": "MyInterface",
       },
     ],
@@ -1624,10 +1696,10 @@ function hello() {
   }
 }",
     "created_at": "[TIMESTAMP]",
-    "endLine": 15,
+    "endLine": 16,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [],
     "kind": "class_declaration",
     "language": "typescript",
@@ -1639,36 +1711,36 @@ class MyClass {
     return 1;
   }
 }",
-    "startLine": 11,
+    "startLine": 12,
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
         "name": "MyInterface",
       },
     ],
@@ -1682,10 +1754,10 @@ class MyClass {
     return 1;
   }",
     "created_at": "[TIMESTAMP]",
-    "endLine": 14,
+    "endLine": 15,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [],
     "kind": "method_definition",
     "language": "typescript",
@@ -1696,36 +1768,36 @@ containerPath: MyClass
 myMethod() {
     return 1;
   }",
-    "startLine": 12,
+    "startLine": 13,
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
         "name": "MyInterface",
       },
     ],
@@ -1737,10 +1809,10 @@ myMethod() {
     "containerPath": "",
     "content": "const myVar = () => {};",
     "created_at": "[TIMESTAMP]",
-    "endLine": 17,
+    "endLine": 18,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [],
     "kind": "lexical_declaration",
     "language": "typescript",
@@ -1748,36 +1820,36 @@ myMethod() {
 kind: lexical_declaration
 
 const myVar = () => {};",
-    "startLine": 17,
+    "startLine": 18,
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
         "name": "MyInterface",
       },
     ],
@@ -1791,10 +1863,10 @@ const myVar = () => {};",
   id: number;
 }",
     "created_at": "[TIMESTAMP]",
-    "endLine": 25,
+    "endLine": 26,
     "filePath": "tests/fixtures/typescript.ts",
     "git_branch": "main",
-    "git_file_hash": "0e2943e2881dd83ae189d91d413ddcc47ea685ff",
+    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
     "imports": [],
     "kind": "interface_declaration",
     "language": "typescript",
@@ -1804,36 +1876,36 @@ kind: interface_declaration
 interface MyInterface {
   id: number;
 }",
-    "startLine": 23,
+    "startLine": 24,
     "symbols": [
       {
         "kind": "function",
-        "line": 7,
+        "line": 8,
         "name": "hello",
       },
       {
         "kind": "class",
-        "line": 11,
+        "line": 12,
         "name": "MyClass",
       },
       {
         "kind": "method",
-        "line": 12,
+        "line": 13,
         "name": "myMethod",
       },
       {
         "kind": "variable",
-        "line": 17,
+        "line": 18,
         "name": "myVar",
       },
       {
         "kind": "type",
-        "line": 19,
+        "line": 20,
         "name": "MyType",
       },
       {
         "kind": "interface",
-        "line": 23,
+        "line": 24,
         "name": "MyInterface",
       },
     ],

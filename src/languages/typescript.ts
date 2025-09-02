@@ -78,6 +78,7 @@ export const typescript: LanguageConfiguration = {
     '(import_statement (import_clause (namespace_import (identifier) @import.symbol)) source: (string) @import.path)',
     '(import_statement (import_clause (identifier) @import.symbol) source: (string) @import.path)',
     '(import_statement source: (string) @import.path)',
+    '(import_statement "type" (import_clause (named_imports (import_specifier name: (identifier) @import.symbol))) source: (string) @import.path)',
   ],
   symbolQueries: [
     '(function_declaration name: (identifier) @function.name)',
