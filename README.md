@@ -86,18 +86,6 @@ After an initial full index, use this command to efficiently update the index. I
 npm run incremental-index -- .repos/kibana
 ```
 
-### `npm run search`
-
-Finds code using natural language.
-
-**Arguments:**
-- `<query>`: The natural language query to search for.
-
-**Example:**
-```bash
-npm run search -- "a function that adds a new tool"
-```
-
 ---
 
 ## MCP Server Integration

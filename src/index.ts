@@ -1,25 +1,18 @@
 
 import './config'; // Must be the first import
-import { index, search, references, incrementalIndex, setup } from './commands';
+import { index, references, incrementalIndex, setup } from './commands';
 
 async function main() {
   const command = process.argv[2];
   const args = process.argv.slice(3);
 
   const clean = args.includes('--clean');
-  const aggregateSymbols = args.includes('--aggregate-symbols');
-  const argument = args.filter(arg => arg !== '--clean' && arg !== '--aggregate-symbols').join(' ');
+  const argument = args.filter(arg => arg !== '--clean').join(' ');
 
   if (command === 'index') {
     await index(argument || '.', clean);
   } else if (command === 'incremental-index') {
     await incrementalIndex(argument || '.');
-  } else if (command === 'search') {
-    if (!argument) {
-      console.error('Please provide a search query.');
-      process.exit(1);
-    }
-    await search(argument, aggregateSymbols);
   } else if (command === 'references') {
     if (!argument) {
       console.error('Please provide a file path and position, e.g., src/index.ts:10:5');
@@ -40,7 +33,6 @@ async function main() {
     console.log(
       '  npm run incremental-index [directory] [--log-mode] - Incrementally index a directory'
     );
-    console.log('  npm run search <query> [--aggregate-symbols] - Search for code, optionally aggregating by symbols');
     console.log('  npm run references <path:line:char>        - Find all references for a symbol');
   }
 }
