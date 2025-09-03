@@ -75,7 +75,7 @@ export async function index(directory: string, clean: boolean) {
   let indexedChunks = 0;
   const chunkQueue: CodeChunk[] = [];
 
-  const producerWorkerPath = path.join(process.cwd(), 'dist', 'src', 'utils', 'producer_worker.js');
+  const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
   const scheduleConsumer = () => {
     while (chunkQueue.length >= batchSize) {
