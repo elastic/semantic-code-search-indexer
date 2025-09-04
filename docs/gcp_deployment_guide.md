@@ -52,6 +52,9 @@ This guide provides step-by-step instructions for deploying the code indexer to 
 
     # Install git
     sudo apt-get install -y git
+
+    # Install build tools for native Node.js modules
+    sudo apt-get install -y build-essential
     ```
 
 4.  **Clone and Set Up the `semantic-code-search-indexer` Project**:
