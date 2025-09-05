@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import { env } from '@xenova/transformers';
 import path from 'path';
 import os from 'os';
 
@@ -22,6 +21,9 @@ export const indexingConfig = {
   cpuCores: parseInt(process.env.CPU_CORES || `${Math.max(1, Math.floor(os.cpus().length / 2))}`, 10),
 };
 
-// Configure Xenova/Transformers.js
-env.allowRemoteModels = false;
-env.localModelPath = path.resolve(process.cwd(), 'models');
+export const appConfig = {
+  queueDir: process.env.QUEUE_DIR || '.queue',
+  queueBaseDir: process.env.QUEUE_BASE_DIR || '.queues',
+};
+
+

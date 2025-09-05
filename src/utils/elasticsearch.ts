@@ -244,7 +244,7 @@ export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
     return;
   }
 
-  const operations = chunks.flatMap(doc => [{ index: { _index: indexName } }, doc]);
+  const operations = chunks.flatMap(doc => [{ index: { _index: indexName, _id: doc.chunk_hash } }, doc]);
 
   const bulkResponse = await client.bulk({ refresh: false, operations });
 
