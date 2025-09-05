@@ -22,7 +22,8 @@ export const indexingConfig = {
 };
 
 export const appConfig = {
-  queueDir: process.env.FILE_QUEUE_BASE_PATH || '.queue',
+  queueDir: process.env.QUEUE_DIR || '.queue',
+  queueBaseDir: process.env.QUEUE_BASE_DIR || '.queues',
 };
 
 

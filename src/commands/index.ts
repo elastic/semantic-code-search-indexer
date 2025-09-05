@@ -4,3 +4,5 @@ export * from './incremental_index_command';
 export * from './setup_command';
 export * from './worker_command';
 export * from './monitor_queue_command';
+export * from './multi_worker_command';
+export * from './clear_queue_command';

@@ -86,6 +86,49 @@ After an initial full index, use this command to efficiently update the index. I
 npm run incremental-index -- .repos/kibana
 ```
 
+### `npm run index-worker`
+
+Starts a single worker process for local development. This worker processes documents from the queue defined by the `QUEUE_DIR` environment variable.
+
+**Arguments:**
+- `--concurrency=N`: (Optional) The number of parallel tasks the worker should run.
+- `--watch`: (Optional) Keeps the worker running to process new items as they are enqueued.
+
+**Example:**
+```bash
+npm run index-worker -- --watch
+```
+
+### `npm run multi-index-worker`
+
+Starts a dedicated worker for a specific repository, designed for the multi-repo deployment model.
+
+**Arguments:**
+- `--repo-name=<repo>`: The name of the repository this worker is responsible for. This is used to determine the queue path.
+
+**Example:**
+```bash
+npm run multi-index-worker -- --repo-name=kibana
+```
+
+### `npm run monitor-queue`
+
+Displays statistics about the document queue, such as the number of pending, processing, and failed documents.
+
+**Example:**
+```bash
+npm run monitor-queue
+```
+
+### `npm run clear-queue`
+
+Deletes all documents from the queue database specified by the `QUEUE_DIR` environment variable.
+
+**Example:**
+```bash
+npm run clear-queue
+```
+
 ---
 
 ## MCP Server Integration
@@ -99,7 +142,7 @@ For information on how to set up and run the server, please visit:
 
 ## Deployment
 
-This indexer is designed to be deployed on a server (e.g., a GCP Compute Engine VM) and run on a schedule. For detailed instructions on how to set up the indexer with `systemd` timers or `cron`, please see the [GCP Deployment Guide](./docs/gcp_deployment_guide.md).
+This indexer is designed to be deployed on a server (e.g., a GCP Compute Engine VM) and run on a schedule. For detailed instructions on how to set up the indexer with `systemd` timers for a multi-repository environment, please see the [GCP Deployment Guide](./docs/GCP_DEPLOYMENT_GUIDE.md).
 
 ---
 
@@ -109,9 +152,13 @@ Configuration is managed via environment variables in a `.env` file.
 
 | Variable | Description | Default |
 | --- | --- | --- |
+| `ELASTICSEARCH_ENDPOINT` | The endpoint URL for your Elasticsearch instance. | |
 | `ELASTICSEARCH_CLOUD_ID` | The Cloud ID for your Elastic Cloud instance. | |
 | `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication. | |
-| `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. | `code-chunks` |
+| `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts. | `code-chunks` |
+| `QUEUE_DIR` | The directory for the queue database. Used by the `index-worker` and `clear-queue` commands. | `.queue` |
+| `QUEUE_BASE_DIR` | The base directory for all multi-repo queue databases. | `.queues` |
+| `REPOSITORIES_TO_INDEX` | A space-separated list of "repo_path:es_index" pairs for the multi-repo producer. | |
 | `BATCH_SIZE` | The number of chunks to index in a single bulk request. | `500` |
 | `CPU_CORES` | The number of CPU cores to use for file parsing. | Half of the available cores |
 | `LOG_FORMAT` | The format of the logs. Can be `json` or `text`. | `json` |

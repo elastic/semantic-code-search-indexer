@@ -9,6 +9,8 @@
     "lint": "eslint . --ext .ts",
     "index": "NODE_OPTIONS=--max-old-space-size=8192 ts-node src/index.ts index",
     "index-worker": "ts-node src/index.ts worker",
+    "multi-index-worker": "ts-node src/index.ts multi-index-worker",
+    "clear-queue": "ts-node src/index.ts clear-queue",
     "search": "ts-node src/index.ts search",
     "incremental-index": "ts-node src/index.ts incremental-index",
     "monitor-queue": "ts-node src/index.ts monitor-queue",
