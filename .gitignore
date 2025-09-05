@@ -1,9 +1,11 @@
 node_modules
 dist
 .env
+.env.*
 commit_message.txt
 \n.repos/
 .repos/
 COMMIT_MESSAGE.tmp
 .marprc.js
 matches.json
+.queue

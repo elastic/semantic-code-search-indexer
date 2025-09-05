@@ -1,6 +1,6 @@
 // src/utils/logger.ts
 import { Client, ClientOptions } from '@elastic/elasticsearch';
-import { elasticsearchConfig } from '../config';
+import { elasticsearchConfig, appConfig } from '../config';
 import { findProjectRoot } from './find_project_root';
 import { execSync } from 'child_process';
 import os from 'os';
@@ -21,14 +21,23 @@ interface LogEntry {
 
 let esClient: Client | null = null;
 let gitInfo: { branch: string; remoteUrl: string; rootPath: string } | null = null;
+let gitInfoInitialized = false;
 
-try {
-  const rootPath = findProjectRoot(process.cwd()) || process.cwd();
-  const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: rootPath }).toString().trim();
-  const remoteUrl = execSync('git config --get remote.origin.url', { cwd: rootPath }).toString().trim();
-  gitInfo = { branch, remoteUrl, rootPath };
-} catch (error) {
-  console.error('Could not get git info', error);
+function getGitInfo() {
+  if (gitInfoInitialized) {
+    return gitInfo;
+  }
+  gitInfoInitialized = true;
+
+  try {
+    const rootPath = findProjectRoot(process.cwd()) || process.cwd();
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: rootPath }).toString().trim();
+    const remoteUrl = execSync('git config --get remote.origin.url', { cwd: rootPath }).toString().trim();
+    gitInfo = { branch, remoteUrl, rootPath };
+  } catch (error) {
+    console.error('Could not get git info', error);
+  }
+  return gitInfo;
 }
 
 
@@ -65,17 +74,6 @@ if (elasticsearchConfig.logging && !process.env.MCP_SERVER_MODE) {
   }
 }
 
-/**
- * Logs a message to the console and optionally to Elasticsearch.
- *
- * This function constructs a log entry with a timestamp, log level, message,
- * and metadata, and then logs it to the console. If Elasticsearch logging is
- * enabled, it also sends the log entry to Elasticsearch.
- *
- * @param level The log level.
- * @param message The log message.
- * @param metadata Optional metadata to include with the log entry.
- */
 async function log(level: LogLevel, message: string, metadata: object = {}) {
   const logEntry: LogEntry = {
     '@timestamp': new Date().toISOString(),
@@ -87,7 +85,7 @@ async function log(level: LogLevel, message: string, metadata: object = {}) {
       dataset: 'semantic.codesearch',
     },
     codesearch: {
-      ...gitInfo,
+      ...getGitInfo(),
     },
     host: {
       hostname: os.hostname(),
@@ -100,8 +98,6 @@ async function log(level: LogLevel, message: string, metadata: object = {}) {
   };
 
   if (process.env.MCP_SERVER_MODE) {
-    // In MCP server mode, we don't want to write to stdout
-    // as it will interfere with the stdio transport.
     return;
   }
 
@@ -124,12 +120,6 @@ async function log(level: LogLevel, message: string, metadata: object = {}) {
   }
 }
 
-/**
- * The logger object.
- *
- * This object provides a set of functions for logging messages at different
- * levels.
- */
 export const logger = {
   info: (message: string, metadata?: object) => log(LogLevel.INFO, message, metadata),
   warn: (message: string, metadata?: object) => log(LogLevel.WARN, message, metadata),
