@@ -22,6 +22,7 @@ interface LogEntry {
 let esClient: Client | null = null;
 let gitInfo: { branch: string; remoteUrl: string; rootPath: string } | null = null;
 let gitInfoInitialized = false;
+let isSilent = false;
 
 function getGitInfo() {
   if (gitInfoInitialized) {
@@ -75,6 +76,9 @@ if (elasticsearchConfig.logging && !process.env.MCP_SERVER_MODE) {
 }
 
 async function log(level: LogLevel, message: string, metadata: object = {}) {
+  if (isSilent) {
+    return;
+  }
   const logEntry: LogEntry = {
     '@timestamp': new Date().toISOString(),
     'log.level': level,
@@ -125,4 +129,10 @@ export const logger = {
   warn: (message: string, metadata?: object) => log(LogLevel.WARN, message, metadata),
   error: (message: string, metadata?: object) => log(LogLevel.ERROR, message, metadata),
   debug: (message: string, metadata?: object) => log(LogLevel.DEBUG, message, metadata),
+  set silent(value: boolean) {
+    isSilent = value;
+  },
+  get silent() {
+    return isSilent;
+  }
 };

@@ -1,6 +1,6 @@
 
 import './config'; // Must be the first import
-import { index, references, incrementalIndex, setup, worker } from './commands';
+import { index, references, incrementalIndex, setup, worker, monitorQueue } from './commands';
 
 async function main() {
   const command = process.argv[2];
@@ -31,11 +31,14 @@ async function main() {
     const concurrency = concurrencyArg ? parseInt(concurrencyArg.split('=')[1], 10) : 1;
     const watch = args.includes('--watch');
     await worker(concurrency, watch);
-  } else {
+  } else if (command === 'monitor-queue') {
+    await monitorQueue();
+   } else {
     console.log('Usage:');
     console.log('  npm run setup <repo_url>                   - Clones a repository to be indexed');
     console.log('  npm run index [directory] [--clean]        - Index a directory, optionally deleting the old index first');
     console.log('  npm run index-worker [--concurrency=N] [--watch] - Start the indexer worker process');
+    console.log('  npm run monitor-queue                        - Display statistics about the document queue');
     console.log(
       '  npm run incremental-index [directory] [--log-mode] - Incrementally index a directory'
     );

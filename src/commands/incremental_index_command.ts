@@ -13,10 +13,10 @@ import PQueue from 'p-queue';
 import { execSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
-import { FileQueue } from '../utils/file_queue';
+import { SqliteQueue } from '../utils/sqlite_queue';
 
 async function getQueue(): Promise<IQueue> {
-  const queue = new FileQueue(appConfig.queueDir);
+  const queue = new SqliteQueue(appConfig.queueDir);
   await queue.initialize();
   return queue;
 }

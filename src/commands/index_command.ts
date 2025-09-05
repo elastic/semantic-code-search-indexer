@@ -17,11 +17,10 @@ import fs from 'fs';
 import ignore from 'ignore';
 import { logger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
-import { FileQueue } from '../utils/file_queue';
+import { SqliteQueue } from '../utils/sqlite_queue';
 
 async function getQueue(): Promise<IQueue> {
-  // Default to standalone mode
-  const queue = new FileQueue(appConfig.queueDir);
+  const queue = new SqliteQueue(appConfig.queueDir);
   await queue.initialize();
   return queue;
 }
