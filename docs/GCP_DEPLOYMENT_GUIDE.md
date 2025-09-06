@@ -7,6 +7,81 @@ The setup consists of two main components managed by `systemd`:
 1.  **A templated worker service (`indexer-worker@.service`):** This allows us to easily launch and manage a dedicated worker instance for each repository (e.g., `indexer-worker@repo-one.service`). Each worker watches its own queue.
 2.  **A periodic producer timer (`indexer-producer.timer`):** This timer triggers a "one-shot" service that scans all configured repositories for changes and enqueues them for their respective workers.
 
+## Creating a GCP VM with gcloud
+
+You can create a new VM instance using the `gcloud` command-line tool. Here is a sample command to create a Debian 11 VM suitable for running the indexer:
+
+```bash
+gcloud compute instances create indexer-vm \
+  --project="your-gcp-project-id" \
+  --zone="us-central1-a" \
+  --machine-type="e2-medium" \
+  --image-family="debian-11" \
+  --image-project="debian-cloud" \
+  --boot-disk-size="50GB" \
+  --tags="http-server,https-server" \
+  --scopes="https://www.googleapis.com/auth/cloud-platform"
+```
+
+### Command Breakdown:
+
+*   `gcloud compute instances create indexer-vm`: The basic command to create a new VM named `indexer-vm`.
+*   `--project`: Your GCP project ID.
+*   `--zone`: The GCP zone where the VM will be created (e.g., `us-central1-a`).
+*   `--machine-type`: The size of the VM. `e2-medium` is a good starting point.
+*   `--image-family` & `--image-project`: Specifies the operating system image. This example uses Debian 11.
+*   `--boot-disk-size`: The size of the boot disk.
+*   `--tags`: Network tags for firewall rules.
+*   `--scopes`: API access scopes for the VM. `cloud-platform` provides full access to GCP services, which might be needed for other integrations.
+
+After running this command, you can SSH into your new VM using:
+
+```bash
+gcloud compute ssh indexer-vm --project="your-gcp-project-id" --zone="us-central1-a"
+```
+
+## Initial Server Setup
+
+Once you have SSH'd into your VM, you need to install the necessary dependencies.
+
+### 1. Update Package Manager
+
+First, update your package manager's list of available packages:
+
+```bash
+sudo apt-get update
+```
+
+### 2. Install Essential Tools
+
+Install `git` for version control, `tmux` for managing persistent sessions, and `build-essential` which is required for many `npm` packages that need to be compiled from source.
+
+```bash
+sudo apt-get install -y git tmux build-essential
+```
+
+### 3. Install Node.js v20
+
+The indexer requires Node.js v20 or higher. The following commands will add the official NodeSource repository and install the latest Node.js v20.
+
+```bash
+# Download and execute the NodeSource setup script
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+# Install Node.js
+sudo apt-get install -y nodejs
+```
+
+### 4. Verify Installation
+
+You can verify that everything was installed correctly by checking the versions:
+
+```bash
+node -v
+npm -v
+git --version
+```
+
 ## Prerequisites
 
 - A GCP project with a running VM instance (e.g., Debian 11 or Ubuntu 20.04).
