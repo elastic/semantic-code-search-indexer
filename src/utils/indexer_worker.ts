@@ -2,9 +2,10 @@ import { IQueue, QueuedDocument } from './queue';
 import { CodeChunk, indexCodeChunks } from './elasticsearch';
 import { logger } from './logger';
 import PQueue from 'p-queue';
+import { SqliteQueue } from './sqlite_queue';
 
-const POLLING_INTERVAL_MS = 5000; // 5 seconds
-const IDLE_TIMEOUT_MS = 30000; // 30 seconds
+const POLLING_INTERVAL_MS = 1000; // 1 second
+const IDLE_TIMEOUT_MS = 5000; // 5 seconds
 
 export class IndexerWorker {
   private queue: IQueue;
@@ -26,54 +27,39 @@ export class IndexerWorker {
   async start(): Promise<void> {
     this.isRunning = true;
     logger.info('IndexerWorker started', { concurrency: this.concurrency, batchSize: this.batchSize, watch: this.watch });
-    if (!this.watch) {
-      this.resetIdleTimer();
+
+    if (this.queue instanceof SqliteQueue) {
+        await this.queue.requeueStaleTasks();
     }
-    this.pollQueue();
+
+    while (this.isRunning) {
+        const documentBatch = await this.queue.dequeue(this.batchSize);
+
+        if (documentBatch.length > 0) {
+            logger.info(`Dequeued batch of ${documentBatch.length} documents.`);
+            this.consumerQueue.add(() => this.processBatch(documentBatch));
+        } else {
+            if (this.watch) {
+                await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL_MS));
+            } else {
+                // If not in watch mode and queue is empty, wait for processing to finish and then stop.
+                await this.consumerQueue.onIdle();
+                this.stop();
+            }
+        }
+    }
+    
+    // Final check to ensure everything is processed before exiting.
+    await this.consumerQueue.onIdle();
+    logger.info('IndexerWorker finished processing all tasks.');
   }
 
   stop(): void {
-    this.isRunning = false;
-    if (this.idleTimer) {
-      clearTimeout(this.idleTimer);
-    }
-    this.consumerQueue.clear();
-    logger.info('IndexerWorker stopping...');
-  }
-
-  private resetIdleTimer(): void {
-    if (this.watch) {
-      return; // Do not set a timeout in watch mode
-    }
-    if (this.idleTimer) {
-      clearTimeout(this.idleTimer);
-    }
-    this.idleTimer = setTimeout(() => {
-      logger.info('Worker has been idle for too long, stopping.');
-      this.stop();
-    }, IDLE_TIMEOUT_MS);
-  }
-
-  private async pollQueue(): Promise<void> {
     if (!this.isRunning) {
       return;
     }
-
-    try {
-      const documentBatch = await this.queue.dequeue(this.batchSize);
-
-      if (documentBatch.length > 0) {
-        if (!this.watch) this.resetIdleTimer();
-        logger.info(`Dequeued batch of ${documentBatch.length} documents.`);
-        this.consumerQueue.add(() => this.processBatch(documentBatch));
-      }
-    } catch (error) {
-      logger.error('Error polling queue', { error });
-    }
-
-    if (this.isRunning) {
-      setTimeout(() => this.pollQueue(), POLLING_INTERVAL_MS);
-    }
+    this.isRunning = false;
+    logger.info('IndexerWorker stopping...');
   }
 
   private async processBatch(batch: QueuedDocument[]): Promise<void> {

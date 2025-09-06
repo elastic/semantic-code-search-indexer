@@ -5,7 +5,8 @@ import { CodeChunk } from './elasticsearch';
 import { logger } from './logger';
 import _ from 'lodash';
 
-const MAX_RETRIES = 3;
+export const MAX_RETRIES = 3;
+const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 export class SqliteQueue implements IQueue {
   private db: Database.Database;
@@ -24,7 +25,8 @@ export class SqliteQueue implements IQueue {
         document TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'pending',
         retry_count INTEGER NOT NULL DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        processing_started_at TIMESTAMP
       );
     `);
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_status ON queue (status);');
@@ -65,7 +67,7 @@ export class SqliteQueue implements IQueue {
     const ids = rows.map(r => r.id);
     const updateStmt = this.db.prepare(`
         UPDATE queue
-        SET status = 'processing'
+        SET status = 'processing', processing_started_at = CURRENT_TIMESTAMP
         WHERE id IN (${ids.map(() => '?').join(',')})
     `);
     updateStmt.run(...ids);
@@ -112,7 +114,7 @@ export class SqliteQueue implements IQueue {
 
     if (toRequeue.length > 0) {
         const requeueStmt = this.db.prepare(
-            `UPDATE queue SET status = 'pending', retry_count = retry_count + 1 WHERE id IN (${toRequeue.map(() => '?').join(',')})`
+            `UPDATE queue SET status = 'pending', retry_count = retry_count + 1, processing_started_at = NULL WHERE id IN (${toRequeue.map(() => '?').join(',')})`
         );
         requeueStmt.run(...toRequeue);
         logger.warn(`Requeued ${toRequeue.length} documents.`);
@@ -124,6 +126,40 @@ export class SqliteQueue implements IQueue {
         );
         failStmt.run(...toFail);
         logger.error(`Moved ${toFail.length} documents to failed status after ${MAX_RETRIES} retries.`);
+    }
+  }
+
+  async requeueStaleTasks(): Promise<void> {
+    const staleTimestamp = new Date(Date.now() - STALE_TIMEOUT_MS).toISOString();
+    const selectStmt = this.db.prepare(`
+        SELECT id FROM queue
+        WHERE status = 'processing' AND processing_started_at < ?
+    `);
+    const staleTasks = selectStmt.all(staleTimestamp) as { id: number }[];
+
+    if (staleTasks.length > 0) {
+        const ids = staleTasks.map(t => t.id);
+        logger.warn(`Found ${ids.length} stale tasks. Re-queueing...`);
+        
+        const documentsToRequeue: QueuedDocument[] = staleTasks.map(t => ({
+            id: `stale_${t.id}`,
+            document: {
+                type: 'code',
+                language: '',
+                filePath: '',
+                git_file_hash: '',
+                git_branch: '',
+                chunk_hash: '',
+                startLine: 0,
+                endLine: 0,
+                content: '',
+                semantic_text: '',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            }
+        }));
+        
+        await this.requeue(documentsToRequeue);
     }
   }
 }
