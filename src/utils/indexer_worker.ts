@@ -5,7 +5,6 @@ import PQueue from 'p-queue';
 import { SqliteQueue } from './sqlite_queue';
 
 const POLLING_INTERVAL_MS = 1000; // 1 second
-const IDLE_TIMEOUT_MS = 5000; // 5 seconds
 
 export class IndexerWorker {
   private queue: IQueue;
@@ -14,7 +13,6 @@ export class IndexerWorker {
   private watch: boolean;
   private consumerQueue: PQueue;
   private isRunning = false;
-  private idleTimer: NodeJS.Timeout | null = null;
 
   constructor(queue: IQueue, batchSize: number, concurrency: number = 1, watch: boolean = false) {
     this.queue = queue;
@@ -37,19 +35,21 @@ export class IndexerWorker {
 
         if (documentBatch.length > 0) {
             logger.info(`Dequeued batch of ${documentBatch.length} documents.`);
-            this.consumerQueue.add(() => this.processBatch(documentBatch));
+            // By awaiting here, we apply backpressure. The loop will not fetch the next batch
+            // until the current one is fully processed and committed.
+            await this.consumerQueue.add(() => this.processBatch(documentBatch));
         } else {
             if (this.watch) {
+                // If in watch mode and the queue is empty, wait before polling again.
                 await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL_MS));
             } else {
-                // If not in watch mode and queue is empty, wait for processing to finish and then stop.
-                await this.consumerQueue.onIdle();
+                // If not in watch mode and the queue is empty, we are done.
                 this.stop();
             }
         }
     }
     
-    // Final check to ensure everything is processed before exiting.
+    // Wait for any final in-flight tasks to complete before exiting.
     await this.consumerQueue.onIdle();
     logger.info('IndexerWorker finished processing all tasks.');
   }
