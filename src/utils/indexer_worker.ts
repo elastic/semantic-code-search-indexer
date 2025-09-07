@@ -69,7 +69,14 @@ export class IndexerWorker {
       await this.queue.commit(batch);
       logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
     } catch (error) {
-      logger.error('Error processing batch, requeueing.', { error });
+      if (error instanceof Error) {
+        logger.error('Error processing batch, requeueing.', {
+          errorMessage: error.message,
+          errorStack: error.stack,
+        });
+      } else {
+        logger.error('An unknown error occurred while processing a batch.', { error });
+      }
       await this.queue.requeue(batch);
     }
   }
