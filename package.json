@@ -15,6 +15,7 @@
     "incremental-index": "ts-node src/index.ts incremental-index",
     "queue:monitor": "ts-node src/index.ts queue:monitor",
     "queue:retry-failed": "ts-node src/index.ts queue:retry-failed",
+    "queue:list-failed": "ts-node src/index.ts queue:list-failed",
     "setup": "ts-node src/index.ts setup",
     "test": "jest"
   },

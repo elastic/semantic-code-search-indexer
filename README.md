@@ -159,6 +159,18 @@ Resets all documents in a queue with a `failed` status back to `pending`. This i
 npm run queue:retry-failed -- --repo-name=kibana
 ```
 
+### `npm run queue:list-failed`
+
+Lists all documents in a queue that have a `failed` status, showing their ID, content size, and file path. This is useful for diagnosing "poison pill" documents that consistently fail to process.
+
+**Arguments:**
+- `--repo-name=<repo>`: The name of the repository queue to inspect.
+
+**Example:**
+```bash
+npm run queue:list-failed -- --repo-name=kibana
+```
+
 ---
 
 ## MCP Server Integration

@@ -7,3 +7,4 @@ export * from './monitor_queue_command';
 export * from './multi_worker_command';
 export * from './clear_queue_command';
 export * from './retry_failed_command';
+export * from './list_failed_command';
