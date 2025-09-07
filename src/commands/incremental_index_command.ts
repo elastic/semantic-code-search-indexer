@@ -1,5 +1,5 @@
+import { Command } from 'commander';
 import {
-  CodeChunk,
   getLastIndexedCommit,
   updateLastIndexedCommit,
   deleteDocumentsByFilePath,
@@ -21,7 +21,7 @@ async function getQueue(): Promise<IQueue> {
   return queue;
 }
 
-export async function incrementalIndex(directory: string) {
+async function incrementalIndex(directory: string) {
   logger.info('Starting incremental indexing process (Producer)', { directory });
   await setupElser();
 
@@ -144,3 +144,8 @@ export async function incrementalIndex(directory: string) {
   logger.info('---');
   logger.info('Incremental file parsing and enqueueing complete.');
 }
+
+export const incrementalIndexCommand = new Command('incremental-index')
+  .description('Incrementally index a directory')
+  .argument('[directory]', 'The directory to index', '.')
+  .action(incrementalIndex);

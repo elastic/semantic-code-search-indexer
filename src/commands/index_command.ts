@@ -1,3 +1,4 @@
+import { Command, Option } from 'commander';
 import { glob } from 'glob';
 import {
   createIndex,
@@ -5,7 +6,6 @@ import {
   setupElser,
   createSettingsIndex,
   updateLastIndexedCommit,
-  CodeChunk,
 } from '../utils/elasticsearch';
 import { LanguageParser } from '../utils/parser';
 import { indexingConfig, appConfig } from '../config';
@@ -25,7 +25,7 @@ async function getQueue(): Promise<IQueue> {
   return queue;
 }
 
-export async function index(directory: string, clean: boolean) {
+async function index(directory: string, clean: boolean) {
   const languageParser = new LanguageParser();
   const supportedFileExtensions = Array.from(languageParser.fileSuffixMap.keys());
   logger.info('Starting full indexing process (Producer)', { directory, clean, supportedFileExtensions });
@@ -111,3 +111,11 @@ export async function index(directory: string, clean: boolean) {
   logger.info('---');
   logger.info('File parsing and enqueueing complete.');
 }
+
+export const indexCommand = new Command('index')
+  .description('Index a directory, optionally deleting the old index first')
+  .argument('[directory]', 'The directory to index', '.')
+  .addOption(new Option('--clean', 'Delete the existing index before indexing'))
+  .action(async (directory, options) => {
+    await index(directory, options.clean);
+  });

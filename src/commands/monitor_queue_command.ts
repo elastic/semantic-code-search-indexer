@@ -1,10 +1,11 @@
+import { Command } from 'commander';
 import { appConfig } from '../config';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { logger } from '../utils/logger';
 import moment from 'moment';
 
-export async function monitorQueue() {
+async function monitorQueue() {
   const dbPath = path.join(appConfig.queueDir, 'queue.db');
   const db = new Database(dbPath, { readonly: true });
 
@@ -49,3 +50,7 @@ export async function monitorQueue() {
     logger.info('---------------------');
   }
 }
+
+export const monitorQueueCommand = new Command('queue:monitor')
+  .description('Display statistics about the document queue')
+  .action(monitorQueue);

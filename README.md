@@ -111,22 +111,52 @@ Starts a dedicated worker for a specific repository, designed for the multi-repo
 npm run multi-index-worker -- --repo-name=kibana
 ```
 
-### `npm run monitor-queue`
+---
+## Queue Management
 
-Displays statistics about the document queue, such as the number of pending, processing, and failed documents.
+These commands help you inspect and manage the document processing queues. For multi-repository deployments, you must specify which repository's queue you want to operate on.
+
+**Important Note on `--repo-name`:**
+The `--repo-name` argument should be the **simple name** of the repository's directory (e.g., `kibana`), not the full path to it. The system derives this name from the paths you configure in the `REPOSITORIES_TO_INDEX` environment variable.
+
+### `npm run queue:monitor`
+
+Displays statistics about a document queue, such as the number of pending, processing, and failed documents.
+
+**Arguments:**
+- `--repo-name=<repo>`: (Optional) The name of the repository queue to monitor. If omitted, it monitors the default single-user queue defined by `QUEUE_DIR`.
 
 **Example:**
 ```bash
-npm run monitor-queue
+# Monitor the default queue
+npm run queue:monitor
+
+# Monitor the queue for the 'kibana' repository
+npm run queue:monitor -- --repo-name=kibana
 ```
 
-### `npm run clear-queue`
+### `npm run queue:clear`
 
-Deletes all documents from the queue database specified by the `QUEUE_DIR` environment variable.
+Deletes all documents from a queue database.
+
+**Arguments:**
+- `--repo-name=<repo>`: (Optional) The name of the repository queue to clear. If omitted, it clears the default single-user queue.
 
 **Example:**
 ```bash
-npm run clear-queue
+npm run queue:clear -- --repo-name=kibana
+```
+
+### `npm run queue:retry-failed`
+
+Resets all documents in a queue with a `failed` status back to `pending`. This is useful for retrying documents that may have failed due to transient errors like network timeouts.
+
+**Arguments:**
+- `--repo-name=<repo>`: The name of the repository queue to operate on.
+
+**Example:**
+```bash
+npm run queue:retry-failed -- --repo-name=kibana
 ```
 
 ---

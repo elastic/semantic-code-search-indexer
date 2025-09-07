@@ -1,10 +1,11 @@
+import { Command } from 'commander';
 import { appConfig } from '../config';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { logger } from '../utils/logger';
 import fs from 'fs';
 
-export async function clearQueue() {
+async function clearQueue() {
   const dbPath = path.join(appConfig.queueDir, 'queue.db');
 
   if (!fs.existsSync(dbPath)) {
@@ -37,3 +38,7 @@ export async function clearQueue() {
     db.close();
   }
 }
+
+export const clearQueueCommand = new Command('queue:clear')
+    .description('Deletes all documents from the queue')
+    .action(clearQueue);

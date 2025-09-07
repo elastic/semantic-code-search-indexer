@@ -4,7 +4,7 @@ import Database from 'better-sqlite3';
 import { logger } from '../utils/logger';
 import { appConfig } from '../config';
 
-export const retryFailedCommand = new Command('retry-failed')
+export const retryFailedCommand = new Command('queue:retry-failed')
   .description('Reset all "failed" documents in a queue back to "pending" to be retried.')
   .addOption(
     new Option(

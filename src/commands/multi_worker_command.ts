@@ -1,10 +1,11 @@
+import { Command, Option } from 'commander';
 import path from 'path';
 import { IndexerWorker } from '../utils/indexer_worker';
 import { appConfig, indexingConfig } from '../config';
 import { logger } from '../utils/logger';
 import { SqliteQueue } from '../utils/sqlite_queue';
 
-export async function multiWorker(
+async function multiWorker(
   concurrency: number = 1,
   watch: boolean = false,
   repoName: string
@@ -16,13 +17,10 @@ export async function multiWorker(
 
   logger.info(`Starting multi-worker for repository: ${repoName}`, { concurrency });
 
-  // Construct the dedicated queue path for this worker
   const queuePath = path.join(appConfig.queueBaseDir, repoName);
   const queue = new SqliteQueue(queuePath);
   await queue.initialize();
 
-  // The worker also needs the correct ES index. It looks this up
-  // from the main REPOSITORIES_TO_INDEX environment variable.
   const repoConfig = process.env.REPOSITORIES_TO_INDEX
     ?.split(' ')
     .find(conf => conf.includes(`/${repoName}:`));
@@ -33,12 +31,18 @@ export async function multiWorker(
   }
   const esIndex = repoConfig.split(':')[1];
   
-  // Set the index for the Elasticsearch client via environment variable
   process.env.ELASTICSEARCH_INDEX = esIndex; 
   logger.info(`Worker for ${repoName} will use Elasticsearch index: ${esIndex}`);
 
   const indexerWorker = new IndexerWorker(queue, indexingConfig.batchSize, concurrency, watch);
   await indexerWorker.start();
-  await indexerWorker.onIdle();
-  logger.info(`Worker for ${repoName} has finished processing.`);
 }
+
+export const multiWorkerCommand = new Command('multi-index-worker')
+  .description('Start a dedicated worker for a specific repository')
+  .addOption(new Option('--concurrency <number>', 'Number of parallel workers to run').default(1).argParser(parseInt))
+  .addOption(new Option('--watch', 'Run the worker in watch mode'))
+  .addOption(new Option('--repo-name <repoName>', 'The name of the repository to process').makeOptionMandatory())
+  .action(async (options) => {
+    await multiWorker(options.concurrency, options.watch, options.repoName);
+  });
