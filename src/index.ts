@@ -9,7 +9,8 @@ import {
   monitorQueueCommand, 
   multiWorkerCommand, 
   clearQueueCommand,
-  retryFailedCommand
+  retryFailedCommand,
+  listFailedCommand
 } from './commands';
 
 const program = new Command();
@@ -28,6 +29,7 @@ program.addCommand(monitorQueueCommand);
 program.addCommand(multiWorkerCommand);
 program.addCommand(clearQueueCommand);
 program.addCommand(retryFailedCommand);
+program.addCommand(listFailedCommand);
 
 async function main() {
   await program.parseAsync(process.argv);
