@@ -1,8 +1,23 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import os from 'os';
+import fs from 'fs';
 
 dotenv.config({ quiet: true });
+
+// Helper to find the project root by looking for package.json
+function findProjectRoot(startPath: string): string {
+    let currentPath = startPath;
+    while (currentPath !== path.parse(currentPath).root) {
+        if (fs.existsSync(path.join(currentPath, 'package.json'))) {
+            return currentPath;
+        }
+        currentPath = path.dirname(currentPath);
+    }
+    return startPath; // Fallback
+}
+
+const projectRoot = findProjectRoot(__dirname);
 
 export const elasticsearchConfig = {
   endpoint: process.env.ELASTICSEARCH_ENDPOINT,
@@ -22,8 +37,6 @@ export const indexingConfig = {
 };
 
 export const appConfig = {
-  queueDir: process.env.QUEUE_DIR || '.queue',
-  queueBaseDir: process.env.QUEUE_BASE_DIR || '.queues',
+  queueDir: path.resolve(projectRoot, process.env.QUEUE_DIR || '.queue'),
+  queueBaseDir: path.resolve(projectRoot, process.env.QUEUE_BASE_DIR || '.queues'),
 };
-
-
