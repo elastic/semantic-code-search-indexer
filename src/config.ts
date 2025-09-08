@@ -35,6 +35,7 @@ export const indexingConfig = {
   maxQueueSize: parseInt(process.env.MAX_QUEUE_SIZE || '1000', 10),
   cpuCores: parseInt(process.env.CPU_CORES || `${Math.max(1, Math.floor(os.cpus().length / 2))}`, 10),
   maxChunkSizeBytes: parseInt(process.env.MAX_CHUNK_SIZE_BYTES || '1000000', 10),
+  enableDenseVectors: process.env.ENABLE_DENSE_VECTORS === 'true',
 };
 
 export const appConfig = {
