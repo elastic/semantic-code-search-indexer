@@ -147,7 +147,7 @@ We will use `cron`, a standard time-based job scheduler, to run the indexer peri
     **Command Breakdown:**
     *   `*/15 * * * *`: This is the schedule, meaning "at every 15th minute."
     *   `cd /opt/semantic-code-search-indexer`: This is critical. It changes to the project directory so that `npm` and the application can find their files (`package.json`, `.env`, etc.).
-    *   `npm run start:producer`: This executes the compiled TypeScript producer.
+    *   `npm run start:producer`: This executes the producer command using `ts-node`, which is the most reliable execution method in this environment.
     *   `>> /var/log/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file. You must ensure this file is writable by the user running the cron job (e.g., `sudo touch /var/log/indexer.log && sudo chown your_user /var/log/indexer.log`).
 
 3.  **Save and Exit:**

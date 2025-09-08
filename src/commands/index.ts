@@ -8,3 +8,4 @@ export * from './monitor_queue_command';
 export * from './clear_queue_command';
 export * from './retry_failed_command';
 export * from './list_failed_command';
+export * from './run_producer_command';

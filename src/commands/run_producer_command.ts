@@ -1,11 +1,11 @@
-import './config'; // Must be the first import
-import { incrementalIndex } from './commands/incremental_index_command';
-import { worker } from './commands/worker_command';
-import { appConfig } from './config';
-import { logger } from './utils/logger';
+import { Command } from 'commander';
+import { incrementalIndex } from './incremental_index_command';
+import { worker } from './worker_command';
+import { appConfig } from '../config';
+import { logger } from '../utils/logger';
 import path from 'path';
 
-async function main() {
+async function runProducer() {
   logger.info('Starting multi-repository producer service...');
 
   const reposToIndex = process.env.REPOSITORIES_TO_INDEX;
@@ -38,15 +38,12 @@ async function main() {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       logger.error(`Failed to process repository ${repoName}`, { error: errorMessage });
-      // Depending on desired behavior, you might want to continue or exit.
-      // For now, we will log the error and continue to the next repo.
     }
   }
 
   logger.info('All repositories processed. Producer service finished.');
 }
 
-main().catch(error => {
-  logger.error('An unexpected error occurred in the producer service', { error });
-  process.exit(1);
-});
+export const runProducerCommand = new Command('run-producer')
+  .description('Run the multi-repository producer service')
+  .action(runProducer);

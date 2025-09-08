@@ -10,7 +10,8 @@ import {
    
   clearQueueCommand,
   retryFailedCommand,
-  listFailedCommand
+  listFailedCommand,
+  runProducerCommand
 } from './commands';
 
 const program = new Command();
@@ -30,6 +31,7 @@ program.addCommand(monitorQueueCommand);
 program.addCommand(clearQueueCommand);
 program.addCommand(retryFailedCommand);
 program.addCommand(listFailedCommand);
+program.addCommand(runProducerCommand);
 
 async function main() {
   await program.parseAsync(process.argv);
