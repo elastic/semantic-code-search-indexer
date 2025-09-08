@@ -39,6 +39,7 @@ describe('IndexerWorker', () => {
 
   afterEach(() => {
     worker.stop();
+    jest.clearAllTimers();
     jest.useRealTimers();
   });
 
@@ -48,10 +49,10 @@ describe('IndexerWorker', () => {
 
     (elasticsearch.indexCodeChunks as jest.Mock).mockResolvedValue(undefined);
 
-    await worker.start();
-    
+    worker.start();
+
     // Allow the worker's poll cycle to run
-    await jest.advanceTimersByTimeAsync(1);
+    await jest.advanceTimersByTimeAsync(10);
 
     // Wait for the processing to complete
     await worker.onIdle();
@@ -67,11 +68,11 @@ describe('IndexerWorker', () => {
 
     (elasticsearch.indexCodeChunks as jest.Mock).mockRejectedValue(new Error('ES Error'));
 
-    await worker.start();
+    worker.start();
 
     // Allow the worker's poll cycle to run
-    await jest.advanceTimersByTimeAsync(1);
-    
+    await jest.advanceTimersByTimeAsync(10);
+
     // Wait for the processing to complete
     await worker.onIdle();
 

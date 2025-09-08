@@ -42,7 +42,7 @@ function getGitInfo() {
 }
 
 
-if (elasticsearchConfig.logging && !process.env.MCP_SERVER_MODE) {
+if (elasticsearchConfig.logging && !process.env.MCP_SERVER_MODE && process.env.NODE_ENV !== 'test') {
   const baseOptions: Partial<ClientOptions> = {
     requestTimeout: 10000, // 10 seconds
   };
@@ -75,7 +75,7 @@ if (elasticsearchConfig.logging && !process.env.MCP_SERVER_MODE) {
   }
 }
 
-async function log(level: LogLevel, message: string, metadata: object = {}) {
+function log(level: LogLevel, message: string, metadata: object = {}) {
   if (isSilent) {
     return;
   }
@@ -113,14 +113,12 @@ async function log(level: LogLevel, message: string, metadata: object = {}) {
   }
 
   if (esClient) {
-    try {
-      await esClient.index({
-        index: 'logs-semantic.codesearch-default',
-        document: logEntry,
-      });
-    } catch (error) {
+    esClient.index({
+      index: 'logs-semantic.codesearch-default',
+      document: logEntry,
+    }).catch(error => {
       console.error('Failed to send log to Elasticsearch:', error);
-    }
+    });
   }
 }
 

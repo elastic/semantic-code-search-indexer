@@ -1,0 +1,4 @@
+{
+  "small_chunk": "This is a small chunk.",
+  "large_chunk": "This is a very large chunk that should exceed the size limit."
+}

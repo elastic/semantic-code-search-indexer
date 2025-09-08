@@ -44,13 +44,14 @@ describe('retryFailedCommand', () => {
   const repoName = 'test-repo';
   const queueDir = path.join(appConfig.queueBaseDir, repoName);
   const dbPath = path.join(queueDir, 'queue.db');
+  let queue: SqliteQueue;
 
   beforeEach(async () => {
     // Use the actual file system
     fs.mkdirSync(queueDir, { recursive: true });
 
     // Seed the database
-    const queue = new SqliteQueue(queueDir);
+    queue = new SqliteQueue(queueDir);
     await queue.initialize();
     await queue.enqueue([MOCK_CHUNK_1, MOCK_CHUNK_2, MOCK_CHUNK_3]);
 
@@ -65,6 +66,7 @@ describe('retryFailedCommand', () => {
   });
 
   afterEach(() => {
+    queue.close();
     fs.rmSync(appConfig.queueBaseDir, { recursive: true, force: true });
   });
 
