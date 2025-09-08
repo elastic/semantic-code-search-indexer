@@ -92,14 +92,16 @@ git --version
 
 ### Environment File
 
-`systemd` will manage loading our configuration. Create a `.env` file in the root of the project directory (`/opt/semantic-code-search-indexer/.env`).
+The application's configuration is managed by a `.env` file. Create this file in the root of the project directory (`/opt/semantic-code-search-indexer/.env`).
 
 The `REPOSITORIES_TO_INDEX` variable is a space-separated list. Each item is a pair containing the **absolute path** to a repository and the name of the **Elasticsearch index** it should use, separated by a colon (`:`).
 
 ```bash
 # /opt/semantic-code-search-indexer/.env
 
-# Path to the git executable (required for systemd service)
+# NOTE: The GIT_PATH is not strictly required when running under cron,
+# as cron usually inherits the user's full PATH. It is included here
+# for completeness and as a fallback.
 GIT_PATH="/usr/bin/git"
 
 # Elasticsearch Configuration
@@ -125,77 +127,44 @@ The `src/run_producer.ts` script is the heart of the producer service. It is res
 
 This script is already included in the project, so you do not need to create it.
 
-## 3. Create systemd Service and Timer Files
+## 3. Scheduling with Cron
 
-You will create two files in `/etc/systemd/system/`.
+We will use `cron`, a standard time-based job scheduler, to run the indexer periodically.
 
-### a. Producer Service (`indexer-producer.service`)
+1.  **Open the Crontab:**
+    Open the crontab file for the current user for editing.
+    ```bash
+    crontab -e
+    ```
 
-This service executes the compiled producer script. It also loads the `.env` file directly.
+2.  **Add the Cron Job:**
+    Add the following line to the end of the file. This configuration will run the indexer every 15 minutes.
 
-```ini
-# /etc/systemd/system/indexer-producer.service
+    ```cron
+    */15 * * * * cd /opt/semantic-code-search-indexer && npm run start:producer >> /var/log/indexer.log 2>&1
+    ```
 
-[Unit]
-Description=Semantic Code Indexer Producer (Multi-Repo)
+    **Command Breakdown:**
+    *   `*/15 * * * *`: This is the schedule, meaning "at every 15th minute."
+    *   `cd /opt/semantic-code-search-indexer`: This is critical. It changes to the project directory so that `npm` and the application can find their files (`package.json`, `.env`, etc.).
+    *   `npm run start:producer`: This executes the compiled TypeScript producer.
+    *   `>> /var/log/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file. You must ensure this file is writable by the user running the cron job (e.g., `sudo touch /var/log/indexer.log && sudo chown your_user /var/log/indexer.log`).
 
-[Service]
-Type=oneshot
-User=your_user     # Replace with the user that owns the project files
-Group=your_group   # Replace with the user's group
-WorkingDirectory=/opt/semantic-code-search-indexer
-
-# Load environment variables from the .env file
-EnvironmentFile=/opt/semantic-code-search-indexer/.env
-
-# Disable the default timeout, as indexing all repos can be a long-running job.
-TimeoutStartSec=0
-
-ExecStart=/usr/bin/npm run start:producer
-```
-
-### c. Producer Timer (`indexer-producer.timer`)
-
-This timer triggers the producer service on a schedule.
-
-```ini
-# /etc/systemd/system/indexer-producer.timer
-
-[Unit]
-Description=Run the Semantic Code Indexer Producer every 15 minutes
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=15min
-Unit=indexer-producer.service
-
-[Install]
-WantedBy=timers.target
-```
+3.  **Save and Exit:**
+    Save the file and exit your editor. `cron` will automatically install the new job.
 
 ## 4. Deploy and Run
 
 1.  **Build the Project:** Ensure the project is fully built by running `npm install` and `npm run build`.
 
-2.  **Reload systemd:**
-    ```sh
-    sudo systemctl daemon-reload
+2.  **Check the Status:**
+    You can check that your cron job is installed by running:
+    ```bash
+    crontab -l
     ```
 
-3.  **Enable and Start the Timer:** You only need to start the timer. The timer will trigger the producer service, which handles the entire indexing pipeline for all repositories.
-    ```sh
-    sudo systemctl enable indexer-producer.timer
-    sudo systemctl start indexer-producer.timer
+    After the next 15-minute interval, you can check the log file for output:
+    ```bash
+    tail -f /var/log/indexer.log
     ```
 
-4.  **Check the Status:**
-    ```sh
-    # Check the timer and see when it will next run
-    sudo systemctl list-timers
-
-    # Check the status of the producer service
-    sudo systemctl status indexer-producer.service
-
-    # View the logs for the producer service to see the progress of all repositories
-    sudo journalctl -u indexer-producer.service -f
-    ```
