@@ -51,7 +51,7 @@ if (elasticsearchConfig.cloudId) {
   );
 }
 
-const indexName = elasticsearchConfig.index;
+const defaultIndexName = elasticsearchConfig.index;
 const elserModelId = elasticsearchConfig.model;
 const codeSimilarityPipeline = 'code-similarity-pipeline';
 
@@ -83,7 +83,8 @@ export async function setupElser(): Promise<void> {
  * This function checks if the index already exists. If it doesn't, it creates
  * the index with the correct mappings for the code chunk documents.
  */
-export async function createIndex(): Promise<void> {
+export async function createIndex(index?: string): Promise<void> {
+  const indexName = index || defaultIndexName;
   const indexExists = await client.indices.exists({ index: indexName });
   if (!indexExists) {
     logger.info(`Creating index "${indexName}"...`);
@@ -137,8 +138,8 @@ export async function createIndex(): Promise<void> {
   }
 }
 
-export async function createSettingsIndex(): Promise<void> {
-  const settingsIndexName = `${indexName}_settings`;
+export async function createSettingsIndex(index?: string): Promise<void> {
+  const settingsIndexName = `${index || defaultIndexName}_settings`;
   const indexExists = await client.indices.exists({ index: settingsIndexName });
   if (!indexExists) {
     logger.info(`Creating index "${settingsIndexName}"...`);
@@ -157,8 +158,8 @@ export async function createSettingsIndex(): Promise<void> {
   }
 }
 
-export async function getLastIndexedCommit(branch: string): Promise<string | null> {
-  const settingsIndexName = `${indexName}_settings`;
+export async function getLastIndexedCommit(branch: string, index?: string): Promise<string | null> {
+  const settingsIndexName = `${index || defaultIndexName}_settings`;
   try {
     const response = await client.get<{ commit_hash: string  }>({
       index: settingsIndexName,
@@ -177,8 +178,8 @@ export async function getLastIndexedCommit(branch: string): Promise<string | nul
   }
 }
 
-export async function updateLastIndexedCommit(branch: string, commitHash: string): Promise<void> {
-  const settingsIndexName = `${indexName}_settings`;
+export async function updateLastIndexedCommit(branch: string, commitHash: string, index?: string): Promise<void> {
+  const settingsIndexName = `${index || defaultIndexName}_settings`;
   await client.index({
     index: settingsIndexName,
     id: branch,
@@ -234,11 +235,12 @@ interface ErroredDocument {
  *
  * @param chunks An array of `CodeChunk` objects to index.
  */
-export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
+export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Promise<void> {
   if (chunks.length === 0) {
     return;
   }
 
+  const indexName = index || defaultIndexName;
   const operations = chunks.flatMap(doc => [{ index: { _index: indexName, _id: doc.chunk_hash } }, doc]);
 
   const bulkOptions: { refresh: boolean; operations: any[]; pipeline?: string } = {
@@ -291,7 +293,8 @@ import { SearchHit } from '@elastic/elasticsearch/lib/api/types';
 
 // ... existing code ...
 
-export async function searchCodeChunks(query: string): Promise<SearchResult[]> {
+export async function searchCodeChunks(query: string, index?: string): Promise<SearchResult[]> {
+  const indexName = index || defaultIndexName;
   const response = await client.search<CodeChunk>({
     index: indexName,
     query: {
@@ -350,7 +353,8 @@ interface FileAggregation {
  * @param query The Elasticsearch query to use for the search.
  * @returns A promise that resolves to a record of file paths to symbol info.
  */
-export async function aggregateBySymbols(query: QueryDslQueryContainer): Promise<Record<string, SymbolInfo[]>> {
+export async function aggregateBySymbols(query: QueryDslQueryContainer, index?: string): Promise<Record<string, SymbolInfo[]>> {
+  const indexName = index || defaultIndexName;
   const response = await client.search<unknown, FileAggregation>({
     index: indexName,
     query,
@@ -411,7 +415,8 @@ export async function aggregateBySymbols(query: QueryDslQueryContainer): Promise
   return results;
 }
 
-export async function deleteIndex(): Promise<void> {
+export async function deleteIndex(index?: string): Promise<void> {
+  const indexName = index || defaultIndexName;
   const indexExists = await client.indices.exists({ index: indexName });
   if (indexExists) {
     logger.info(`Deleting index "${indexName}"...`);
@@ -421,7 +426,8 @@ export async function deleteIndex(): Promise<void> {
   }
 }
 
-export async function deleteDocumentsByFilePath(filePath: string): Promise<void> {
+export async function deleteDocumentsByFilePath(filePath: string, index?: string): Promise<void> {
+  const indexName = index || defaultIndexName;
   await client.deleteByQuery({
     index: indexName,
     query: {

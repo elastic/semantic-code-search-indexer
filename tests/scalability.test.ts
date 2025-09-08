@@ -24,6 +24,7 @@ const MOCK_CHUNK: CodeChunk = {
 
 describe('SqliteQueue Scalability', () => {
   const queueDir = '.scalability-test-queue';
+  const dbPath = path.join(queueDir, 'queue.db');
   let queue: SqliteQueue;
 
   beforeAll(async () => {
@@ -31,7 +32,7 @@ describe('SqliteQueue Scalability', () => {
       fs.rmSync(queueDir, { recursive: true, force: true });
     }
     fs.mkdirSync(queueDir, { recursive: true });
-    queue = new SqliteQueue(queueDir);
+    queue = new SqliteQueue(dbPath);
     await queue.initialize();
   });
 

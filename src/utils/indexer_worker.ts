@@ -13,13 +13,15 @@ export class IndexerWorker {
   private watch: boolean;
   private consumerQueue: PQueue;
   private isRunning = false;
+  private elasticsearchIndex?: string;
 
-  constructor(queue: IQueue, batchSize: number, concurrency: number = 1, watch: boolean = false) {
+  constructor(queue: IQueue, batchSize: number, concurrency: number = 1, watch: boolean = false, elasticsearchIndex?: string) {
     this.queue = queue;
     this.batchSize = batchSize;
     this.concurrency = concurrency;
     this.watch = watch;
     this.consumerQueue = new PQueue({ concurrency: this.concurrency });
+    this.elasticsearchIndex = elasticsearchIndex;
   }
 
   async start(): Promise<void> {
@@ -69,7 +71,7 @@ export class IndexerWorker {
   private async processBatch(batch: QueuedDocument[]): Promise<boolean> {
     try {
       const codeChunks = batch.map(item => item.document);
-      await indexCodeChunks(codeChunks);
+      await indexCodeChunks(codeChunks, this.elasticsearchIndex);
       await this.queue.commit(batch);
       logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
       return true;

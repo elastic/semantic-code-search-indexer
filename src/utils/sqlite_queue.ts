@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import Database from 'better-sqlite3';
 import { IQueue, QueuedDocument } from './queue';
 import { CodeChunk } from './elasticsearch';
@@ -11,8 +12,11 @@ const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 export class SqliteQueue implements IQueue {
   private db: Database.Database;
 
-  constructor(baseDir: string) {
-    const dbPath = path.join(baseDir, 'queue.db');
+  constructor(dbPath: string) {
+    const dir = path.dirname(dbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
     this.db = new Database(dbPath);
   }
 

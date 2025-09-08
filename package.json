@@ -18,7 +18,7 @@
     "queue:list-failed": "ts-node src/index.ts queue:list-failed",
     "setup": "ts-node src/index.ts setup",
     "test": "jest",
-    "start:producer": "ts-node src/index.ts run-producer"
+    "start:producer": "ts-node src/index.ts start-producer"
   },
   "keywords": [],
   "author": "",

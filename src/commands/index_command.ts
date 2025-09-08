@@ -20,7 +20,8 @@ import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 
 async function getQueue(): Promise<IQueue> {
-  const queue = new SqliteQueue(appConfig.queueDir);
+  const queueDbPath = path.join(appConfig.queueDir, 'queue.db');
+  const queue = new SqliteQueue(queueDbPath);
   await queue.initialize();
   return queue;
 }

@@ -27,13 +27,14 @@ const MOCK_CHUNK: CodeChunk = {
 describe('IndexerWorker', () => {
   let queue: InMemoryQueue;
   let worker: IndexerWorker;
+  const testIndex = 'test-index';
 
   beforeEach(() => {
     jest.useFakeTimers();
     queue = new InMemoryQueue();
     // Use a very short polling interval for tests
     // Note: The worker's internal polling interval is hardcoded, so this test will rely on advancing timers.
-    worker = new IndexerWorker(queue, 10, 1);
+    worker = new IndexerWorker(queue, 10, 1, false, testIndex);
     (elasticsearch.indexCodeChunks as jest.Mock).mockClear();
   });
 
@@ -57,7 +58,7 @@ describe('IndexerWorker', () => {
     // Wait for the processing to complete
     await worker.onIdle();
 
-    expect(elasticsearch.indexCodeChunks).toHaveBeenCalledWith([MOCK_CHUNK]);
+    expect(elasticsearch.indexCodeChunks).toHaveBeenCalledWith([MOCK_CHUNK], testIndex);
     expect(commitSpy).toHaveBeenCalled();
   });
 
@@ -76,7 +77,7 @@ describe('IndexerWorker', () => {
     // Wait for the processing to complete
     await worker.onIdle();
 
-    expect(elasticsearch.indexCodeChunks).toHaveBeenCalledWith([MOCK_CHUNK]);
+    expect(elasticsearch.indexCodeChunks).toHaveBeenCalledWith([MOCK_CHUNK], testIndex);
     expect(requeueSpy).toHaveBeenCalled();
     expect(commitSpy).not.toHaveBeenCalled();
   });

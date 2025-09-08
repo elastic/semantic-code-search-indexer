@@ -28,18 +28,24 @@ function runGitCommand(args: string[], cwd: string): string {
   return result.stdout.trim();
 }
 
-async function getQueue(): Promise<IQueue> {
-  const queue = new SqliteQueue(appConfig.queueDir);
+interface IncrementalIndexOptions {
+  queueDir: string;
+  elasticsearchIndex: string;
+}
+
+async function getQueue(options?: IncrementalIndexOptions): Promise<IQueue> {
+  const queuePath = options ? path.join(options.queueDir, 'queue.db') : path.join(appConfig.queueDir, 'queue.db');
+  const queue = new SqliteQueue(queuePath);
   await queue.initialize();
   return queue;
 }
 
-export async function incrementalIndex(directory: string) {
-  logger.info('Starting incremental indexing process (Producer)', { directory });
+export async function incrementalIndex(directory: string, options?: IncrementalIndexOptions) {
+  logger.info('Starting incremental indexing process (Producer)', { directory, ...options });
   await setupElser();
 
   const gitBranch = runGitCommand(['rev-parse', '--abbrev-ref', 'HEAD'], directory);
-  const lastCommitHash = await getLastIndexedCommit(gitBranch);
+  const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
 
   if (!lastCommitHash) {
     logger.warn('No previous commit hash found. Please run a full index first.', { gitBranch });
@@ -91,7 +97,7 @@ export async function incrementalIndex(directory: string) {
 
   const filesToDelete = [...deletedFiles, ...addedOrModifiedFiles];
   for (const file of filesToDelete) {
-    await deleteDocumentsByFilePath(file);
+    await deleteDocumentsByFilePath(file, options?.elasticsearchIndex);
     logger.info('Deleted documents for file', { file });
   }
 
@@ -104,7 +110,7 @@ export async function incrementalIndex(directory: string) {
     let failureCount = 0;
     const { cpuCores } = indexingConfig;
     const producerQueue = new PQueue({ concurrency: cpuCores });
-    const workQueue: IQueue = await getQueue();
+    const workQueue: IQueue = await getQueue(options);
 
     const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
@@ -144,13 +150,15 @@ export async function incrementalIndex(directory: string) {
   }
 
   const newCommitHash = runGitCommand(['rev-parse', 'HEAD'], directory);
-  await updateLastIndexedCommit(gitBranch, newCommitHash);
+  await updateLastIndexedCommit(gitBranch, newCommitHash, options?.elasticsearchIndex);
 
   logger.info('---');
   logger.info(`New HEAD commit hash: ${newCommitHash}`);
   logger.info('---');
   logger.info('Incremental file parsing and enqueueing complete.');
 }
+
+
 
 export const incrementalIndexCommand = new Command('incremental-index')
   .description('Incrementally index a directory')
