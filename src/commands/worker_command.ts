@@ -4,7 +4,7 @@ import { appConfig, indexingConfig } from '../config';
 import { logger } from '../utils/logger';
 import { SqliteQueue } from '../utils/sqlite_queue';
 
-async function worker(concurrency: number = 1, watch: boolean = false) {
+export async function worker(concurrency: number = 1, watch: boolean = false) {
   logger.info('Starting indexer worker process', { concurrency });
 
   const queue = new SqliteQueue(appConfig.queueDir);

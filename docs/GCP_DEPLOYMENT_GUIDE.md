@@ -115,12 +115,13 @@ QUEUE_BASE_DIR="/var/lib/indexer/queues"
 REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-search-index /var/lib/indexer/repos/repo-two:repo-two-search-index"
 ```
 
-## 2. The Multi-Repo Runner Script
+## 2. The Producer Entrypoint
 
-The `scripts/run_multi_producer.sh` script is the heart of the producer service. It is responsible for:
-1.  Reading the `REPOSITORIES_TO_INDEX` variable.
-2.  For each repository, running the `incremental-index` command to find and enqueue changes.
-3.  For each repository, immediately running the `index-worker` command to process the corresponding queue.
+The `src/run_producer.ts` script is the heart of the producer service. It is responsible for:
+1.  Reading the `REPOSITORIES_TO_INDEX` environment variable.
+2.  Looping through each repository.
+3.  Running the `incremental-index` logic to find and enqueue changes.
+4.  Running the `worker` logic to process the queue for that repository.
 
 This script is already included in the project, so you do not need to create it.
 
@@ -130,7 +131,7 @@ You will create two files in `/etc/systemd/system/`.
 
 ### a. Producer Service (`indexer-producer.service`)
 
-This service executes our runner script. It also loads the `.env` file directly.
+This service executes the compiled producer script. It also loads the `.env` file directly.
 
 ```ini
 # /etc/systemd/system/indexer-producer.service
@@ -150,7 +151,7 @@ EnvironmentFile=/opt/semantic-code-search-indexer/.env
 # Disable the default timeout, as indexing all repos can be a long-running job.
 TimeoutStartSec=0
 
-ExecStart=/opt/semantic-code-search-indexer/scripts/run_multi_producer.sh
+ExecStart=/usr/bin/npm run start:producer
 ```
 
 ### c. Producer Timer (`indexer-producer.timer`)

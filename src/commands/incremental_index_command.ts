@@ -34,7 +34,7 @@ async function getQueue(): Promise<IQueue> {
   return queue;
 }
 
-async function incrementalIndex(directory: string) {
+export async function incrementalIndex(directory: string) {
   logger.info('Starting incremental indexing process (Producer)', { directory });
   await setupElser();
 

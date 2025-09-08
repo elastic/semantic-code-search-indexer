@@ -17,7 +17,8 @@
     "queue:retry-failed": "ts-node src/index.ts queue:retry-failed",
     "queue:list-failed": "ts-node src/index.ts queue:list-failed",
     "setup": "ts-node src/index.ts setup",
-    "test": "jest"
+    "test": "jest",
+    "start:producer": "node dist/src/run_producer.js"
   },
   "keywords": [],
   "author": "",
