@@ -35,8 +35,9 @@ async function main() {
       await worker();
 
       logger.info(`--- Finished processing for: ${repoName} ---`);
-    } catch (error) {
-      logger.error(`Failed to process repository ${repoName}`, { error });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      logger.error(`Failed to process repository ${repoName}`, { error: errorMessage });
       // Depending on desired behavior, you might want to continue or exit.
       // For now, we will log the error and continue to the next repo.
     }
