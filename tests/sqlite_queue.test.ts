@@ -48,9 +48,11 @@ describe('SqliteQueue', () => {
   });
 
   afterEach(() => {
-    if (fs.existsSync(queueDir)) {
-      fs.rmSync(queueDir, { recursive: true, force: true });
-    }
+    fs.unlinkSync(dbPath);
+  });
+
+  afterAll(() => {
+    queue.close();
   });
 
   it('should dequeue multiple documents', async () => {

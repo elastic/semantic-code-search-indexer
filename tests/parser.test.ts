@@ -2,6 +2,7 @@
 import { LanguageParser } from '../src/utils/parser';
 import { CodeChunk } from '../src/utils/elasticsearch';
 import path from 'path';
+import { indexingConfig } from '../src/config';
 
 const MOCK_TIMESTAMP = '[TIMESTAMP]';
 
@@ -96,5 +97,19 @@ describe('LanguageParser', () => {
     const filePath = path.resolve(__dirname, 'fixtures/text.txt');
     const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
     expect(cleanTimestamps(chunks)).toMatchSnapshot();
+  });
+
+  it('should filter out chunks larger than maxChunkSizeBytes', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/large_file.json');
+    const originalMaxChunkSizeBytes = indexingConfig.maxChunkSizeBytes;
+    indexingConfig.maxChunkSizeBytes = 50;
+
+    try {
+      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
+      expect(chunks.length).toBe(1);
+      expect(chunks[0].content).toContain('small_chunk');
+    } finally {
+      indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
+    }
   });
 });

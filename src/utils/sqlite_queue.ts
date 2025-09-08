@@ -162,4 +162,8 @@ export class SqliteQueue implements IQueue {
         await this.requeue(documentsToRequeue);
     }
   }
+
+  close(): void {
+    this.db.close();
+  }
 }

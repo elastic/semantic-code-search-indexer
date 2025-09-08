@@ -37,7 +37,11 @@ export class IndexerWorker {
             logger.info(`Dequeued batch of ${documentBatch.length} documents.`);
             // By awaiting here, we apply backpressure. The loop will not fetch the next batch
             // until the current one is fully processed and committed.
-            await this.consumerQueue.add(() => this.processBatch(documentBatch));
+            const success = await this.consumerQueue.add(() => this.processBatch(documentBatch));
+            if (!success) {
+                // If processing failed, wait before trying again.
+                await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL_MS));
+            }
         } else {
             if (this.watch) {
                 // If in watch mode and the queue is empty, wait before polling again.
@@ -62,12 +66,13 @@ export class IndexerWorker {
     logger.info('IndexerWorker stopping...');
   }
 
-  private async processBatch(batch: QueuedDocument[]): Promise<void> {
+  private async processBatch(batch: QueuedDocument[]): Promise<boolean> {
     try {
       const codeChunks = batch.map(item => item.document);
       await indexCodeChunks(codeChunks);
       await this.queue.commit(batch);
       logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
+      return true;
     } catch (error) {
       if (error instanceof Error) {
         logger.error('Error processing batch, requeueing.', {
@@ -78,6 +83,7 @@ export class IndexerWorker {
         logger.error('An unknown error occurred while processing a batch.', { error });
       }
       await this.queue.requeue(batch);
+      return false;
     }
   }
 

@@ -6,6 +6,8 @@ import { createHash } from 'crypto';
 import { execSync } from 'child_process';
 import { languageConfigurations } from '../languages';
 import { CodeChunk, SymbolInfo } from './elasticsearch';
+import { indexingConfig } from '../config';
+import { logger } from './logger';
 
 const { Query } = Parser;
 
@@ -77,7 +79,13 @@ export class LanguageParser {
     const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
 
     return chunks
-      .filter(chunk => /[a-zA-Z0-9]/.test(chunk)) // Filter out chunks with no alphanumeric characters
+      .filter(chunk => {
+        if (Buffer.byteLength(chunk, 'utf8') > indexingConfig.maxChunkSizeBytes) {
+          logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
+          return false;
+        }
+        return /[a-zA-Z0-9]/.test(chunk); // Filter out chunks with no alphanumeric characters
+      })
       .map(chunk => {
         const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
         const endLine = startLine + (chunk.match(/\n/g) || []).length;
@@ -109,7 +117,13 @@ export class LanguageParser {
     const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
 
     return chunks
-      .filter(chunk => /[a-zA-Z0-9]/.test(chunk)) // Filter out chunks with no alphanumeric characters
+      .filter(chunk => {
+        if (Buffer.byteLength(chunk, 'utf8') > indexingConfig.maxChunkSizeBytes) {
+          logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
+          return false;
+        }
+        return /[a-zA-Z0-9]/.test(chunk); // Filter out chunks with no alphanumeric characters
+      })
       .map(chunk => {
         const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
         const endLine = startLine + (chunk.match(/\n/g) || []).length;
@@ -146,6 +160,10 @@ export class LanguageParser {
         const lines = doc.trim().split('\n');
         lines.forEach((line, index) => {
           if (line.trim().length > 0) {
+            if (Buffer.byteLength(line, 'utf8') > indexingConfig.maxChunkSizeBytes) {
+              logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
+              return;
+            }
             const chunkHash = createHash('sha256').update(line).digest('hex');
             const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
               type: 'doc',
@@ -181,6 +199,10 @@ export class LanguageParser {
       for (const key in json) {
         const value = JSON.stringify(json[key], null, 2);
         const chunkContent = `"${key}": ${value}`;
+        if (Buffer.byteLength(chunkContent, 'utf8') > indexingConfig.maxChunkSizeBytes) {
+          logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
+          continue;
+        }
         const chunkHash = createHash('sha256').update(chunkContent).digest('hex');
         const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
           type: 'doc',
@@ -281,6 +303,10 @@ export class LanguageParser {
     return uniqueMatches.map(({ captures }) => {
       const node = captures[0].node;
       const content = node.text;
+      if (Buffer.byteLength(content, 'utf8') > indexingConfig.maxChunkSizeBytes) {
+        logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
+        return null;
+      }
       const chunkHash = createHash('sha256').update(content).digest('hex');
 
       let containerPath = '';
@@ -324,7 +350,7 @@ export class LanguageParser {
         ...baseChunk,
         semantic_text: this.prepareSemanticText(baseChunk),
       } as CodeChunk;
-    });
+    }).filter((chunk): chunk is CodeChunk => chunk !== null);
   }
 
   private prepareSemanticText(chunk: Omit<CodeChunk, 'semantic_text' | 'code_vector' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'>): string {
