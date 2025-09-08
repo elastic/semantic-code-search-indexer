@@ -3,7 +3,7 @@ import {
   ClusterHealthResponse,
   QueryDslQueryContainer,
 } from '@elastic/elasticsearch/lib/api/types';
-import { elasticsearchConfig } from '../config';
+import { elasticsearchConfig, indexingConfig } from '../config';
 export { elasticsearchConfig };
 import { logger } from './logger';
 
@@ -89,11 +89,6 @@ export async function createIndex(): Promise<void> {
     logger.info(`Creating index "${indexName}"...`);
     await client.indices.create({
       index: indexName,
-      settings: {
-        index: {
-          default_pipeline: codeSimilarityPipeline,
-        },
-      },
       mappings: {
         properties: {
           type: { type: 'keyword' },
@@ -246,7 +241,16 @@ export async function indexCodeChunks(chunks: CodeChunk[]): Promise<void> {
 
   const operations = chunks.flatMap(doc => [{ index: { _index: indexName, _id: doc.chunk_hash } }, doc]);
 
-  const bulkResponse = await client.bulk({ refresh: false, operations });
+  const bulkOptions: { refresh: boolean; operations: any[]; pipeline?: string } = {
+    refresh: false,
+    operations,
+  };
+
+  if (indexingConfig.enableDenseVectors) {
+    bulkOptions.pipeline = codeSimilarityPipeline;
+  }
+
+  const bulkResponse = await client.bulk(bulkOptions);
 
   if (bulkResponse.errors) {
     const erroredDocuments: ErroredDocument[] = [];

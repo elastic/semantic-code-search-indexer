@@ -205,3 +205,68 @@ Configuration is managed via environment variables in a `.env` file.
 | `CPU_CORES` | The number of CPU cores to use for file parsing. | Half of the available cores |
 | `LOG_FORMAT` | The format of the logs. Can be `json` or `text`. | `json` |
 | `SEMANTIC_CODE_INDEXER_LANGUAGES` | A comma-separated list of languages to index. | `typescript,javascript,markdown,yaml,java,go,python` |
+
+---
+
+## Optional: Enabling Code Similarity Search (Dense Vectors)
+
+This indexer supports an optional, high-fidelity "find similar code" feature powered by the `microsoft/codebert-base` model. This model generates dense vector embeddings for code chunks, which enables more nuanced, semantic similarity searches than the default ELSER model.
+
+**Trade-offs:**
+Enabling this feature has a significant performance cost. Indexing will be **substantially slower** and the Elasticsearch index will require more disk space. It is recommended to only enable this feature if the "find similar code" capability is a critical requirement for your use case.
+
+### Setup Instructions
+
+To enable this feature, you must perform the following manual setup steps:
+
+**1. Install the Ingest Pipeline**
+
+You must install a dedicated ingest pipeline in your Elasticsearch cluster. Run the following command in the **Kibana Dev Console**:
+
+```json
+PUT _ingest/pipeline/code-similarity-pipeline
+{
+  "description": "Pipeline to selectively generate dense vector embeddings for substantive code chunks.",
+  "processors": [
+    {
+      "grok": {
+        "field": "kind",
+        "patterns": ["^(call_expression|import_statement|lexical_declaration)$"],
+        "on_failure": [
+          {
+            "inference": {
+              "model_id": "microsoft__codebert-base",
+              "target_field": "code_vector",
+              "field_map": {
+                "content": "text_field"
+              }
+            }
+          },
+          {
+            "set": {
+              "field": "code_vector",
+              "copy_from": "code_vector.predicted_value"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+**2. Enable the Feature Flag**
+
+Set the following environment variable in your `.env` file:
+
+```
+ENABLE_DENSE_VECTORS=true
+```
+
+**3. Re-index Your Data**
+
+To generate the dense vectors for your codebase, you must run a full, clean index. This will apply the ingest pipeline to all of your documents.
+
+```bash
+npm run index -- .repos/your-repo --clean
+```
