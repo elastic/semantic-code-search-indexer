@@ -1,11 +1,10 @@
-Switch to cron for deployment to fix ENOENT
+Revert to execSync for git commands
 
-- Replaces the `systemd` service with a `cron` job to resolve a persistent `ENOENT` error caused by `systemd` sandboxing.
-- Updates the `GCP_DEPLOYMENT_GUIDE.md` with instructions for setting up the `cron` job.
-- Fixes a bug in the producer's error logging to ensure error objects are logged as strings.
+- Reverts the git command execution in `incremental_index_command.ts` from `spawnSync` back to `execSync`.
+- This is a troubleshooting step to address a persistent `ENOENT` error in a specific remote environment.
 
 Prompts:
 
-- "What if we changed to just a simple cron?"
+- "can we go back to the original git command that worked"
 
 🤖 This commit was assisted by Gemini CLI
