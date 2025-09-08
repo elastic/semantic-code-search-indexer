@@ -1,11 +1,10 @@
 # GCP Deployment Guide: Multi-Repo Incremental Indexer Service
 
-This guide outlines how to deploy the semantic code indexer on a Google Cloud Platform (GCP) VM as a persistent, multi-repository service. This architecture is designed for scalability and isolation, dedicating a separate worker process and queue database to each repository.
+This guide outlines how to deploy the semantic code indexer on a Google Cloud Platform (GCP) VM as a periodic, multi-repository service.
 
-The setup consists of two main components managed by `systemd`:
+The setup consists of a single main component managed by `systemd`:
 
-1.  **A templated worker service (`indexer-worker@.service`):** This allows us to easily launch and manage a dedicated worker instance for each repository (e.g., `indexer-worker@repo-one.service`).
-2.  **A periodic producer timer (`indexer-producer.timer`):** This timer triggers a "one-shot" service that scans all configured repositories for changes and enqueues them for their respective workers.
+1.  **A periodic producer timer (`indexer-producer.timer`):** This timer triggers a "one-shot" service that, for each configured repository, scans for changes, enqueues them, and then immediately processes the queue to update the search index.
 
 ## Creating a GCP VM with gcloud
 
@@ -117,51 +116,16 @@ REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-search-index /va
 
 The `scripts/run_multi_producer.sh` script is the heart of the producer service. It is responsible for:
 1.  Reading the `REPOSITORIES_TO_INDEX` variable.
-2.  For each repository, creating a `systemd` override file. This file passes the correct `ELASTICSEARCH_INDEX` and `QUEUE_DIR` to the correct worker instance.
-3.  Running the `incremental-index` command to find and enqueue changes for each repository.
-4.  Reloading the `systemd` daemon to apply the new configurations.
-5.  Ensuring a dedicated `indexer-worker@<repo_name>.service` is running for each repository.
+2.  For each repository, running the `incremental-index` command to find and enqueue changes.
+3.  For each repository, immediately running the `index-worker` command to process the corresponding queue.
 
 This script is already included in the project, so you do not need to create it.
 
 ## 3. Create systemd Service and Timer Files
 
-You will create three files in `/etc/systemd/system/`.
+You will create two files in `/etc/systemd/system/`.
 
-### a. Templated Worker Service (`indexer-worker@.service`)
-
-This is a template unit file. The `%i` specifier will be replaced by the repository name (e.g., `repo-one`) when an instance of the service is started. The `multi-index-worker` command is used to start a worker for a specific repository.
-
-The `ELASTICSEARCH_INDEX` and `QUEUE_DIR` environment variables will be set by the override file created by the producer script.
-
-```ini
-# /etc/systemd/system/indexer-worker@.service
-
-[Unit]
-Description=Semantic Code Indexer Worker for %i
-After=network.target
-
-[Service]
-Type=simple
-User=your_user     # Replace with the user that owns the project files
-Group=your_group   # Replace with the user's group
-WorkingDirectory=/opt/semantic-code-search-indexer
-
-# Load the main environment file
-EnvironmentFile=/opt/semantic-code-search-indexer/.env
-
-# The producer script will create an override file for this service
-# to set the correct ELASTICSEARCH_INDEX and QUEUE_DIR.
-ExecStart=/usr/bin/npm run multi-index-worker -- --watch --repo-name=%i
-
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### b. Producer Service (`indexer-producer.service`)
+### a. Producer Service (`indexer-producer.service`)
 
 This service executes our runner script. It also loads the `.env` file directly.
 
@@ -179,6 +143,9 @@ WorkingDirectory=/opt/semantic-code-search-indexer
 
 # Load environment variables from the .env file
 EnvironmentFile=/opt/semantic-code-search-indexer/.env
+
+# Disable the default timeout, as indexing all repos can be a long-running job.
+TimeoutStartSec=0
 
 ExecStart=/opt/semantic-code-search-indexer/scripts/run_multi_producer.sh
 ```
@@ -211,7 +178,7 @@ WantedBy=timers.target
     sudo systemctl daemon-reload
     ```
 
-3.  **Enable and Start the Timer:** You only need to start the timer. The timer will run the producer script, which will in turn create the necessary configurations and start the worker instances for each repository.
+3.  **Enable and Start the Timer:** You only need to start the timer. The timer will trigger the producer service, which handles the entire indexing pipeline for all repositories.
     ```sh
     sudo systemctl enable indexer-producer.timer
     sudo systemctl start indexer-producer.timer
@@ -222,9 +189,9 @@ WantedBy=timers.target
     # Check the timer and see when it will next run
     sudo systemctl list-timers
 
-    # After the timer has run, check the status of the workers
-    sudo systemctl status 'indexer-worker@*.service'
+    # Check the status of the producer service
+    sudo systemctl status indexer-producer.service
 
-    # View the logs for a specific worker (e.g., for repo-one)
-    sudo journalctl -u indexer-worker@repo-one -f
+    # View the logs for the producer service to see the progress of all repositories
+    sudo journalctl -u indexer-producer.service -f
     ```
