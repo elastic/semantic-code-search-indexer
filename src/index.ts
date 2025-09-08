@@ -7,7 +7,7 @@ import {
   setupCommand, 
   workerCommand, 
   monitorQueueCommand, 
-  multiWorkerCommand, 
+   
   clearQueueCommand,
   retryFailedCommand,
   listFailedCommand
@@ -26,7 +26,7 @@ program.addCommand(incrementalIndexCommand);
 program.addCommand(setupCommand);
 program.addCommand(workerCommand);
 program.addCommand(monitorQueueCommand);
-program.addCommand(multiWorkerCommand);
+
 program.addCommand(clearQueueCommand);
 program.addCommand(retryFailedCommand);
 program.addCommand(listFailedCommand);

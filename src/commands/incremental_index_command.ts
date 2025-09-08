@@ -25,7 +25,9 @@ async function incrementalIndex(directory: string) {
   logger.info('Starting incremental indexing process (Producer)', { directory });
   await setupElser();
 
-  const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory })
+  const gitCommand = process.env.GIT_PATH || 'git';
+
+  const gitBranch = execSync(`${gitCommand} rev-parse --abbrev-ref HEAD`, { cwd: directory })
     .toString()
     .trim();
   const lastCommitHash = await getLastIndexedCommit(gitBranch);
@@ -39,7 +41,7 @@ async function incrementalIndex(directory: string) {
 
   logger.info('Pulling latest changes from remote', { gitBranch });
   try {
-    execSync(`git pull origin ${gitBranch}`, { cwd: directory, stdio: 'pipe' });
+    execSync(`${gitCommand} pull origin ${gitBranch}`, { cwd: directory, stdio: 'pipe' });
     logger.info('Pull complete.');
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -50,8 +52,8 @@ async function incrementalIndex(directory: string) {
     return;
   }
 
-  const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
-  const changedFilesRaw = execSync(`git diff --name-status ${lastCommitHash} HEAD`, {
+  const gitRoot = execSync(`${gitCommand} rev-parse --show-toplevel`, { cwd: directory }).toString().trim();
+  const changedFilesRaw = execSync(`${gitCommand} diff --name-status ${lastCommitHash} HEAD`, {
     cwd: directory,
   })
     .toString()
@@ -136,7 +138,7 @@ async function incrementalIndex(directory: string) {
     logger.info(`Failed to parse:      ${failureCount} files`);
   }
 
-  const newCommitHash = execSync('git rev-parse HEAD', { cwd: directory }).toString().trim();
+  const newCommitHash = execSync(`${gitCommand} rev-parse HEAD`, { cwd: directory }).toString().trim();
   await updateLastIndexedCommit(gitBranch, newCommitHash);
 
   logger.info('---');

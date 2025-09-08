@@ -99,6 +99,9 @@ The `REPOSITORIES_TO_INDEX` variable is a space-separated list. Each item is a p
 ```bash
 # /opt/semantic-code-search-indexer/.env
 
+# Path to the git executable (required for systemd service)
+GIT_PATH="/usr/bin/git"
+
 # Elasticsearch Configuration
 ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
 ELASTICSEARCH_API_KEY="YourEncodedApiKey"
