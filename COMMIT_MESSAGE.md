@@ -1,13 +1,11 @@
-Fix ENOENT error in systemd by using GIT_PATH env var
+Fix ENOENT error by using spawnSync for git commands
 
-- Modifies the `incremental-index` command to use a `GIT_PATH` environment variable for executing git commands, preventing `ENOENT` errors in minimal `systemd` environments.
-- Updates the `GCP_DEPLOYMENT_GUIDE.md` to include the new `GIT_PATH` variable in the example `.env` file.
-- Removes the obsolete `multiWorkerCommand` registration from `src/index.ts` that was missed during the previous refactoring.
+- Refactors the `incremental-index` command to use `spawnSync` instead of `execSync` for all git operations.
+- This change avoids shell parsing issues and correctly handles paths with spaces, resolving the `ENOENT` error when the `GIT_PATH` environment variable is used.
+- A `runGitCommand` helper function has been introduced to centralize the logic for executing git commands.
 
 Prompts:
 
 - "I'm getting this error: ... spawnSync /bin/sh ENOENT"
-- "That doesn't seem to be working..."
-- "Can we just set `GIT_PATH` as and ENV var?"
 
 🤖 This commit was assisted by Gemini CLI
