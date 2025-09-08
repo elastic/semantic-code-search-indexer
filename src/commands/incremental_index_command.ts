@@ -10,23 +10,10 @@ import { indexingConfig, appConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
-import { execSync, spawnSync } from 'child_process';
+import { execSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
-
-function runGitCommand(args: string[], cwd: string): string {
-  const gitCommand = process.env.GIT_PATH || 'git';
-  const result = spawnSync(gitCommand, args, { cwd, encoding: 'utf-8' });
-
-  if (result.status !== 0) {
-    const errorMessage = result.stderr || result.error?.message || 'Unknown git error';
-    logger.error('Git command failed', { args, errorMessage });
-    throw new Error(errorMessage);
-  }
-
-  return result.stdout.trim();
-}
 
 async function getQueue(): Promise<IQueue> {
   const queue = new SqliteQueue(appConfig.queueDir);
@@ -38,7 +25,11 @@ export async function incrementalIndex(directory: string) {
   logger.info('Starting incremental indexing process (Producer)', { directory });
   await setupElser();
 
-  const gitBranch = runGitCommand(['rev-parse', '--abbrev-ref', 'HEAD'], directory);
+  const gitCommand = process.env.GIT_PATH || 'git';
+
+  const gitBranch = execSync(`${gitCommand} rev-parse --abbrev-ref HEAD`, { cwd: directory })
+    .toString()
+    .trim();
   const lastCommitHash = await getLastIndexedCommit(gitBranch);
 
   if (!lastCommitHash) {
@@ -50,7 +41,7 @@ export async function incrementalIndex(directory: string) {
 
   logger.info('Pulling latest changes from remote', { gitBranch });
   try {
-    runGitCommand(['pull', 'origin', gitBranch], directory);
+    execSync(`${gitCommand} pull origin ${gitBranch}`, { cwd: directory, stdio: 'pipe' });
     logger.info('Pull complete.');
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -61,8 +52,12 @@ export async function incrementalIndex(directory: string) {
     return;
   }
 
-  const gitRoot = runGitCommand(['rev-parse', '--show-toplevel'], directory);
-  const changedFilesRaw = runGitCommand(['diff', '--name-status', lastCommitHash, 'HEAD'], directory);
+  const gitRoot = execSync(`${gitCommand} rev-parse --show-toplevel`, { cwd: directory }).toString().trim();
+  const changedFilesRaw = execSync(`${gitCommand} diff --name-status ${lastCommitHash} HEAD`, {
+    cwd: directory,
+  })
+    .toString()
+    .trim();
 
   const changedFiles = changedFilesRaw
     .split('\n')
@@ -143,7 +138,7 @@ export async function incrementalIndex(directory: string) {
     logger.info(`Failed to parse:      ${failureCount} files`);
   }
 
-  const newCommitHash = runGitCommand(['rev-parse', 'HEAD'], directory);
+  const newCommitHash = execSync(`${gitCommand} rev-parse HEAD`, { cwd: directory }).toString().trim();
   await updateLastIndexedCommit(gitBranch, newCommitHash);
 
   logger.info('---');
