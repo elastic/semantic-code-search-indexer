@@ -5,7 +5,7 @@ dist
 commit_message.txt
 \n.repos/
 .repos/
-COMMIT_MESSAGE.tmp
+COMMIT_MESSAGE.md
 .marprc.js
 matches.json
 .queue

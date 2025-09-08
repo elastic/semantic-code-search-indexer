@@ -51,7 +51,7 @@ describe('retryFailedCommand', () => {
     fs.mkdirSync(queueDir, { recursive: true });
 
     // Seed the database
-    queue = new SqliteQueue(queueDir);
+    queue = new SqliteQueue(dbPath);
     await queue.initialize();
     await queue.enqueue([MOCK_CHUNK_1, MOCK_CHUNK_2, MOCK_CHUNK_3]);
 
