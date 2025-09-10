@@ -42,7 +42,7 @@ function getGitInfo() {
 }
 
 
-if (elasticsearchConfig.logging && !process.env.MCP_SERVER_MODE && process.env.NODE_ENV !== 'test') {
+if (elasticsearchConfig.logging && process.env.NODE_ENV !== 'test') {
   const baseOptions: Partial<ClientOptions> = {
     requestTimeout: 10000, // 10 seconds
   };
@@ -101,9 +101,7 @@ function log(level: LogLevel, message: string, metadata: object = {}) {
     ...metadata,
   };
 
-  if (process.env.MCP_SERVER_MODE) {
-    return;
-  }
+  
 
   if (process.env.LOG_FORMAT === 'text') {
     const metadataString = Object.keys(metadata).length > 0 ? ` ${JSON.stringify(metadata)}` : '';

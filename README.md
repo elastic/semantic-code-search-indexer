@@ -99,16 +99,13 @@ Starts a single worker process for local development. This worker processes docu
 npm run index-worker -- --watch
 ```
 
-### `npm run multi-index-worker`
+### `npm run start:producer`
 
-Starts a dedicated worker for a specific repository, designed for the multi-repo deployment model.
-
-**Arguments:**
-- `--repo-name=<repo>`: The name of the repository this worker is responsible for. This is used to determine the queue path.
+Starts the producer worker, which scans the repository for changes and adds them to the queue.
 
 **Example:**
 ```bash
-npm run multi-index-worker -- --repo-name=kibana
+npm run start:producer
 ```
 
 ---
@@ -196,13 +193,21 @@ Configuration is managed via environment variables in a `.env` file.
 | --- | --- | --- |
 | `ELASTICSEARCH_ENDPOINT` | The endpoint URL for your Elasticsearch instance. | |
 | `ELASTICSEARCH_CLOUD_ID` | The Cloud ID for your Elastic Cloud instance. | |
+| `ELASTICSEARCH_USER` | The username for Elasticsearch authentication. | |
+| `ELASTICSEARCH_PASSWORD` | The password for Elasticsearch authentication. | |
 | `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication. | |
 | `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts. | `code-chunks` |
+| `ELASTICSEARCH_MODEL` | The name of the ELSER model to use. | `.elser_model_2` |
+| `ELASTICSEARCH_LOGGING` | Whether to enable Elasticsearch client logging. | `false` |
 | `QUEUE_DIR` | The directory for the queue database. Used by the `index-worker` and `clear-queue` commands. | `.queue` |
 | `QUEUE_BASE_DIR` | The base directory for all multi-repo queue databases. | `.queues` |
-| `REPOSITORIES_TO_INDEX` | A space-separated list of "repo_path:es_index" pairs for the multi-repo producer. | |
 | `BATCH_SIZE` | The number of chunks to index in a single bulk request. | `500` |
+| `MAX_QUEUE_SIZE` | The maximum number of items to keep in the queue. | `1000` |
 | `CPU_CORES` | The number of CPU cores to use for file parsing. | Half of the available cores |
+| `MAX_CHUNK_SIZE_BYTES` | The maximum size of a code chunk in bytes. | `1000000` |
+| `ENABLE_DENSE_VECTORS` | Whether to enable dense vectors for code similarity search. | `false` |
+| `GIT_PATH` | The path to the `git` executable. | `git` |
+| `NODE_ENV` | The node environment. | `development` |
 | `LOG_FORMAT` | The format of the logs. Can be `json` or `text`. | `json` |
 | `SEMANTIC_CODE_INDEXER_LANGUAGES` | A comma-separated list of languages to index. | `typescript,javascript,markdown,yaml,java,go,python` |
 
