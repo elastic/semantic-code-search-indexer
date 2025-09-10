@@ -34,7 +34,8 @@ interface IncrementalIndexOptions {
 }
 
 async function getQueue(options?: IncrementalIndexOptions): Promise<IQueue> {
-  const queuePath = options ? path.join(options.queueDir, 'queue.db') : path.join(appConfig.queueDir, 'queue.db');
+  const queueDir = options?.queueDir ?? appConfig.queueDir;
+  const queuePath = path.join(queueDir, 'queue.db');
   const queue = new SqliteQueue(queuePath);
   await queue.initialize();
   return queue;
