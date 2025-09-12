@@ -131,17 +131,34 @@ This script is already included in the project, so you do not need to create it.
 
 We will use `cron`, a standard time-based job scheduler, to run the indexer periodically.
 
-1.  **Open the Crontab:**
+1.  **Create start_producer.sh**
+    Create a file at /opt/semantic-code-search-indexer with the following:
+    ```sh
+    #!/bin/bash
+
+    # Go to the project directory
+    cd /opt/semantic-code-search-indexer || exit
+
+    # Source environment variables. Using 'source' is fine because of the #!/bin/bash shebang.
+    if [ -f .env ]; then
+      source .env
+    fi
+
+    # Run the command using the full path to npm for reliability
+    /usr/bin/npm run start:producer -- $REPOSITORIES_TO_INDEX
+    ```
+
+2.  **Open the Crontab:**
     Open the crontab file for the current user for editing.
     ```bash
     crontab -e
     ```
 
-2.  **Add the Cron Job:**
+3.  **Add the Cron Job:**
     Add the following line to the end of the file. This configuration will run the indexer every 15 minutes.
 
     ```cron
-    */15 * * * * cd /opt/semantic-code-search-indexer && npm run start:producer >> /var/log/indexer.log 2>&1
+    */15 * * * * /opt/semantic-code-search-indexer/start_producer.sh >> /var/log/indexer.log 2>&1
     ```
 
     **Command Breakdown:**
@@ -150,7 +167,7 @@ We will use `cron`, a standard time-based job scheduler, to run the indexer peri
     *   `npm run start:producer`: This executes the producer command using `ts-node`, which is the most reliable execution method in this environment.
     *   `>> /var/log/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file. You must ensure this file is writable by the user running the cron job (e.g., `sudo touch /var/log/indexer.log && sudo chown your_user /var/log/indexer.log`).
 
-3.  **Save and Exit:**
+4.  **Save and Exit:**
     Save the file and exit your editor. `cron` will automatically install the new job.
 
 ## 4. Deploy and Run
