@@ -15,9 +15,9 @@ async function startProducer(repoConfigs: string[]) {
   }
 
   for (const repoConfig of repoConfigs) {
-    const [repoPath, esIndex] = repoConfig.split(':');
+    const [repoPath, esIndex, token] = repoConfig.split(':');
     if (!repoPath || !esIndex) {
-      logger.error(`Invalid repository configuration format: "${repoConfig}". Expected "path:index". Skipping.`);
+      logger.error(`Invalid repository configuration format: "${repoConfig}". Expected "path:index[:token]". Skipping.`);
       continue;
     }
     const repoName = path.basename(repoPath);
@@ -28,6 +28,7 @@ async function startProducer(repoConfigs: string[]) {
     const options = {
       queueDir,
       elasticsearchIndex: esIndex,
+      token,
     };
 
     try {

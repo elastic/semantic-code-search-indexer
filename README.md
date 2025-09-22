@@ -54,10 +54,14 @@ Clones a target repository into the `./.repos/` directory to prepare it for inde
 
 **Arguments:**
 - `<repo_url>`: The URL of the git repository to clone.
+- `--token <token>`: (Optional) A GitHub Personal Access Token for cloning private repositories.
 
 **Example:**
 ```bash
 npm run setup -- https://github.com/elastic/kibana.git
+
+# With a token for a private repository
+npm run setup -- https://github.com/my-org/my-private-repo.git --token ghp_YourTokenHere
 ```
 
 ### `npm run index`
@@ -107,6 +111,48 @@ Starts the producer worker, which scans the repository for changes and adds them
 ```bash
 npm run start:producer
 ```
+
+---
+## Private Repository Support
+
+To index private GitHub repositories, you need to provide a Personal Access Token (PAT).
+
+### Creating a GitHub Personal Access Token
+
+The recommended and most secure method is to use a **fine-grained** PAT with read-only permissions for the specific repositories you want to index.
+
+1.  Go to your GitHub **Settings** > **Developer settings** > **Personal access tokens** > **Fine-grained tokens**.
+2.  Click **Generate new token**.
+3.  Give the token a descriptive name (e.g., "Code Indexer Token").
+4.  Under **Repository access**, select **Only select repositories** and choose the private repository (or repositories) you need to index.
+5.  Under **Permissions**, go to **Repository permissions**.
+6.  Find the **Contents** permission and select **Read-only** from the dropdown.
+7.  Click **Generate token**.
+
+### Providing the Token
+
+You can provide the token in two ways:
+
+1.  **As a command-line argument (for `setup`):**
+    Use the `--token` option when running the `setup` command.
+    ```bash
+    npm run setup -- <private-repo-url> --token <your-token>
+    ```
+
+2.  **In the `.env` file (for scheduled indexing):**
+    For the scheduled `start:producer` command, you can add the token to the `REPOSITORIES_TO_INDEX` variable in your `.env` file. The format is `path:index:token`.
+
+    ```
+    # .env file
+    REPOSITORIES_TO_INDEX="/path/to/repo-one:index-one:ghp_TokenOne /path/to/repo-two:index-two:ghp_TokenTwo"
+    ```
+
+    You can also set a global `GITHUB_TOKEN` in your `.env` file as a fallback.
+
+    ```
+    # .env file
+    GITHUB_TOKEN=ghp_YourGlobalToken
+    ```
 
 ---
 ## Queue Management

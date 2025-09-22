@@ -1,9 +1,12 @@
 import { Command } from 'commander';
-import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import simpleGit from 'simple-git';
+import { appConfig } from '../config';
+import { logger } from '../utils/logger';
 
-async function setup(repoUrl: string) {
+async function setup(repoUrl: string, options: { token?: string }) {
+  const token = options.token || appConfig.githubToken;
   const reposDir = path.join(process.cwd(), '.repos');
 
   if (!fs.existsSync(reposDir)) {
@@ -12,33 +15,45 @@ async function setup(repoUrl: string) {
 
   const repoName = repoUrl.split('/').pop()?.replace('.git', '');
   if (!repoName) {
-    console.error('Could not determine repository name from URL.');
+    logger.error('Could not determine repository name from URL.');
     return;
   }
 
   const repoPath = path.join(reposDir, repoName);
+  const git = simpleGit();
 
   if (fs.existsSync(repoPath)) {
-    console.log(`Repository ${repoName} already exists. Pulling latest changes...`);
+    logger.info(`Repository ${repoName} already exists. Pulling latest changes...`);
     try {
-      execSync(`git pull`, { cwd: repoPath, stdio: 'inherit' });
-      console.log('Repository updated successfully.');
+      const remoteUrl = await git.cwd(repoPath).remote(['get-url', 'origin']);
+      if (token && remoteUrl) {
+        const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`);
+        await git.cwd(repoPath).remote(['set-url', 'origin', newRemoteUrl]);
+      }
+      await git.cwd(repoPath).pull();
+      logger.info('Repository updated successfully.');
     } catch (error) {
-      console.error(`Error pulling repository: ${error}`);
+      logger.error(`Error pulling repository: ${error}`);
     }
     return;
   }
 
-  console.log(`Cloning ${repoUrl} into ${repoPath}...`);
+  logger.info(`Cloning ${repoUrl} into ${repoPath}...`);
   try {
-    execSync(`git clone ${repoUrl} ${repoPath}`, { stdio: 'inherit' });
-    console.log('Repository cloned successfully.');
+    if (token) {
+      const remoteUrl = repoUrl.replace('https://', `https://oauth2:${token}@`);
+      await git.clone(remoteUrl, repoPath);
+    } else {
+      await git.clone(repoUrl, repoPath);
+    }
+    logger.info('Repository cloned successfully.');
   } catch (error) {
-    console.error(`Error cloning repository: ${error}`);
+    logger.error(`Error cloning repository: ${error}`);
   }
 }
 
 export const setupCommand = new Command('setup')
   .description('Clones a repository to be indexed')
   .argument('<repo_url>', 'The URL of the git repository to clone')
+  .option('--token <token>', 'GitHub token for private repositories')
   .action(setup);

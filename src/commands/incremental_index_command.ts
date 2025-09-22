@@ -14,23 +14,14 @@ import { spawnSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
+import simpleGit from 'simple-git';
 
-function runGitCommand(args: string[], cwd: string): string {
-  const gitCommand = process.env.GIT_PATH || 'git';
-  const result = spawnSync(gitCommand, args, { cwd, encoding: 'utf-8' });
 
-  if (result.status !== 0) {
-    const errorMessage = result.stderr || result.error?.message || 'Unknown git error';
-    logger.error('Git command failed', { args, errorMessage });
-    throw new Error(errorMessage);
-  }
-
-  return result.stdout.trim();
-}
 
 interface IncrementalIndexOptions {
   queueDir: string;
   elasticsearchIndex: string;
+  token?: string;
 }
 
 async function getQueue(options?: IncrementalIndexOptions): Promise<IQueue> {
@@ -45,7 +36,8 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
   logger.info('Starting incremental indexing process (Producer)', { directory, ...options });
   await setupElser();
 
-  const gitBranch = runGitCommand(['rev-parse', '--abbrev-ref', 'HEAD'], directory);
+  const git = simpleGit(directory);
+  const gitBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
   const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
 
   if (!lastCommitHash) {
@@ -57,7 +49,15 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
 
   logger.info('Pulling latest changes from remote', { gitBranch });
   try {
-    runGitCommand(['pull', 'origin', gitBranch], directory);
+    const token = options?.token || appConfig.githubToken;
+    if (token) {
+      const remoteUrl = await git.remote(['get-url', 'origin']);
+      if (remoteUrl) {
+        const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`);
+        await git.remote(['set-url', 'origin', newRemoteUrl]);
+      }
+    }
+    await git.pull('origin', gitBranch);
     logger.info('Pull complete.');
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -68,8 +68,8 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
     return;
   }
 
-  const gitRoot = runGitCommand(['rev-parse', '--show-toplevel'], directory);
-  const changedFilesRaw = runGitCommand(['diff', '--name-status', lastCommitHash, 'HEAD'], directory);
+  const gitRoot = await git.revparse(['--show-toplevel']);
+  const changedFilesRaw = await git.diff(['--name-status', lastCommitHash, 'HEAD']);
 
   const changedFiles = changedFilesRaw
     .split('\n')
@@ -150,7 +150,7 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
     logger.info(`Failed to parse:      ${failureCount} files`);
   }
 
-  const newCommitHash = runGitCommand(['rev-parse', 'HEAD'], directory);
+  const newCommitHash = await git.revparse(['HEAD']);
   await updateLastIndexedCommit(gitBranch, newCommitHash, options?.elasticsearchIndex);
 
   logger.info('---');

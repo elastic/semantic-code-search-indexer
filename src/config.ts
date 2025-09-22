@@ -41,4 +41,5 @@ export const indexingConfig = {
 export const appConfig = {
   queueDir: path.resolve(projectRoot, process.env.QUEUE_DIR || '.queue'),
   queueBaseDir: path.resolve(projectRoot, process.env.QUEUE_BASE_DIR || '.queues'),
+  githubToken: process.env.GITHUB_TOKEN,
 };
