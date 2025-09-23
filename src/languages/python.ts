@@ -46,5 +46,7 @@ export const pythonConfig: LanguageConfiguration = {
     '(class_definition name: (identifier) @class.name)',
     '(function_definition name: (identifier) @function.name)',
     '(expression_statement (assignment left: (identifier) @variable.name))',
+    '(call function: (identifier) @function.call)',
+    '(assignment right: (identifier) @variable.usage)',
   ],
 };

@@ -10,3 +10,4 @@ export * from './clear_queue_command';
 export * from './retry_failed_command';
 export * from './list_failed_command';
 export * from './start_producer_command';
+export * from './dump_tree_command';

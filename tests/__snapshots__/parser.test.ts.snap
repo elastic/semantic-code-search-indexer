@@ -25,18 +25,7 @@ kind: import_declaration
 
 import "fmt"",
     "startLine": 3,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 6,
-        "name": "Hello",
-      },
-      {
-        "kind": "type",
-        "line": 10,
-        "name": "MyType",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -57,18 +46,7 @@ kind: comment
 
 // Hello is a function that prints a greeting.",
     "startLine": 5,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 6,
-        "name": "Hello",
-      },
-      {
-        "kind": "type",
-        "line": 10,
-        "name": "MyType",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -95,14 +73,14 @@ func Hello() {
     "startLine": 6,
     "symbols": [
       {
-        "kind": "function",
+        "kind": "function.name",
         "line": 6,
         "name": "Hello",
       },
       {
-        "kind": "type",
-        "line": 10,
-        "name": "MyType",
+        "kind": "method.call",
+        "line": 7,
+        "name": "fmt.Println",
       },
     ],
     "type": "code",
@@ -127,14 +105,9 @@ fmt.Println("Hello, Go!")",
     "startLine": 7,
     "symbols": [
       {
-        "kind": "function",
-        "line": 6,
-        "name": "Hello",
-      },
-      {
-        "kind": "type",
-        "line": 10,
-        "name": "MyType",
+        "kind": "method.call",
+        "line": 7,
+        "name": "fmt.Println",
       },
     ],
     "type": "code",
@@ -163,12 +136,7 @@ type MyType struct {
     "startLine": 10,
     "symbols": [
       {
-        "kind": "function",
-        "line": 6,
-        "name": "Hello",
-      },
-      {
-        "kind": "type",
+        "kind": "type.name",
         "line": 10,
         "name": "MyType",
       },
@@ -434,18 +402,7 @@ kind: import_declaration
 
 import java.util.List;",
     "startLine": 1,
-    "symbols": [
-      {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 7,
-        "name": "myMethod",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -482,14 +439,19 @@ class MyClass {
     "startLine": 3,
     "symbols": [
       {
-        "kind": "class",
+        "kind": "class.name",
         "line": 3,
         "name": "MyClass",
       },
       {
-        "kind": "method",
+        "kind": "method.name",
         "line": 7,
         "name": "myMethod",
+      },
+      {
+        "kind": "method.call",
+        "line": 8,
+        "name": "println",
       },
     ],
     "type": "code",
@@ -517,18 +479,7 @@ containerPath: MyClass
      * This is a Javadoc comment.
      */",
     "startLine": 4,
-    "symbols": [
-      {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 7,
-        "name": "myMethod",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -556,14 +507,14 @@ public void myMethod() {
     "startLine": 7,
     "symbols": [
       {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
+        "kind": "method.name",
         "line": 7,
         "name": "myMethod",
+      },
+      {
+        "kind": "method.call",
+        "line": 8,
+        "name": "println",
       },
     ],
     "type": "code",
@@ -591,28 +542,7 @@ kind: comment
 
 // This is a comment",
     "startLine": 1,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -646,28 +576,7 @@ kind: import_statement
 
 import { a } from 'b';",
     "startLine": 2,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -692,28 +601,7 @@ kind: comment
  * This is a JSDoc comment.
  */",
     "startLine": 4,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -740,24 +628,9 @@ function hello() {
     "startLine": 7,
     "symbols": [
       {
-        "kind": "function",
+        "kind": "function.name",
         "line": 7,
         "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
       },
     ],
     "type": "code",
@@ -780,28 +653,7 @@ kind: expression_statement
 
 console.log('Hello, world!');",
     "startLine": 8,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -822,28 +674,7 @@ kind: call_expression
 
 console.log('Hello, world!')",
     "startLine": 8,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -874,24 +705,14 @@ class MyClass {
     "startLine": 11,
     "symbols": [
       {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
+        "kind": "class.name",
         "line": 11,
         "name": "MyClass",
       },
       {
-        "kind": "method",
+        "kind": "method.name",
         "line": 12,
         "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
       },
     ],
     "type": "code",
@@ -921,24 +742,9 @@ myMethod() {
     "startLine": 12,
     "symbols": [
       {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
+        "kind": "method.name",
         "line": 12,
         "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
       },
     ],
     "type": "code",
@@ -961,28 +767,7 @@ kind: return_statement
 
 return 1;",
     "startLine": 13,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 17,
-        "name": "myVar",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -1005,22 +790,7 @@ const myVar = () => {};",
     "startLine": 17,
     "symbols": [
       {
-        "kind": "function",
-        "line": 7,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 11,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 12,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
+        "kind": "variable.name",
         "line": 17,
         "name": "myVar",
       },
@@ -1142,7 +912,18 @@ kind: property
 
 key=value",
     "startLine": 2,
-    "symbols": [],
+    "symbols": [
+      {
+        "kind": "property.key",
+        "line": 2,
+        "name": "key",
+      },
+      {
+        "kind": "property.value",
+        "line": 2,
+        "name": "value",
+      },
+    ],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -1174,23 +955,7 @@ kind: import_statement
 
 import os",
     "startLine": 1,
-    "symbols": [
-      {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "my_method",
-      },
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "my_function",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -1217,19 +982,19 @@ class MyClass:
     "startLine": 3,
     "symbols": [
       {
-        "kind": "class",
+        "kind": "class.name",
         "line": 3,
         "name": "MyClass",
       },
       {
-        "kind": "function",
+        "kind": "function.name",
         "line": 4,
         "name": "my_method",
       },
       {
-        "kind": "function",
-        "line": 7,
-        "name": "my_function",
+        "kind": "function.call",
+        "line": 5,
+        "name": "print",
       },
     ],
     "type": "code",
@@ -1256,19 +1021,14 @@ def my_method(self):
     "startLine": 4,
     "symbols": [
       {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "function",
+        "kind": "function.name",
         "line": 4,
         "name": "my_method",
       },
       {
-        "kind": "function",
-        "line": 7,
-        "name": "my_function",
+        "kind": "function.call",
+        "line": 5,
+        "name": "print",
       },
     ],
     "type": "code",
@@ -1293,19 +1053,9 @@ print("Hello, Python!")",
     "startLine": 5,
     "symbols": [
       {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "my_method",
-      },
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "my_function",
+        "kind": "function.call",
+        "line": 5,
+        "name": "print",
       },
     ],
     "type": "code",
@@ -1334,17 +1084,7 @@ def my_function():
     "startLine": 7,
     "symbols": [
       {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "my_method",
-      },
-      {
-        "kind": "function",
+        "kind": "function.name",
         "line": 7,
         "name": "my_function",
       },
@@ -1369,23 +1109,7 @@ kind: expression_statement
 
 """This is a docstring."""",
     "startLine": 8,
-    "symbols": [
-      {
-        "kind": "class",
-        "line": 3,
-        "name": "MyClass",
-      },
-      {
-        "kind": "function",
-        "line": 4,
-        "name": "my_method",
-      },
-      {
-        "kind": "function",
-        "line": 7,
-        "name": "my_function",
-      },
-    ],
+    "symbols": [],
     "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
@@ -1408,537 +1132,6 @@ exports[`LanguageParser should parse Text fixtures correctly 1`] = `
 This is a text file.",
     "startLine": 1,
     "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-]
-`;
-
-exports[`LanguageParser should parse TypeScript fixtures correctly 1`] = `
-[
-  {
-    "chunk_hash": "bfbce26d696921c2281b7e4c2eebed78128ac63be763d2b09fa054793a790934",
-    "containerPath": "",
-    "content": "// This is a comment",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 1,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [],
-    "kind": "comment",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: comment
-
-// This is a comment",
-    "startLine": 1,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "ed8291088a1a5a73b9864543d1ce1e9a65ff0a84fc7b2e84bb51d4394d593245",
-    "containerPath": "",
-    "content": "import { a } from 'b';",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 2,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [
-      {
-        "path": "b",
-        "symbols": [
-          "a",
-        ],
-        "type": "module",
-      },
-      {
-        "path": "b",
-        "symbols": [],
-        "type": "module",
-      },
-    ],
-    "kind": "import_statement",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: import_statement
-
-import { a } from 'b';",
-    "startLine": 2,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "fc03a7a56a6c7477498dd5f46ad95998a6d99807342cda67891126f40d25d0d3",
-    "containerPath": "",
-    "content": "import type { c } from 'd';",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 3,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [
-      {
-        "path": "d",
-        "symbols": [
-          "c",
-        ],
-        "type": "module",
-      },
-      {
-        "path": "d",
-        "symbols": [],
-        "type": "module",
-      },
-      {
-        "path": "d",
-        "symbols": [
-          "c",
-        ],
-        "type": "module",
-      },
-    ],
-    "kind": "import_statement",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: import_statement
-
-import type { c } from 'd';",
-    "startLine": 3,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "7879ae4ab38bdc5513c4af4a422cd870415b4e829ebd550543748ead16e0f1a4",
-    "containerPath": "",
-    "content": "/**
- * This is a JSDoc comment.
- */",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 7,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [],
-    "kind": "comment",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: comment
-
-/**
- * This is a JSDoc comment.
- */",
-    "startLine": 5,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "863f06bfe158d269234eff9d0167d4cbc6492a68f4cf705ef7a75811dc8c9ec3",
-    "containerPath": "",
-    "content": "function hello() {
-  console.log('Hello, world!');
-}",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 10,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [],
-    "kind": "function_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: function_declaration
-
-function hello() {
-  console.log('Hello, world!');
-}",
-    "startLine": 8,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "6fd7f5fcd99232f0e49797bebada48669972e9c870171a3848c61eebca7f22dd",
-    "containerPath": "",
-    "content": "class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 16,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [],
-    "kind": "class_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: class_declaration
-
-class MyClass {
-  myMethod() {
-    return 1;
-  }
-}",
-    "startLine": 12,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "4f9ff60fb6e9d9218195c5b2af2e37c126497b9dbda6838356718ce7fe4d4b7a",
-    "containerPath": "MyClass",
-    "content": "myMethod() {
-    return 1;
-  }",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 15,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [],
-    "kind": "method_definition",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: method_definition
-containerPath: MyClass
-
-myMethod() {
-    return 1;
-  }",
-    "startLine": 13,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "b4debc24bebfb7484ed5e08c2e47765e7b7449130b923b7c89c7079823b5c73a",
-    "containerPath": "",
-    "content": "const myVar = () => {};",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 18,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [],
-    "kind": "lexical_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: lexical_declaration
-
-const myVar = () => {};",
-    "startLine": 18,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "7c078235ad80c07bc55176f61a080b5dfc580d9c6db2f51138f43cef0620d72a",
-    "containerPath": "",
-    "content": "interface MyInterface {
-  id: number;
-}",
-    "created_at": "[TIMESTAMP]",
-    "endLine": 26,
-    "filePath": "tests/fixtures/typescript.ts",
-    "git_branch": "main",
-    "git_file_hash": "ac90a27e133d3483d61b2595e7c58d550efc4176",
-    "imports": [],
-    "kind": "interface_declaration",
-    "language": "typescript",
-    "semantic_text": "filePath: tests/fixtures/typescript.ts
-kind: interface_declaration
-
-interface MyInterface {
-  id: number;
-}",
-    "startLine": 24,
-    "symbols": [
-      {
-        "kind": "function",
-        "line": 8,
-        "name": "hello",
-      },
-      {
-        "kind": "class",
-        "line": 12,
-        "name": "MyClass",
-      },
-      {
-        "kind": "method",
-        "line": 13,
-        "name": "myMethod",
-      },
-      {
-        "kind": "variable",
-        "line": 18,
-        "name": "myVar",
-      },
-      {
-        "kind": "type",
-        "line": 20,
-        "name": "MyType",
-      },
-      {
-        "kind": "interface",
-        "line": 24,
-        "name": "MyInterface",
-      },
-    ],
-    "type": "code",
     "updated_at": "[TIMESTAMP]",
   },
 ]
