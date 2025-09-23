@@ -44,5 +44,8 @@ export const javaConfig: LanguageConfiguration = {
     '(class_declaration name: (identifier) @class.name)',
     '(method_declaration name: (identifier) @method.name)',
     '(variable_declarator (identifier) @variable.name)',
+    '(method_invocation name: (identifier) @method.call)',
+    '(object_creation_expression type: (type_identifier) @class.instantiation)',
+    '(variable_declarator value: (identifier) @variable.usage)',
   ],
 };

@@ -279,19 +279,23 @@ export class LanguageParser {
       }
     }
 
-    let symbols: SymbolInfo[] = [];
+    const symbolsByLine: { [line: number]: SymbolInfo[] } = {};
     if (langConfig.symbolQueries) {
       const symbolQuery = new Query(langConfig.parser, langConfig.symbolQueries.join('\n'));
       const symbolMatches = symbolQuery.matches(tree.rootNode);
-      symbols = symbolMatches.map(m => {
+      for (const m of symbolMatches) {
         const capture = m.captures[0];
-        const kind = capture.name.split('.')[0] || 'symbol';
-        return {
+        const kind = capture.name || 'symbol';
+        const line = capture.node.startPosition.row + 1;
+        if (!symbolsByLine[line]) {
+          symbolsByLine[line] = [];
+        }
+        symbolsByLine[line].push({
           name: capture.node.text,
           kind,
-          line: capture.node.startPosition.row + 1,
-        };
-      });
+          line,
+        });
+      }
     }
 
     const uniqueMatches = Array.from(new Map(matches.map(match => {
@@ -327,13 +331,19 @@ export class LanguageParser {
       const startLine = node.startPosition.row + 1;
       const endLine = node.endPosition.row + 1;
       const chunkImports = importsByLine[startLine] || [];
+      const chunkSymbols: SymbolInfo[] = [];
+      for (let i = startLine; i <= endLine; i++) {
+        if (symbolsByLine[i]) {
+          chunkSymbols.push(...symbolsByLine[i]);
+        }
+      }
 
       const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
         type: 'code',
         language: langConfig.name,
         kind: node.type,
         imports: chunkImports,
-        symbols,
+        symbols: chunkSymbols,
         containerPath,
         filePath: relativePath,
         git_file_hash: gitFileHash,

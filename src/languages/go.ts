@@ -52,5 +52,9 @@ export const goConfig: LanguageConfiguration = {
     '(method_declaration name: (field_identifier) @method.name)',
     '(type_spec name: (type_identifier) @type.name)',
     '(var_spec name: (identifier) @variable.name)',
+    '(call_expression function: (identifier) @function.call)',
+    '(call_expression function: (selector_expression field: (field_identifier)) @method.call)',
+    '(composite_literal type: (type_identifier) @struct.instantiation)',
+    '(short_var_declaration right: (expression_list (identifier)) @variable.usage)',
   ],
 };

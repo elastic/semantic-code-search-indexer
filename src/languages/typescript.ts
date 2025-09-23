@@ -9,12 +9,13 @@ export const typescript: LanguageConfiguration = {
   queries: [
     '(import_statement) @import',
     '(lexical_declaration) @variable',
-    '(method_definition) @method',
     '(class_declaration) @class',
     '(interface_declaration) @interface',
     '(export_statement) @export',
     '(comment) @comment',
     '(function_declaration) @function',
+    '(type_alias_declaration) @type',
+    '(call_expression) @call',
     '(_ (comment)+ @doc)',
     `
     (
@@ -88,5 +89,8 @@ export const typescript: LanguageConfiguration = {
     '(variable_declarator name: (identifier) @variable.name)',
     '(type_alias_declaration name: (type_identifier) @type.name)',
     '(interface_declaration name: (type_identifier) @interface.name)',
+    '(call_expression function: (identifier) @function.call)',
+    '(new_expression constructor: (identifier) @class.instantiation)',
+    '(variable_declarator value: (identifier) @variable.usage)',
   ],
 };

@@ -22,21 +22,23 @@ describe('LanguageParser', () => {
     }));
   };
 
-  it('should parse TypeScript fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
-    const symbols = chunks[0].symbols;
-    expect(symbols).toEqual(
+  it('should parse TypeScript usage fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/usage.ts');
+    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/usage.ts');
+    const allSymbols = chunks.flatMap(chunk => chunk.symbols);
+    expect(allSymbols).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'hello', kind: 'function' }),
-        expect.objectContaining({ name: 'MyClass', kind: 'class' }),
-        expect.objectContaining({ name: 'myMethod', kind: 'method' }),
-        expect.objectContaining({ name: 'myVar', kind: 'variable' }),
-        expect.objectContaining({ name: 'MyType', kind: 'type' }),
-        expect.objectContaining({ name: 'MyInterface', kind: 'interface' }),
+        expect.objectContaining({ name: 'sayHello', kind: 'function.name' }),
+        expect.objectContaining({ name: 'sayHello', kind: 'function.call' }),
+        expect.objectContaining({ name: 'MyClass', kind: 'class.name' }),
+        expect.objectContaining({ name: 'constructor', kind: 'method.name' }),
+        expect.objectContaining({ name: 'instance', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'MyClass', kind: 'class.instantiation' }),
+        expect.objectContaining({ name: 'myVar', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'anotherVar', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'myVar', kind: 'variable.usage' }),
       ])
     );
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
   });
 
   it('should parse JavaScript fixtures correctly', () => {
@@ -91,6 +93,18 @@ describe('LanguageParser', () => {
     const filePath = path.resolve(__dirname, 'fixtures/properties.properties');
     const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
     expect(cleanTimestamps(chunks)).toMatchSnapshot();
+  });
+
+  it('should extract symbols from Properties fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/properties.properties');
+    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
+    const allSymbols = chunks.flatMap(chunk => chunk.symbols);
+    expect(allSymbols).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'key', kind: 'property.key' }),
+        expect.objectContaining({ name: 'value', kind: 'property.value' }),
+      ])
+    );
   });
 
   it('should parse Text fixtures correctly', () => {

@@ -9,4 +9,8 @@ export const propertiesConfig: LanguageConfiguration = {
     '(property) @property',
     '(comment) @comment',
   ],
+  symbolQueries: [
+    '(property (key) @property.key)',
+    '(property (value) @property.value)',
+  ],
 };
