@@ -10,7 +10,6 @@ import { indexingConfig, appConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
-import { spawnSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
@@ -73,36 +72,55 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
 
   const changedFiles = changedFilesRaw
     .split('\n')
-    .filter(line => line)
-    .map(line => {
-      const [status, file] = line.split('\t');
-      return { status, file };
-    });
+    .filter(line => line);
 
-  const deletedFiles = changedFiles
-    .filter(f => f.status === 'D')
-    .map(f => f.file);
+  const filesToDelete: string[] = [];
+  const filesToIndex: string[] = [];
 
-  const addedOrModifiedFiles = changedFiles
-    .filter(
-      f =>
-        (f.status === 'A' || f.status === 'M') &&
-        SUPPORTED_FILE_EXTENSIONS.includes(path.extname(f.file))
-    )
-    .map(f => f.file);
+  for (const line of changedFiles) {
+    const parts = line.split('\t');
+    const status = parts[0];
+
+    if (status.startsWith('R')) { // Handle Rename (RXXX)
+      const oldFile = parts[1];
+      const newFile = parts[2];
+      filesToDelete.push(oldFile);
+      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(newFile))) {
+        filesToIndex.push(newFile);
+      }
+    } else if (status.startsWith('C')) { // Handle Copy (CXXX)
+      const newFile = parts[2];
+      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(newFile))) {
+        filesToIndex.push(newFile);
+      }
+    } else if (status === 'D') {
+      const file = parts[1];
+      filesToDelete.push(file);
+    } else if (status === 'A') {
+        const file = parts[1];
+        if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(file))) {
+            filesToIndex.push(file);
+        }
+    } else if (status === 'M') {
+      const file = parts[1];
+      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(file))) {
+        filesToDelete.push(file);
+        filesToIndex.push(file);
+      }
+    }
+  }
 
   logger.info(`Found ${changedFiles.length} changed files`, {
-    addedOrModified: addedOrModifiedFiles.length,
-    deleted: deletedFiles.length,
+    toIndex: filesToIndex.length,
+    toDelete: filesToDelete.length,
   });
 
-  const filesToDelete = [...deletedFiles, ...addedOrModifiedFiles];
   for (const file of filesToDelete) {
     await deleteDocumentsByFilePath(file, options?.elasticsearchIndex);
     logger.info('Deleted documents for file', { file });
   }
 
-  if (addedOrModifiedFiles.length === 0) {
+  if (filesToIndex.length === 0) {
     logger.info('No new or modified files to process.');
   } else {
     logger.info('Processing and enqueueing added/modified files...');
@@ -115,7 +133,7 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
 
     const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
-    addedOrModifiedFiles.forEach(file => {
+    filesToIndex.forEach(file => {
       producerQueue.add(() => new Promise<void>((resolve, reject) => {
         const worker = new Worker(producerWorkerPath);
         const absolutePath = path.resolve(gitRoot, file);
