@@ -270,7 +270,7 @@ export class LanguageParser {
           let type: 'module' | 'file' = 'module';
           if (importPath.startsWith('.')) {
             const resolvedPath = path.resolve(path.dirname(filePath), importPath);
-            const gitRoot = execSync('git rev-parse --show-toplevel').toString().trim();
+            const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: path.dirname(filePath) }).toString().trim();
             importPath = path.relative(gitRoot, resolvedPath);
             type = 'file';
           }
