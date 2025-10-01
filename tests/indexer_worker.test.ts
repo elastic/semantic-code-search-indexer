@@ -2,6 +2,7 @@ import { IndexerWorker } from '../src/utils/indexer_worker';
 import { InMemoryQueue } from '../src/utils/in_memory_queue';
 import * as elasticsearch from '../src/utils/elasticsearch';
 import { CodeChunk } from '../src/utils/elasticsearch';
+import { logger } from '../src/utils/logger';
 
 // Mock the elasticsearch module
 jest.mock('../src/utils/elasticsearch', () => ({
@@ -34,7 +35,7 @@ describe('IndexerWorker', () => {
     queue = new InMemoryQueue();
     // Use a very short polling interval for tests
     // Note: The worker's internal polling interval is hardcoded, so this test will rely on advancing timers.
-    worker = new IndexerWorker(queue, 10, 1, false, testIndex);
+    worker = new IndexerWorker(queue, 10, 1, false, logger, testIndex);
     (elasticsearch.indexCodeChunks as jest.Mock).mockClear();
   });
 

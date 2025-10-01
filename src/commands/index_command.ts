@@ -15,7 +15,7 @@ import PQueue from 'p-queue';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import ignore from 'ignore';
-import { logger } from '../utils/logger';
+import { logger, createLogger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 
@@ -27,6 +27,13 @@ async function getQueue(): Promise<IQueue> {
 }
 
 async function index(directory: string, clean: boolean) {
+  const repoName = path.basename(path.resolve(directory));
+  const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory })
+    .toString()
+    .trim();
+
+  const logger = createLogger({ name: repoName, branch: gitBranch });
+
   const languageParser = new LanguageParser();
   const supportedFileExtensions = Array.from(languageParser.fileSuffixMap.keys());
   logger.info('Starting full indexing process (Producer)', { directory, clean, supportedFileExtensions });
@@ -61,9 +68,6 @@ async function index(directory: string, clean: boolean) {
 
   let successCount = 0;
   let failureCount = 0;
-  const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory })
-    .toString()
-    .trim();
 
   const { cpuCores } = indexingConfig;
   const producerQueue = new PQueue({ concurrency: cpuCores });
@@ -74,7 +78,9 @@ async function index(directory: string, clean: boolean) {
 
   files.forEach(file => {
     producerQueue.add(() => new Promise<void>((resolve, reject) => {
-      const worker = new Worker(producerWorkerPath);
+      const worker = new Worker(producerWorkerPath, {
+        workerData: { repoName, gitBranch },
+      });
       const absolutePath = path.resolve(gitRoot, file);
       worker.on('message', async (message) => {
         if (message.status === 'success') {
