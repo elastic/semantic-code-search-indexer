@@ -75,7 +75,14 @@ if (elasticsearchConfig.logging && process.env.NODE_ENV !== 'test') {
   }
 }
 
-function log(level: LogLevel, message: string, metadata: object = {}) {
+
+
+interface RepoInfo {
+  name: string;
+  branch: string;
+}
+
+function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?: RepoInfo) {
   if (isSilent) {
     return;
   }
@@ -89,7 +96,10 @@ function log(level: LogLevel, message: string, metadata: object = {}) {
       dataset: 'semantic.codesearch',
     },
     codesearch: {
-      ...getGitInfo(),
+      indexer: {
+        ...getGitInfo(),
+      },
+      repo: repoInfo,
     },
     host: {
       hostname: os.hostname(),
@@ -120,15 +130,19 @@ function log(level: LogLevel, message: string, metadata: object = {}) {
   }
 }
 
-export const logger = {
-  info: (message: string, metadata?: object) => log(LogLevel.INFO, message, metadata),
-  warn: (message: string, metadata?: object) => log(LogLevel.WARN, message, metadata),
-  error: (message: string, metadata?: object) => log(LogLevel.ERROR, message, metadata),
-  debug: (message: string, metadata?: object) => log(LogLevel.DEBUG, message, metadata),
-  set silent(value: boolean) {
-    isSilent = value;
-  },
-  get silent() {
-    return isSilent;
-  }
-};
+export function createLogger(repoInfo?: RepoInfo) {
+  return {
+    info: (message: string, metadata?: object) => log(LogLevel.INFO, message, metadata, repoInfo),
+    warn: (message: string, metadata?: object) => log(LogLevel.WARN, message, metadata, repoInfo),
+    error: (message: string, metadata?: object) => log(LogLevel.ERROR, message, metadata, repoInfo),
+    debug: (message: string, metadata?: object) => log(LogLevel.DEBUG, message, metadata, repoInfo),
+    set silent(value: boolean) {
+      isSilent = value;
+    },
+    get silent() {
+      return isSilent;
+    }
+  };
+}
+
+export const logger = createLogger();

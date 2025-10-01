@@ -5,8 +5,12 @@
  * `LanguageParser`, and then sends the resulting code chunks back to the main
  * thread.
  */
-import { parentPort } from 'worker_threads';
+import { parentPort, workerData } from 'worker_threads';
 import { LanguageParser } from './parser';
+import { createLogger } from './logger';
+
+const { repoName, gitBranch: repoBranch } = workerData;
+const logger = createLogger({ name: repoName, branch: repoBranch });
 
 const languageParser = new LanguageParser();
 
@@ -21,6 +25,7 @@ parentPort?.on('message', ({ filePath, gitBranch, relativePath }: { filePath: st
     parentPort?.postMessage({ status: 'success', data: chunks, filePath });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    logger.error('Failed to parse file', { file: filePath, error: errorMessage });
     parentPort?.postMessage({ status: 'failure', error: errorMessage, filePath });
   }
 });

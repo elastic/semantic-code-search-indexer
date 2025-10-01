@@ -1,10 +1,12 @@
 import { IQueue, QueuedDocument } from './queue';
 import { CodeChunk, indexCodeChunks } from './elasticsearch';
-import { logger } from './logger';
+import { logger as defaultLogger, createLogger } from './logger';
 import PQueue from 'p-queue';
 import { SqliteQueue } from './sqlite_queue';
 
 const POLLING_INTERVAL_MS = 1000; // 1 second
+
+type Logger = ReturnType<typeof createLogger>;
 
 export class IndexerWorker {
   private queue: IQueue;
@@ -14,19 +16,28 @@ export class IndexerWorker {
   private consumerQueue: PQueue;
   private isRunning = false;
   private elasticsearchIndex?: string;
+  private logger: Logger;
 
-  constructor(queue: IQueue, batchSize: number, concurrency: number = 1, watch: boolean = false, elasticsearchIndex?: string) {
+  constructor(
+    queue: IQueue,
+    batchSize: number,
+    concurrency: number = 1,
+    watch: boolean = false,
+    logger: Logger = defaultLogger,
+    elasticsearchIndex?: string
+  ) {
     this.queue = queue;
     this.batchSize = batchSize;
     this.concurrency = concurrency;
     this.watch = watch;
     this.consumerQueue = new PQueue({ concurrency: this.concurrency });
     this.elasticsearchIndex = elasticsearchIndex;
+    this.logger = logger;
   }
 
   async start(): Promise<void> {
     this.isRunning = true;
-    logger.info('IndexerWorker started', { concurrency: this.concurrency, batchSize: this.batchSize, watch: this.watch });
+    this.logger.info('IndexerWorker started', { concurrency: this.concurrency, batchSize: this.batchSize, watch: this.watch });
 
     if (this.queue instanceof SqliteQueue) {
         await this.queue.requeueStaleTasks();
@@ -36,7 +47,7 @@ export class IndexerWorker {
         const documentBatch = await this.queue.dequeue(this.batchSize);
 
         if (documentBatch.length > 0) {
-            logger.info(`Dequeued batch of ${documentBatch.length} documents.`);
+            this.logger.info(`Dequeued batch of ${documentBatch.length} documents.`);
             // By awaiting here, we apply backpressure. The loop will not fetch the next batch
             // until the current one is fully processed and committed.
             const success = await this.consumerQueue.add(() => this.processBatch(documentBatch));
@@ -57,7 +68,7 @@ export class IndexerWorker {
     
     // Wait for any final in-flight tasks to complete before exiting.
     await this.consumerQueue.onIdle();
-    logger.info('IndexerWorker finished processing all tasks.');
+    this.logger.info('IndexerWorker finished processing all tasks.');
   }
 
   stop(): void {
@@ -65,7 +76,7 @@ export class IndexerWorker {
       return;
     }
     this.isRunning = false;
-    logger.info('IndexerWorker stopping...');
+    this.logger.info('IndexerWorker stopping...');
   }
 
   private async processBatch(batch: QueuedDocument[]): Promise<boolean> {
@@ -73,16 +84,16 @@ export class IndexerWorker {
       const codeChunks = batch.map(item => item.document);
       await indexCodeChunks(codeChunks, this.elasticsearchIndex);
       await this.queue.commit(batch);
-      logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
+      this.logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
       return true;
     } catch (error) {
       if (error instanceof Error) {
-        logger.error('Error processing batch, requeueing.', {
+        this.logger.error('Error processing batch, requeueing.', {
           errorMessage: error.message,
           errorStack: error.stack,
         });
       } else {
-        logger.error('An unknown error occurred while processing a batch.', { error });
+        this.logger.error('An unknown error occurred while processing a batch.', { error });
       }
       await this.queue.requeue(batch);
       return false;
