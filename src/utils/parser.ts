@@ -55,177 +55,41 @@ export class LanguageParser {
     }
 
     if (langConfig.parser === null) {
-      if (langConfig.name === 'markdown') {
-        return this.parseMarkdown(filePath, gitBranch, relativePath);
-      }
-      if (langConfig.name === 'yaml') {
-        return this.parseYaml(filePath, gitBranch, relativePath);
-      }
-      if (langConfig.name === 'json') {
-        return this.parseJson(filePath, gitBranch, relativePath);
-      }
-      if (langConfig.name === 'text' || langConfig.name === 'gradle') {
-        return this.parseText(filePath, gitBranch, relativePath);
-      }
+      return this.parseEntireFileAsChunk(filePath, gitBranch, relativePath, langConfig);
     }
 
     return this.parseWithTreeSitter(filePath, gitBranch, relativePath, langConfig);
   }
 
-  private parseText(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
-    const now = new Date().toISOString();
-    const content = fs.readFileSync(filePath, 'utf8');
-    const chunks = content.split(/\n\s*\n/); // Split by paragraphs
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
-
-    return chunks
-      .filter(chunk => {
-        if (Buffer.byteLength(chunk, 'utf8') > indexingConfig.maxChunkSizeBytes) {
-          logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
-          return false;
-        }
-        return /[a-zA-Z0-9]/.test(chunk); // Filter out chunks with no alphanumeric characters
-      })
-      .map(chunk => {
-        const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
-        const endLine = startLine + (chunk.match(/\n/g) || []).length;
-        const chunkHash = createHash('sha256').update(chunk).digest('hex');
-        const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
-            type: 'doc',
-            language: 'text',
-            filePath: relativePath,
-            git_file_hash: gitFileHash,
-            git_branch: gitBranch,
-            chunk_hash: chunkHash,
-            content: chunk,
-            startLine,
-            endLine,
-            created_at: now,
-            updated_at: now,
-        };
-        return {
-          ...baseChunk,
-          semantic_text: this.prepareSemanticText(baseChunk),
-        } as CodeChunk;
-    });
-  }
-
-  private parseMarkdown(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
-    const now = new Date().toISOString();
-    const content = fs.readFileSync(filePath, 'utf8');
-    const chunks = content.split(/\n\s*\n/); // Split by paragraphs
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
-
-    return chunks
-      .filter(chunk => {
-        if (Buffer.byteLength(chunk, 'utf8') > indexingConfig.maxChunkSizeBytes) {
-          logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
-          return false;
-        }
-        return /[a-zA-Z0-9]/.test(chunk); // Filter out chunks with no alphanumeric characters
-      })
-      .map(chunk => {
-        const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
-        const endLine = startLine + (chunk.match(/\n/g) || []).length;
-        const chunkHash = createHash('sha256').update(chunk).digest('hex');
-        const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
-            type: 'doc',
-            language: 'markdown',
-            filePath: relativePath,
-            git_file_hash: gitFileHash,
-            git_branch: gitBranch,
-            chunk_hash: chunkHash,
-            content: chunk,
-            startLine,
-            endLine,
-            created_at: now,
-            updated_at: now,
-        };
-        return {
-          ...baseChunk,
-          semantic_text: this.prepareSemanticText(baseChunk),
-        } as CodeChunk;
-    });
-  }
-
-  private parseYaml(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
-    const now = new Date().toISOString();
-    const content = fs.readFileSync(filePath, 'utf8');
-    const documents = content.split(/^---/m); // Split by document separator
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
-    const allChunks: CodeChunk[] = [];
-
-    documents.forEach(doc => {
-      if (/[a-zA-Z0-9]/.test(doc)) {
-        const lines = doc.trim().split('\n');
-        lines.forEach((line, index) => {
-          if (line.trim().length > 0) {
-            if (Buffer.byteLength(line, 'utf8') > indexingConfig.maxChunkSizeBytes) {
-              logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
-              return;
-            }
-            const chunkHash = createHash('sha256').update(line).digest('hex');
-            const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
-              type: 'doc',
-              language: 'yaml',
-              filePath: relativePath,
-              git_file_hash: gitFileHash,
-              git_branch: gitBranch,
-              chunk_hash: chunkHash,
-              content: line,
-              startLine: index + 1,
-              endLine: index + 1,
-              created_at: now,
-              updated_at: now,
-            };
-            allChunks.push({
-              ...baseChunk,
-              semantic_text: this.prepareSemanticText(baseChunk),
-            } as CodeChunk);
-          }
-        });
-      }
-    });
-    return allChunks;
-  }
-
-  private parseJson(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
+  private parseEntireFileAsChunk(filePath: string, gitBranch: string, relativePath: string, langConfig: LanguageConfiguration): CodeChunk[] {
     const now = new Date().toISOString();
     const content = fs.readFileSync(filePath, 'utf8');
     const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
-    const allChunks: CodeChunk[] = [];
-    try {
-      const json = JSON.parse(content);
-      for (const key in json) {
-        const value = JSON.stringify(json[key], null, 2);
-        const chunkContent = `"${key}": ${value}`;
-        if (Buffer.byteLength(chunkContent, 'utf8') > indexingConfig.maxChunkSizeBytes) {
-          logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
-          continue;
-        }
-        const chunkHash = createHash('sha256').update(chunkContent).digest('hex');
-        const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
-          type: 'doc',
-          language: 'json',
-          filePath: relativePath,
-          git_file_hash: gitFileHash,
-          git_branch: gitBranch,
-          chunk_hash: chunkHash,
-          content: chunkContent,
-          startLine: 1,
-          endLine: 1,
-          created_at: now,
-          updated_at: now,
-        };
-        allChunks.push({
-          ...baseChunk,
-          semantic_text: this.prepareSemanticText(baseChunk),
-        } as CodeChunk);
-      }
-    } catch (error) {
-      console.error(`Failed to parse JSON file: ${filePath}`, error);
+
+    if (Buffer.byteLength(content, 'utf8') > indexingConfig.maxChunkSizeBytes) {
+      logger.warn(`Skipping file ${filePath} because it is larger than maxChunkSizeBytes`);
+      return [];
     }
-    return allChunks;
+
+    const endLine = (content.match(/\n/g) || []).length + 1;
+    const chunkHash = createHash('sha256').update(content).digest('hex');
+    const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
+        type: 'doc',
+        language: langConfig.name,
+        filePath: relativePath,
+        git_file_hash: gitFileHash,
+        git_branch: gitBranch,
+        chunk_hash: chunkHash,
+        content: content,
+        startLine: 1,
+        endLine: endLine,
+        created_at: now,
+        updated_at: now,
+    };
+    return [{
+      ...baseChunk,
+      semantic_text: this.prepareSemanticText(baseChunk),
+    } as CodeChunk];
   }
 
   private parseWithTreeSitter(filePath: string, gitBranch: string, relativePath: string, langConfig: LanguageConfiguration): CodeChunk[] {

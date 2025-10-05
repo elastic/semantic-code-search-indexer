@@ -120,8 +120,7 @@ describe('LanguageParser', () => {
 
     try {
       const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
-      expect(chunks.length).toBe(1);
-      expect(chunks[0].content).toContain('small_chunk');
+      expect(chunks.length).toBe(0);
     } finally {
       indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
     }
