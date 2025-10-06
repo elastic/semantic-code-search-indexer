@@ -44,24 +44,28 @@ export class IndexerWorker {
     }
 
     while (this.isRunning) {
+        // Backpressure: Only dequeue a new batch if we have a free worker slot.
+        if (this.consumerQueue.size >= this.concurrency) {
+            // Wait for a short period before checking for a free slot again.
+            await new Promise(resolve => setTimeout(resolve, 50));
+            continue;
+        }
+
         const documentBatch = await this.queue.dequeue(this.batchSize);
 
         if (documentBatch.length > 0) {
-            this.logger.info(`Dequeued batch of ${documentBatch.length} documents.`);
-            // By awaiting here, we apply backpressure. The loop will not fetch the next batch
-            // until the current one is fully processed and committed.
-            const success = await this.consumerQueue.add(() => this.processBatch(documentBatch));
-            if (!success) {
-                // If processing failed, wait before trying again.
-                await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL_MS));
-            }
+            this.logger.info(`Dequeued batch of ${documentBatch.length} documents. Active tasks: ${this.consumerQueue.size + 1}`);
+            // Add the task to the queue. Do not await.
+            // p-queue will manage running it concurrently.
+            this.consumerQueue.add(() => this.processBatch(documentBatch));
         } else {
             if (this.watch) {
                 // If in watch mode and the queue is empty, wait before polling again.
                 await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL_MS));
             } else {
-                // If not in watch mode and the queue is empty, we are done.
-                this.stop();
+                // If not in watch mode and the queue is empty, exit the loop.
+                // The final `onIdle` will wait for any remaining tasks.
+                break;
             }
         }
     }
@@ -69,6 +73,7 @@ export class IndexerWorker {
     // Wait for any final in-flight tasks to complete before exiting.
     await this.consumerQueue.onIdle();
     this.logger.info('IndexerWorker finished processing all tasks.');
+    this.stop();
   }
 
   stop(): void {

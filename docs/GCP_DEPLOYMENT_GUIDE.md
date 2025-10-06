@@ -8,35 +8,26 @@ The setup consists of a single main component managed by `systemd`:
 
 ## Creating a GCP VM with gcloud
 
-You can create a new VM instance using the `gcloud` command-line tool. Here is a sample command to create a Debian 11 VM suitable for running the indexer:
+You can create a new VM instance using the `gcloud` command-line tool. Here is a sample command to create a powerful Ubuntu 22.04 VM suitable for running the indexer:
 
 ```bash
-gcloud compute instances create indexer-vm \
-  --project="your-gcp-project-id" \
-  --zone="us-central1-a" \
-  --machine-type="e2-medium" \
-  --image-family="debian-11" \
-  --image-project="debian-cloud" \
-  --boot-disk-size="50GB" \
-  --tags="http-server,https-server" \
-  --scopes="https://www.googleapis.com/auth/cloud-platform"
+gcloud compute instances create simainhacker-code-search-indexer \
+  --project=$GCP_PROJECT_ID \
+  --zone=us-central1-a \
+  --machine-type=n2-standard-8 \
+  --create-disk=auto-delete=yes,boot=yes,device-name=instance-20250906-005059,disk-resource-policy=projects/your-project/regions/your-region/diskResourcePolicies/your-policy \
+  --scopes=https://www.googleapis.com/auth/cloud-platform \
+  --image-family=ubuntu-2204-lts \
+  --image-project=ubuntu-os-cloud \
+  --description="Indexer for Semantic Code Search."
 ```
 
-### Command Breakdown:
-
-*   `gcloud compute instances create indexer-vm`: The basic command to create a new VM named `indexer-vm`.
-*   `--project`: Your GCP project ID.
-*   `--zone`: The GCP zone where the VM will be created (e.g., `us-central1-a`).
-*   `--machine-type`: The size of the VM. `e2-medium` is a good starting point.
-*   `--image-family` & `--image-project`: Specifies the operating system image. This example uses Debian 11.
-*   `--boot-disk-size`: The size of the boot disk.
-*   `--tags`: Network tags for firewall rules.
-*   `--scopes`: API access scopes for the VM. `cloud-platform` provides full access to GCP services, which might be needed for other integrations.
+**Note:** You will need to replace the placeholder values for `--project` and `--disk-resource-policy` with your specific GCP project details.
 
 After running this command, you can SSH into your new VM using:
 
 ```bash
-gcloud compute ssh indexer-vm --project="your-gcp-project-id" --zone="us-central1-a"
+gcloud compute ssh simainhacker-code-search-indexer --project="your-gcp-project-id" --zone="us-central1-a"
 ```
 
 ## Initial Server Setup
@@ -53,10 +44,10 @@ sudo apt-get update
 
 ### 2. Install Essential Tools
 
-Install `git` for version control, `tmux` for managing persistent sessions, and `build-essential` which is required for many `npm` packages that need to be compiled from source.
+Install `git` for version control, `tmux` for managing persistent sessions, `flock` for preventing cron job overlaps, and `build-essential` for compiling npm packages.
 
 ```bash
-sudo apt-get install -y git tmux build-essential
+sudo apt-get install -y git tmux build-essential flock
 ```
 
 ### 3. Install Node.js v20
@@ -83,8 +74,8 @@ git --version
 
 ## Prerequisites
 
-- A GCP project with a running VM instance (e.g., Debian 11 or Ubuntu 20.04).
-- `git`, `node.js` (v20+), and `npm` installed on the VM.
+- A GCP project with a running VM instance (e.g., Ubuntu 22.04).
+- `git`, `node.js` (v20+), `npm`, and `flock` installed on the VM.
 - The indexer project code cloned to a directory (e.g., `/opt/semantic-code-search-indexer`).
 - An Elasticsearch instance that the VM can connect to.
 
@@ -94,15 +85,10 @@ git --version
 
 The application's configuration is managed by a `.env` file. Create this file in the root of the project directory (`/opt/semantic-code-search-indexer/.env`).
 
-The `REPOSITORIES_TO_INDEX` variable is a space-separated list. Each item is a pair containing the **absolute path** to a repository and the name of the **Elasticsearch index** it should use, separated by a colon (`:`).
+The `REPOSITORIES_TO_INDEX` variable is a space-separated list. Each item is a string containing the **absolute path** to a repository, the name of the **Elasticsearch index**, and an optional **GitHub token**, separated by colons (`:`).
 
 ```bash
 # /opt/semantic-code-search-indexer/.env
-
-# NOTE: The GIT_PATH is not strictly required when running under cron,
-# as cron usually inherits the user's full PATH. It is included here
-# for completeness and as a fallback.
-GIT_PATH="/usr/bin/git"
 
 # Elasticsearch Configuration
 ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
@@ -113,39 +99,18 @@ ELASTICSEARCH_LOGGING="true"
 # Base directory where all queue databases will be stored.
 QUEUE_BASE_DIR="/var/lib/indexer/queues"
 
-# Space-separated list of "repository_path:elasticsearch_index_name" pairs.
-REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-search-index /var/lib/indexer/repos/repo-two:repo-two-search-index"
+# Space-separated list of "repository_path:elasticsearch_index_name:token" pairs.
+REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index:ghp_YourToken"
 ```
 
-## 2. The Producer Entrypoint
+## 2. Scheduling with Cron
 
-The `src/run_producer.ts` script is the heart of the producer service. It is responsible for:
-1.  Reading the `REPOSITORIES_TO_INDEX` environment variable.
-2.  Looping through each repository.
-3.  Running the `incremental-index` logic to find and enqueue changes.
-4.  Running the `worker` logic to process the queue for that repository.
+We will use `cron`, a standard time-based job scheduler, to run the indexer periodically. The project includes a shell script at `scripts/bulk_incremental_index.sh` which is designed to be called by the cron job.
 
-This script is already included in the project, so you do not need to create it.
-
-## 3. Scheduling with Cron
-
-We will use `cron`, a standard time-based job scheduler, to run the indexer periodically.
-
-1.  **Create start_producer.sh**
-    Create a file at /opt/semantic-code-search-indexer with the following:
-    ```sh
-    #!/bin/bash
-
-    # Go to the project directory
-    cd /opt/semantic-code-search-indexer || exit
-
-    # Source environment variables. Using 'source' is fine because of the #!/bin/bash shebang.
-    if [ -f .env ]; then
-      source .env
-    fi
-
-    # Run the command using the full path to npm for reliability
-    /usr/bin/npm run start:producer -- $REPOSITORIES_TO_INDEX
+1.  **Make the Script Executable:**
+    Ensure the provided script has execute permissions.
+    ```bash
+    chmod +x /opt/semantic-code-search-indexer/scripts/bulk_incremental_index.sh
     ```
 
 2.  **Open the Crontab:**
@@ -155,22 +120,22 @@ We will use `cron`, a standard time-based job scheduler, to run the indexer peri
     ```
 
 3.  **Add the Cron Job:**
-    Add the following line to the end of the file. This configuration will run the indexer every 15 minutes.
+    Add the following line to the end of the file. This configuration will run the indexer every 10 minutes.
 
     ```cron
-    */15 * * * * /opt/semantic-code-search-indexer/start_producer.sh >> /var/log/indexer.log 2>&1
+    */10 * * * * /usr/bin/flock -n /tmp/bulk_indexer.lock /opt/semantic-code-search-indexer/scripts/bulk_incremental_index.sh >> /opt/semantic-code-search-indexer/bulk_incremental_index.log 2>&1
     ```
 
     **Command Breakdown:**
-    *   `*/15 * * * *`: This is the schedule, meaning "at every 15th minute."
-    *   `cd /opt/semantic-code-search-indexer`: This is critical. It changes to the project directory so that `npm` and the application can find their files (`package.json`, `.env`, etc.).
-    *   `npm run start:producer`: This executes the producer command using `ts-node`, which is the most reliable execution method in this environment.
-    *   `>> /var/log/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file. You must ensure this file is writable by the user running the cron job (e.g., `sudo touch /var/log/indexer.log && sudo chown your_user /var/log/indexer.log`).
+    *   `*/10 * * * *`: The schedule, meaning "at every 10th minute."
+    *   `/usr/bin/flock -n /tmp/bulk_indexer.lock`: This is a crucial command for reliability. It ensures that only one instance of the script can run at a time. If a previous run is still active, the new one will not start, preventing resource contention and potential data corruption.
+    *   `/opt/semantic-code-search-indexer/scripts/bulk_incremental_index.sh`: The absolute path to the script that executes the indexing process.
+    *   `>> /opt/semantic-code-search-indexer/bulk_incremental_index.log 2>&1`: This redirects all output (both standard output and standard error) to a log file within the project directory. You must ensure this file is writable by the user running the cron job.
 
 4.  **Save and Exit:**
     Save the file and exit your editor. `cron` will automatically install the new job.
 
-## 4. Deploy and Run
+## 3. Deploy and Run
 
 1.  **Build the Project:** Ensure the project is fully built by running `npm install` and `npm run build`.
 
@@ -180,8 +145,8 @@ We will use `cron`, a standard time-based job scheduler, to run the indexer peri
     crontab -l
     ```
 
-    After the next 15-minute interval, you can check the log file for output:
+    After the next 10-minute interval, you can check the log file for output:
     ```bash
-    tail -f /var/log/indexer.log
+    tail -f /opt/semantic-code-search-indexer/bulk_incremental_index.log
     ```
 

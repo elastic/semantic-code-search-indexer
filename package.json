@@ -17,7 +17,7 @@
     "queue:list-failed": "ts-node src/index.ts queue:list-failed",
     "setup": "ts-node src/index.ts setup",
     "test": "jest",
-    "start:producer": "ts-node src/index.ts start-producer",
+    "bulk:incremental-index": "ts-node src/index.ts start-producer",
     "dump-tree": "ts-node src/index.ts dump-tree"
   },
   "keywords": [],

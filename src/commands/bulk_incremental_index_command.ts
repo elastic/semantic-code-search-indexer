@@ -6,7 +6,7 @@ import { appConfig } from '../config';
 import { logger } from '../utils/logger';
 import path from 'path';
 
-async function startProducer(repoConfigs: string[]) {
+async function startProducer(repoConfigs: string[], concurrency: number) {
   logger.info('Starting multi-repository producer service...');
 
   if (!repoConfigs || repoConfigs.length === 0) {
@@ -29,14 +29,15 @@ async function startProducer(repoConfigs: string[]) {
       queueDir,
       elasticsearchIndex: esIndex,
       token,
+      repoName,
     };
 
     try {
       logger.info(`Running incremental indexer for ${repoName}...`);
       await incrementalIndex(repoPath, options);
 
-      logger.info(`Running worker for ${repoName}...`);
-      await worker(1, false, options);
+      logger.info(`Running worker for ${repoName} with concurrency ${concurrency}...`);
+      await worker(concurrency, false, options);
 
       logger.info(`--- Finished processing for: ${repoName} ---`);
     } catch (error: unknown) {
@@ -48,9 +49,11 @@ async function startProducer(repoConfigs: string[]) {
   logger.info('All repositories processed. Producer service finished.');
 }
 
-export const startProducerCommand = new Command('start-producer')
+export const bulkIncrementalIndexCommand = new Command('bulk:incremental-index')
   .description('Run the producer service to index multiple repositories.')
   .argument('<repo-configs...>', 'Space-separated list of repository configurations in "path:index" format.')
-  .action(async (repoConfigs) => {
-    await startProducer(repoConfigs);
+  .option('--concurrency <number>', 'Number of parallel workers to run per repository', '1')
+  .action(async (repoConfigs, options) => {
+    const concurrency = parseInt(options.concurrency, 10);
+    await startProducer(repoConfigs, concurrency);
   });

@@ -92,24 +92,34 @@ npm run incremental-index -- .repos/kibana
 
 ### `npm run index-worker`
 
-Starts a single worker process for local development. This worker processes documents from the queue defined by the `QUEUE_DIR` environment variable.
+Starts a single worker process to index documents from a queue.
 
 **Arguments:**
-- `--concurrency=N`: (Optional) The number of parallel tasks the worker should run.
+- `--concurrency <number>`: (Optional) The number of parallel tasks the worker should run. Defaults to 1.
 - `--watch`: (Optional) Keeps the worker running to process new items as they are enqueued.
+- `--repoName <name>`: (Optional) The name of the repository queue to process.
+- `--branch <branch>`: (Optional) The name of the branch being indexed, used for logging context.
 
 **Example:**
 ```bash
+# Run a single worker in watch mode
 npm run index-worker -- --watch
+
+# Run a worker for a specific repository queue
+npm run index-worker -- --repoName=kibana --watch
 ```
 
-### `npm run start:producer`
+### `npm run bulk:incremental-index`
 
 Starts the producer worker, which scans the repository for changes and adds them to the queue.
 
+**Arguments:**
+- `<repo-configs...>`: A space-separated list of repository configurations in the format `"path:index[:token]"`.
+- `--concurrency <number>`: (Optional) The number of parallel workers to run per repository. Defaults to 1.
+
 **Example:**
 ```bash
-npm run start:producer
+npm run bulk:incremental-index -- path/to/my-repo:my-repo-index --concurrency 4
 ```
 
 ---
@@ -159,15 +169,15 @@ You can provide the token in two ways:
 
 These commands help you inspect and manage the document processing queues. For multi-repository deployments, you must specify which repository's queue you want to operate on.
 
-**Important Note on `--repo-name`:**
-The `--repo-name` argument should be the **simple name** of the repository's directory (e.g., `kibana`), not the full path to it. The system derives this name from the paths you configure in the `REPOSITORIES_TO_INDEX` environment variable.
+**Important Note on `--repoName`:**
+The `--repoName` argument should be the **simple name** of the repository's directory (e.g., `kibana`), not the full path to it. The system derives this name from the paths you configure in the `REPOSITORIES_TO_INDEX` environment variable.
 
 ### `npm run queue:monitor`
 
 Displays statistics about a document queue, such as the number of pending, processing, and failed documents.
 
 **Arguments:**
-- `--repo-name=<repo>`: (Optional) The name of the repository queue to monitor. If omitted, it monitors the default single-user queue defined by `QUEUE_DIR`.
+- `--repoName=<repo>`: (Optional) The name of the repository queue to monitor. If omitted, it monitors the default single-user queue defined by `QUEUE_DIR`.
 
 **Example:**
 ```bash
@@ -175,7 +185,7 @@ Displays statistics about a document queue, such as the number of pending, proce
 npm run queue:monitor
 
 # Monitor the queue for the 'kibana' repository
-npm run queue:monitor -- --repo-name=kibana
+npm run queue:monitor -- --repoName=kibana
 ```
 
 ### `npm run queue:clear`
@@ -183,11 +193,11 @@ npm run queue:monitor -- --repo-name=kibana
 Deletes all documents from a queue database.
 
 **Arguments:**
-- `--repo-name=<repo>`: (Optional) The name of the repository queue to clear. If omitted, it clears the default single-user queue.
+- `--repoName=<repo>`: (Optional) The name of the repository queue to clear. If omitted, it clears the default single-user queue.
 
 **Example:**
 ```bash
-npm run queue:clear -- --repo-name=kibana
+npm run queue:clear -- --repoName=kibana
 ```
 
 ### `npm run queue:retry-failed`
@@ -195,11 +205,11 @@ npm run queue:clear -- --repo-name=kibana
 Resets all documents in a queue with a `failed` status back to `pending`. This is useful for retrying documents that may have failed due to transient errors like network timeouts.
 
 **Arguments:**
-- `--repo-name=<repo>`: The name of the repository queue to operate on.
+- `--repoName=<repo>`: The name of the repository queue to operate on.
 
 **Example:**
 ```bash
-npm run queue:retry-failed -- --repo-name=kibana
+npm run queue:retry-failed -- --repoName=kibana
 ```
 
 ### `npm run queue:list-failed`
@@ -207,11 +217,11 @@ npm run queue:retry-failed -- --repo-name=kibana
 Lists all documents in a queue that have a `failed` status, showing their ID, content size, and file path. This is useful for diagnosing "poison pill" documents that consistently fail to process.
 
 **Arguments:**
-- `--repo-name=<repo>`: The name of the repository queue to inspect.
+- `--repoName=<repo>`: The name of the repository queue to inspect.
 
 **Example:**
 ```bash
-npm run queue:list-failed -- --repo-name=kibana
+npm run queue:list-failed -- --repoName=kibana
 ```
 
 ---
