@@ -50,10 +50,16 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
   try {
     const token = options?.token || appConfig.githubToken;
     if (token) {
-      const remoteUrl = await git.remote(['get-url', 'origin']);
-      if (remoteUrl) {
-        const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`);
-        await git.remote(['set-url', 'origin', newRemoteUrl]);
+      const remoteUrlRaw = await git.remote(['get-url', 'origin']);
+      if (remoteUrlRaw) {
+        const remoteUrl = remoteUrlRaw.trim();
+        const hasBasicAuth = remoteUrl.includes('oauth2:');
+        if (!hasBasicAuth) {
+          const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`).trim();
+          await git.remote(['set-url', 'origin', newRemoteUrl]);
+        } else {
+          await git.remote(['set-url', 'origin', remoteUrl]);
+        }
       }
     }
     await git.pull('origin', gitBranch);
