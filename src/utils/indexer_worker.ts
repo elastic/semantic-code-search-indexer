@@ -46,8 +46,8 @@ export class IndexerWorker {
     while (this.isRunning) {
         // Backpressure: Only dequeue a new batch if we have a free worker slot.
         if (this.consumerQueue.size >= this.concurrency) {
-            // Wait for a short period before checking for a free slot again.
-            await new Promise(resolve => setTimeout(resolve, 50));
+            // Wait until a worker slot is available before continuing.
+            await this.consumerQueue.onIdle();
             continue;
         }
 

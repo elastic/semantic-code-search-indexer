@@ -3,7 +3,7 @@
 # Go to the project directory
 cd /opt/semantic-code-search-indexer || exit
 
-# Source environment variables. Using 'source' is fine because of the #!/bin/bash shebang.
+# Source environment variables (bash-specific command)
 if [ -f .env ]; then
   source .env
 fi
