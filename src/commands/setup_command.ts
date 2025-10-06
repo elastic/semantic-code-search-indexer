@@ -25,10 +25,16 @@ async function setup(repoUrl: string, options: { token?: string }) {
   if (fs.existsSync(repoPath)) {
     logger.info(`Repository ${repoName} already exists. Pulling latest changes...`);
     try {
-      const remoteUrl = await git.cwd(repoPath).remote(['get-url', 'origin']);
-      if (token && remoteUrl) {
-        const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`);
-        await git.cwd(repoPath).remote(['set-url', 'origin', newRemoteUrl]);
+      const remoteUrlRaw = await git.cwd(repoPath).remote(['get-url', 'origin']);
+      if (token && remoteUrlRaw) {
+        const remoteUrl = remoteUrlRaw.trim();
+        const hasBasicAuth = remoteUrl.includes('oauth2:');
+        if (!hasBasicAuth) {
+          const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`).trim();
+          await git.cwd(repoPath).remote(['set-url', 'origin', newRemoteUrl]);
+        } else {
+          await git.cwd(repoPath).remote(['set-url', 'origin', remoteUrl]);
+        }
       }
       await git.cwd(repoPath).pull();
       logger.info('Repository updated successfully.');
