@@ -32,8 +32,7 @@ async function main() {
   program.addCommand(setupCommand);
   program.addCommand(workerCommand);
 
-async function main() {
-  program.parse(process.argv);
+  await program.parseAsync(process.argv);
 }
 
 main().catch(error => {

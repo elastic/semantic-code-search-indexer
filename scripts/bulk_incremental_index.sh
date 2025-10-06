@@ -9,4 +9,4 @@ if [ -f .env ]; then
 fi
 
 # Run the command using the full path to npm for reliability
-/usr/bin/npm run start:producer -- $REPOSITORIES_TO_INDEX
+/usr/bin/npm run bulk:incremental-index -- $REPOSITORIES_TO_INDEX
