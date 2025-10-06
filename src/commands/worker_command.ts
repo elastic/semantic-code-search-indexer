@@ -29,8 +29,8 @@ export const workerCommand = new Command('worker')
   .description('Start a single indexer worker')
   .addOption(new Option('--concurrency <number>', 'Number of parallel workers to run').default('1'))
   .addOption(new Option('--watch', 'Run the worker in watch mode'))
-  .addOption(new Option('--repoName <name>', 'Name of the repository being indexed').argParser((value) => value))
-  .addOption(new Option('--branch <branch>', 'Branch of the repository being indexed').argParser((value) => value))
+  .addOption(new Option('--repoName <name>', 'Name of the repository being indexed'))
+  .addOption(new Option('--branch <branch>', 'Branch of the repository being indexed'))
   .action(async (options) => {
     const concurrency = parseInt(options.concurrency, 10);
     await worker(concurrency, options.watch, options);

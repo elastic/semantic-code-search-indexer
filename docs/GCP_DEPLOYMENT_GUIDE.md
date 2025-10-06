@@ -15,7 +15,7 @@ gcloud compute instances create simainhacker-code-search-indexer \
   --project=$GCP_PROJECT_ID \
   --zone=us-central1-a \
   --machine-type=n2-standard-8 \
-  --create-disk=auto-delete=yes,boot=yes,device-name=instance-20250906-005059,disk-resource-policy=projects/your-project/regions/your-region/diskResourcePolicies/your-policy \
+  --create-disk=auto-delete=yes,boot=yes,device-name=your-vm-name-boot-disk,disk-resource-policy=projects/your-project/regions/your-region/diskResourcePolicies/your-policy \
   --scopes=https://www.googleapis.com/auth/cloud-platform \
   --image-family=ubuntu-2204-lts \
   --image-project=ubuntu-os-cloud \
