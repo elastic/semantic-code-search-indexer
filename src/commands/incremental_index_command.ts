@@ -138,10 +138,13 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
     const workQueue: IQueue = await getQueue(options);
 
     const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
+    const repoName = path.basename(directory);
 
     filesToIndex.forEach(file => {
       producerQueue.add(() => new Promise<void>((resolve, reject) => {
-        const worker = new Worker(producerWorkerPath);
+        const worker = new Worker(producerWorkerPath, {
+          workerData: { repoName, gitBranch },
+        });
         const absolutePath = path.resolve(gitRoot, file);
         worker.on('message', async (message) => {
           if (message.status === 'success') {
