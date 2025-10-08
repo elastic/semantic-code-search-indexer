@@ -5,4 +5,5 @@ module.exports = {
   watchman: false,
   testMatch: ['**/tests/**/*.test.ts'],
   modulePathIgnorePatterns: ['<rootDir>/.repos/'],
+  setupFiles: ['<rootDir>/tests/setup.ts'],
 };

@@ -28,7 +28,8 @@ describe('incrementalIndex', () => {
     push: jest.fn().mockReturnThis(),
   };
 
-  let postedMessages: unknown[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let postedMessages: any[];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -45,14 +46,16 @@ describe('incrementalIndex', () => {
       ...workQueue,
       initialize: jest.fn(),
       close: jest.fn(),
-    } as unknown as SqliteQueue));
-    mockedSimpleGit.mockReturnValue(gitInstance as unknown as ReturnType<typeof simpleGit>);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockedSimpleGit.mockReturnValue(gitInstance as any);
 
     mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('dummy-commit-hash');
 
     // Mock the worker implementation
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    mockedWorker.mockImplementation(((_path: string | URL) => {
+    mockedWorker.mockImplementation(((path: string | URL) => {
       const worker = {
         on: jest.fn((event, cb) => {
           if (event === 'message') {
@@ -68,8 +71,10 @@ describe('incrementalIndex', () => {
         ref: jest.fn(),
         unref: jest.fn(),
       };
-      return worker as unknown as Worker;
-    }) as unknown as typeof Worker);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return worker as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any);
   });
 
   it('should handle file renames and copies correctly', async () => {
@@ -90,7 +95,8 @@ describe('incrementalIndex', () => {
         pull: jest.fn().mockResolvedValue(undefined),
         diff: jest.fn().mockResolvedValue(gitDiffOutput),
     };
-    mockedSimpleGit.mockReturnValue(git as unknown as ReturnType<typeof simpleGit>);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockedSimpleGit.mockReturnValue(git as any);
     mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
 
     await incrementalIndex('/test/repo');
