@@ -80,7 +80,7 @@ Here is the mapping for the `code-chunks` index:
 | `kind` | `keyword` | The specific kind of the code symbol (from LSP). |
 | `imports` | `keyword` | A list of imported modules or libraries. |
 | `containerPath` | `text` | The path of the containing symbol (e.g., class name for a method). |
-| `filePath` | `keyword` | The absolute path to the source file. |
+| `filePath` | `keyword` | The repository-relative path to the source file. |
 | `directoryPath` | `keyword` | The directory path containing the file (e.g., 'src/utils'). |
 | `directoryName` | `keyword` | The name of the immediate parent directory. |
 | `directoryDepth` | `integer` | The depth of the directory in the file tree (0 for root-level files). |
