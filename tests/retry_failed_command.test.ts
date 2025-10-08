@@ -23,19 +23,19 @@ jest.mock('../src/utils/logger', () => ({
 }));
 
 const MOCK_CHUNK_1: CodeChunk = {
-  type: 'code', language: 'typescript', filePath: 'test1.ts', git_file_hash: 'hash1', git_branch: 'main',
+  type: 'code', language: 'typescript', filePath: 'test1.ts', directoryPath: '', directoryName: '', directoryDepth: 0, git_file_hash: 'hash1', git_branch: 'main',
   chunk_hash: 'chunk_hash_1', startLine: 1, endLine: 1, content: 'const a = 1;', semantic_text: 'const a = 1;',
   created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
 };
 
 const MOCK_CHUNK_2: CodeChunk = {
-  type: 'code', language: 'typescript', filePath: 'test2.ts', git_file_hash: 'hash2', git_branch: 'main',
+  type: 'code', language: 'typescript', filePath: 'test2.ts', directoryPath: '', directoryName: '', directoryDepth: 0, git_file_hash: 'hash2', git_branch: 'main',
   chunk_hash: 'chunk_hash_2', startLine: 1, endLine: 1, content: 'const b = 2;', semantic_text: 'const b = 2;',
   created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
 };
 
 const MOCK_CHUNK_3: CodeChunk = {
-    type: 'code', language: 'typescript', filePath: 'test3.ts', git_file_hash: 'hash3', git_branch: 'main',
+    type: 'code', language: 'typescript', filePath: 'test3.ts', directoryPath: '', directoryName: '', directoryDepth: 0, git_file_hash: 'hash3', git_branch: 'main',
     chunk_hash: 'chunk_hash_3', startLine: 1, endLine: 1, content: 'const c = 3;', semantic_text: 'const c = 3;',
     created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
 };

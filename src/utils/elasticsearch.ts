@@ -113,6 +113,9 @@ export async function createIndex(index?: string): Promise<void> {
           },
           containerPath: { type: 'text' },
           filePath: { type: 'keyword' },
+          directoryPath: { type: 'keyword' },
+          directoryName: { type: 'keyword' },
+          directoryDepth: { type: 'integer' },
           git_file_hash: { type: 'keyword' },
           git_branch: { type: 'keyword' },
           chunk_hash: { type: 'keyword' },
@@ -206,6 +209,9 @@ export interface CodeChunk {
   symbols?: SymbolInfo[];
   containerPath?: string;
   filePath: string;
+  directoryPath: string;
+  directoryName: string;
+  directoryDepth: number;
   git_file_hash: string;
   git_branch: string;
   chunk_hash: string;

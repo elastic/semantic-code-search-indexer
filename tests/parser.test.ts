@@ -125,4 +125,46 @@ describe('LanguageParser', () => {
       indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
     }
   });
+
+  it('should extract directory information correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
+    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
+    
+    expect(chunks.length).toBeGreaterThan(0);
+    
+    // All chunks should have directory information
+    chunks.forEach(chunk => {
+      expect(chunk.directoryPath).toBe('tests/fixtures');
+      expect(chunk.directoryName).toBe('fixtures');
+      expect(chunk.directoryDepth).toBe(2);
+    });
+  });
+
+  it('should handle root-level files correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
+    const chunks = parser.parseFile(filePath, 'main', 'typescript.ts');
+    
+    expect(chunks.length).toBeGreaterThan(0);
+    
+    // Root-level files should have empty directory path and depth 0
+    chunks.forEach(chunk => {
+      expect(chunk.directoryPath).toBe('');
+      expect(chunk.directoryName).toBe('');
+      expect(chunk.directoryDepth).toBe(0);
+    });
+  });
+
+  it('should handle nested directory paths correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
+    const chunks = parser.parseFile(filePath, 'main', 'src/utils/helpers/typescript.ts');
+    
+    expect(chunks.length).toBeGreaterThan(0);
+    
+    // Nested files should have correct directory information
+    chunks.forEach(chunk => {
+      expect(chunk.directoryPath).toBe('src/utils/helpers');
+      expect(chunk.directoryName).toBe('helpers');
+      expect(chunk.directoryDepth).toBe(3);
+    });
+  });
 });
