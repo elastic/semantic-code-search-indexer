@@ -18,7 +18,8 @@
     "setup": "ts-node src/index.ts setup",
     "test": "jest",
     "bulk:incremental-index": "ts-node src/index.ts bulk:incremental-index",
-    "dump-tree": "ts-node src/index.ts dump-tree"
+    "dump-tree": "ts-node src/index.ts dump-tree",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
