@@ -1,5 +1,6 @@
 import './config'; // Must be the first import
 import { Command } from 'commander';
+import { buildkiteReviewCommand } from './commands/buildkite_review_command';
 import { bulkIncrementalIndexCommand } from './commands/bulk_incremental_index_command';
 import { clearQueueCommand } from './commands/clear_queue_command';
 import { dumpTreeCommand } from './commands/dump_tree_command';
@@ -20,6 +21,7 @@ async function main() {
     .version('1.0.0')
     .description('A CLI for indexing codebases into Elasticsearch');
 
+  program.addCommand(buildkiteReviewCommand);
   program.addCommand(bulkIncrementalIndexCommand);
   program.addCommand(clearQueueCommand);
   program.addCommand(dumpTreeCommand);

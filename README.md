@@ -226,6 +226,44 @@ npm run queue:list-failed -- --repoName=kibana
 
 ---
 
+## Buildkite Integration
+
+The indexer includes a command to review and analyze build failures from Buildkite CI/CD pipelines. This feature helps developers quickly identify and fix build issues.
+
+### `npm run buildkite:review`
+
+Reviews build failures from Buildkite and provides detailed analysis with actionable suggestions.
+
+**Setup:**
+1. Obtain a Buildkite API token with `read_builds` and `read_build_logs` scopes
+2. Add to your `.env` file:
+   ```
+   BUILDKITE_TOKEN=your_token
+   BUILDKITE_ORG=your-organization
+   BUILDKITE_PIPELINE=your-pipeline
+   ```
+
+**Arguments:**
+- `--build <number>`: Review a specific build number
+- `--branch <branch>`: Filter builds by branch
+- `--limit <number>`: Number of recent builds to review (default: 5)
+
+**Examples:**
+```bash
+# Review recent failed builds
+npm run buildkite:review
+
+# Analyze a specific build
+npm run buildkite:review -- --build 123
+
+# Review failures on main branch
+npm run buildkite:review -- --branch main --limit 10
+```
+
+For detailed documentation, see [Buildkite Review Guide](./docs/BUILDKITE_REVIEW.md).
+
+---
+
 ## MCP Server Integration
 
 This indexer is designed to work with a Model Context Protocol (MCP) server, which exposes the indexed data through a standardized set of tools for AI coding agents. The official MCP server for this project is located in a separate repository.
