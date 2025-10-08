@@ -172,7 +172,7 @@ async function discoverDirectories(query: {
           size: 1000
         },
         aggs: {
-          file_count: { value_count: { field: "filePath" } },
+          file_count: { cardinality: { field: "filePath" } },
           languages: {
             terms: { field: "language", size: 10 }
           }
