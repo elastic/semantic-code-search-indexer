@@ -11,6 +11,31 @@ import { logger } from './logger';
 
 const { Query } = Parser;
 
+/**
+ * Extracts directory information from a file path.
+ * @param filePath The relative file path
+ * @returns Object containing directoryPath, directoryName, and directoryDepth
+ */
+function extractDirectoryInfo(filePath: string): {
+  directoryPath: string;
+  directoryName: string;
+  directoryDepth: number;
+} {
+  const dirPath = path.dirname(filePath);
+  const dirName = dirPath === '.' ? '' : path.basename(dirPath);
+
+  // Normalize separators to forward slashes for consistent depth calculation
+  const normalizedDirPath = dirPath === '.' ? '' : dirPath.replace(/\\/g, '/');
+  // Calculate depth by counting forward slashes
+  const depth = normalizedDirPath === '' ? 0 : normalizedDirPath.split('/').length;
+
+  return {
+    directoryPath: normalizedDirPath,
+    directoryName: dirName,
+    directoryDepth: depth,
+  };
+}
+
 export interface LanguageConfiguration {
   name: string;
   fileSuffixes: string[];
@@ -73,10 +98,13 @@ export class LanguageParser {
 
     const endLine = (content.match(/\n/g) || []).length + 1;
     const chunkHash = createHash('sha256').update(content).digest('hex');
+    const directoryInfo = extractDirectoryInfo(relativePath);
+    
     const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
         type: 'doc',
         language: langConfig.name,
         filePath: relativePath,
+        ...directoryInfo,
         git_file_hash: gitFileHash,
         git_branch: gitBranch,
         chunk_hash: chunkHash,
@@ -201,6 +229,8 @@ export class LanguageParser {
           chunkSymbols.push(...symbolsByLine[i]);
         }
       }
+      
+      const directoryInfo = extractDirectoryInfo(relativePath);
 
       const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
         type: 'code',
@@ -210,6 +240,7 @@ export class LanguageParser {
         symbols: chunkSymbols,
         containerPath,
         filePath: relativePath,
+        ...directoryInfo,
         git_file_hash: gitFileHash,
         git_branch: gitBranch,
         chunk_hash: chunkHash,
@@ -229,6 +260,9 @@ export class LanguageParser {
 
   private prepareSemanticText(chunk: Omit<CodeChunk, 'semantic_text' | 'code_vector' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'>): string {
     let text = `filePath: ${chunk.filePath}\n`;
+    if (chunk.directoryPath) {
+      text += `directoryPath: ${chunk.directoryPath}\n`;
+    }
     if (chunk.kind) {
       text += `kind: ${chunk.kind}\n`;
     }

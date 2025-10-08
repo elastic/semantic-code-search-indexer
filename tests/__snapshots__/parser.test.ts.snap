@@ -7,6 +7,9 @@ exports[`LanguageParser should parse Go fixtures correctly 1`] = `
     "containerPath": "",
     "content": "import "fmt"",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 3,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -21,6 +24,7 @@ exports[`LanguageParser should parse Go fixtures correctly 1`] = `
     "kind": "import_declaration",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
+directoryPath: tests/fixtures
 kind: import_declaration
 
 import "fmt"",
@@ -34,6 +38,9 @@ import "fmt"",
     "containerPath": "",
     "content": "// Hello is a function that prints a greeting.",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 5,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -42,6 +49,7 @@ import "fmt"",
     "kind": "comment",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
+directoryPath: tests/fixtures
 kind: comment
 
 // Hello is a function that prints a greeting.",
@@ -57,6 +65,9 @@ kind: comment
 	fmt.Println("Hello, Go!")
 }",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 8,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -65,6 +76,7 @@ kind: comment
     "kind": "function_declaration",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
+directoryPath: tests/fixtures
 kind: function_declaration
 
 func Hello() {
@@ -91,6 +103,9 @@ func Hello() {
     "containerPath": "",
     "content": "fmt.Println("Hello, Go!")",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 7,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -99,6 +114,7 @@ func Hello() {
     "kind": "call_expression",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
+directoryPath: tests/fixtures
 kind: call_expression
 
 fmt.Println("Hello, Go!")",
@@ -120,6 +136,9 @@ fmt.Println("Hello, Go!")",
     name string
 }",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 12,
     "filePath": "tests/fixtures/go.go",
     "git_branch": "main",
@@ -128,6 +147,7 @@ fmt.Println("Hello, Go!")",
     "kind": "type_declaration",
     "language": "go",
     "semantic_text": "filePath: tests/fixtures/go.go
+directoryPath: tests/fixtures
 kind: type_declaration
 
 type MyType struct {
@@ -155,12 +175,16 @@ exports[`LanguageParser should parse Gradle fixtures correctly 1`] = `
 apply plugin: 'java'
 ",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 3,
     "filePath": "tests/fixtures/gradle.gradle",
     "git_branch": "main",
     "git_file_hash": "117a9e843f104c412bb5b4aaac1cd1b4dc931959",
     "language": "gradle",
     "semantic_text": "filePath: tests/fixtures/gradle.gradle
+directoryPath: tests/fixtures
 
 // This is a gradle file
 apply plugin: 'java'
@@ -209,12 +233,16 @@ exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
 }
 ",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 32,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
     "language": "json",
     "semantic_text": "filePath: tests/fixtures/json.json
+directoryPath: tests/fixtures
 
 {
   "name": "code-indexer",
@@ -262,6 +290,9 @@ exports[`LanguageParser should parse Java fixtures correctly 1`] = `
     "containerPath": "",
     "content": "import java.util.List;",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 1,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
@@ -278,6 +309,7 @@ exports[`LanguageParser should parse Java fixtures correctly 1`] = `
     "kind": "import_declaration",
     "language": "java",
     "semantic_text": "filePath: tests/fixtures/java.java
+directoryPath: tests/fixtures
 kind: import_declaration
 
 import java.util.List;",
@@ -298,6 +330,9 @@ import java.util.List;",
     }
 }",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 10,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
@@ -306,6 +341,7 @@ import java.util.List;",
     "kind": "class_declaration",
     "language": "java",
     "semantic_text": "filePath: tests/fixtures/java.java
+directoryPath: tests/fixtures
 kind: class_declaration
 
 class MyClass {
@@ -344,6 +380,9 @@ class MyClass {
      * This is a Javadoc comment.
      */",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 6,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
@@ -352,6 +391,7 @@ class MyClass {
     "kind": "block_comment",
     "language": "java",
     "semantic_text": "filePath: tests/fixtures/java.java
+directoryPath: tests/fixtures
 kind: block_comment
 containerPath: MyClass
 
@@ -370,6 +410,9 @@ containerPath: MyClass
         System.out.println("Hello, Java!");
     }",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 9,
     "filePath": "tests/fixtures/java.java",
     "git_branch": "main",
@@ -378,6 +421,7 @@ containerPath: MyClass
     "kind": "method_declaration",
     "language": "java",
     "semantic_text": "filePath: tests/fixtures/java.java
+directoryPath: tests/fixtures
 kind: method_declaration
 containerPath: MyClass
 
@@ -410,6 +454,9 @@ exports[`LanguageParser should parse JavaScript fixtures correctly 1`] = `
     "containerPath": "",
     "content": "// This is a comment",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 1,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -418,6 +465,7 @@ exports[`LanguageParser should parse JavaScript fixtures correctly 1`] = `
     "kind": "comment",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: comment
 
 // This is a comment",
@@ -431,6 +479,9 @@ kind: comment
     "containerPath": "",
     "content": "import { a } from 'b';",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 2,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -452,6 +503,7 @@ kind: comment
     "kind": "import_statement",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: import_statement
 
 import { a } from 'b';",
@@ -467,6 +519,9 @@ import { a } from 'b';",
  * This is a JSDoc comment.
  */",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 6,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -475,6 +530,7 @@ import { a } from 'b';",
     "kind": "comment",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: comment
 
 /**
@@ -492,6 +548,9 @@ kind: comment
   console.log('Hello, world!');
 }",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 9,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -500,6 +559,7 @@ kind: comment
     "kind": "function_declaration",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: function_declaration
 
 function hello() {
@@ -521,6 +581,9 @@ function hello() {
     "containerPath": "",
     "content": "console.log('Hello, world!');",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 8,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -529,6 +592,7 @@ function hello() {
     "kind": "expression_statement",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: expression_statement
 
 console.log('Hello, world!');",
@@ -542,6 +606,9 @@ console.log('Hello, world!');",
     "containerPath": "",
     "content": "console.log('Hello, world!')",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 8,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -550,6 +617,7 @@ console.log('Hello, world!');",
     "kind": "call_expression",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: call_expression
 
 console.log('Hello, world!')",
@@ -567,6 +635,9 @@ console.log('Hello, world!')",
   }
 }",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 15,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -575,6 +646,7 @@ console.log('Hello, world!')",
     "kind": "class_declaration",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: class_declaration
 
 class MyClass {
@@ -605,6 +677,9 @@ class MyClass {
     return 1;
   }",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 14,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -613,6 +688,7 @@ class MyClass {
     "kind": "method_definition",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: method_definition
 containerPath: MyClass
 
@@ -635,6 +711,9 @@ myMethod() {
     "containerPath": "",
     "content": "return 1;",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 13,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -643,6 +722,7 @@ myMethod() {
     "kind": "return_statement",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: return_statement
 
 return 1;",
@@ -656,6 +736,9 @@ return 1;",
     "containerPath": "",
     "content": "const myVar = () => {};",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 17,
     "filePath": "tests/fixtures/javascript.js",
     "git_branch": "main",
@@ -664,6 +747,7 @@ return 1;",
     "kind": "lexical_declaration",
     "language": "javascript",
     "semantic_text": "filePath: tests/fixtures/javascript.js
+directoryPath: tests/fixtures
 kind: lexical_declaration
 
 const myVar = () => {};",
@@ -694,12 +778,16 @@ This is a paragraph.
 This is another paragraph.
 ",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 8,
     "filePath": "tests/fixtures/markdown.md",
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
     "semantic_text": "filePath: tests/fixtures/markdown.md
+directoryPath: tests/fixtures
 
 # Markdown Fixture
 
@@ -723,6 +811,9 @@ exports[`LanguageParser should parse Properties fixtures correctly 1`] = `
     "containerPath": "",
     "content": "# This is a properties file",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 1,
     "filePath": "tests/fixtures/properties.properties",
     "git_branch": "main",
@@ -731,6 +822,7 @@ exports[`LanguageParser should parse Properties fixtures correctly 1`] = `
     "kind": "comment",
     "language": "properties",
     "semantic_text": "filePath: tests/fixtures/properties.properties
+directoryPath: tests/fixtures
 kind: comment
 
 # This is a properties file",
@@ -744,6 +836,9 @@ kind: comment
     "containerPath": "",
     "content": "key=value",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 2,
     "filePath": "tests/fixtures/properties.properties",
     "git_branch": "main",
@@ -752,6 +847,7 @@ kind: comment
     "kind": "property",
     "language": "properties",
     "semantic_text": "filePath: tests/fixtures/properties.properties
+directoryPath: tests/fixtures
 kind: property
 
 key=value",
@@ -781,6 +877,9 @@ exports[`LanguageParser should parse Python fixtures correctly 1`] = `
     "containerPath": "",
     "content": "import os",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 1,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -795,6 +894,7 @@ exports[`LanguageParser should parse Python fixtures correctly 1`] = `
     "kind": "import_statement",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
+directoryPath: tests/fixtures
 kind: import_statement
 
 import os",
@@ -810,6 +910,9 @@ import os",
     def my_method(self):
         print("Hello, Python!")",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 5,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -818,6 +921,7 @@ import os",
     "kind": "class_definition",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
+directoryPath: tests/fixtures
 kind: class_definition
 
 class MyClass:
@@ -850,6 +954,9 @@ class MyClass:
     "content": "def my_method(self):
         print("Hello, Python!")",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 5,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -858,6 +965,7 @@ class MyClass:
     "kind": "function_definition",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
+directoryPath: tests/fixtures
 kind: function_definition
 
 def my_method(self):
@@ -883,6 +991,9 @@ def my_method(self):
     "containerPath": "",
     "content": "print("Hello, Python!")",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 5,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -891,6 +1002,7 @@ def my_method(self):
     "kind": "call",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
+directoryPath: tests/fixtures
 kind: call
 
 print("Hello, Python!")",
@@ -912,6 +1024,9 @@ print("Hello, Python!")",
     """This is a docstring."""
     pass",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 9,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -920,6 +1035,7 @@ print("Hello, Python!")",
     "kind": "function_definition",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
+directoryPath: tests/fixtures
 kind: function_definition
 
 def my_function():
@@ -941,6 +1057,9 @@ def my_function():
     "containerPath": "",
     "content": """"This is a docstring."""",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 8,
     "filePath": "tests/fixtures/python.py",
     "git_branch": "main",
@@ -949,6 +1068,7 @@ def my_function():
     "kind": "expression_statement",
     "language": "python",
     "semantic_text": "filePath: tests/fixtures/python.py
+directoryPath: tests/fixtures
 kind: expression_statement
 
 """This is a docstring."""",
@@ -966,12 +1086,16 @@ exports[`LanguageParser should parse Text fixtures correctly 1`] = `
     "chunk_hash": "9be104294df7d5a59c328241d49ac062e2c7b9660636e7f511e3a1dc3d919377",
     "content": "This is a text file.",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 1,
     "filePath": "tests/fixtures/text.txt",
     "git_branch": "main",
     "git_file_hash": "1cf9ef97c0c1e1b299d36fca0faef53a53c3c29f",
     "language": "text",
     "semantic_text": "filePath: tests/fixtures/text.txt
+directoryPath: tests/fixtures
 
 This is a text file.",
     "startLine": 1,
@@ -994,12 +1118,16 @@ another_pair:
   nested_key: nested_value
 ",
     "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
     "endLine": 8,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
     "semantic_text": "filePath: tests/fixtures/yaml.yml
+directoryPath: tests/fixtures
 
 document: one
 pair:
