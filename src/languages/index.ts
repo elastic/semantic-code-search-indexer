@@ -10,6 +10,7 @@ import { jsonConfig } from './json';
 import { gradleConfig } from './gradle';
 import { propertiesConfig } from './properties';
 import { textConfig } from './text';
+import { shellConfig } from './shell';
 
 export const languageConfigurations = {
   typescript,
@@ -23,4 +24,5 @@ export const languageConfigurations = {
   gradle: gradleConfig,
   properties: propertiesConfig,
   text: textConfig,
+  shell: shellConfig,
 };

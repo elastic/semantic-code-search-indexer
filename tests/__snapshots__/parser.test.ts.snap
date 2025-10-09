@@ -1080,6 +1080,51 @@ kind: expression_statement
 ]
 `;
 
+exports[`LanguageParser should parse Shell fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "2f8cb3b75a43d3bafbd44c2d6df972cd183caa9a2d8402b4d6f61850696bbad0",
+    "content": "#!/bin/bash
+# Deployment script for production
+
+set -e
+
+echo "Starting deployment..."
+npm run build
+docker build -t myapp .
+docker push myapp:latest
+echo "Deployment complete!"
+",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 11,
+    "filePath": "tests/fixtures/shell.sh",
+    "git_branch": "main",
+    "git_file_hash": "cfbd53b0e74730856b207ce32c02d77a0943f266",
+    "language": "shell",
+    "semantic_text": "filePath: tests/fixtures/shell.sh
+directoryPath: tests/fixtures
+
+#!/bin/bash
+# Deployment script for production
+
+set -e
+
+echo "Starting deployment..."
+npm run build
+docker build -t myapp .
+docker push myapp:latest
+echo "Deployment complete!"
+",
+    "startLine": 1,
+    "type": "doc",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
 exports[`LanguageParser should parse Text fixtures correctly 1`] = `
 [
   {

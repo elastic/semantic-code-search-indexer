@@ -55,7 +55,7 @@ export class LanguageParser {
   constructor() {
     this.languages = new Map();
     this.fileSuffixMap = new Map();
-    const languageNames = (process.env.SEMANTIC_CODE_INDEXER_LANGUAGES || 'typescript,javascript,markdown,yaml,java,go,python,json').split(',');
+    const languageNames = (process.env.SEMANTIC_CODE_INDEXER_LANGUAGES || 'typescript,javascript,markdown,yaml,java,go,python,json,shell').split(',');
     for (const name of languageNames) {
       const config = (languageConfigurations as { [key: string]: LanguageConfiguration })[name.trim()];
       if (config) {
