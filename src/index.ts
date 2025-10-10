@@ -1,6 +1,7 @@
 import './config'; // Must be the first import
 import { Command } from 'commander';
 import { bulkIncrementalIndexCommand } from './commands/bulk_incremental_index_command';
+import { bulkReindexCommand } from './commands/bulk_reindex_command';
 import { clearQueueCommand } from './commands/clear_queue_command';
 import { dumpTreeCommand } from './commands/dump_tree_command';
 import { incrementalIndexCommand } from './commands/incremental_index_command';
@@ -21,6 +22,7 @@ async function main() {
     .description('A CLI for indexing codebases into Elasticsearch');
 
   program.addCommand(bulkIncrementalIndexCommand);
+  program.addCommand(bulkReindexCommand);
   program.addCommand(clearQueueCommand);
   program.addCommand(dumpTreeCommand);
   program.addCommand(incrementalIndexCommand);

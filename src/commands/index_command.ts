@@ -19,16 +19,24 @@ import { createLogger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 
-async function getQueue(): Promise<IQueue> {
-  const queueDbPath = path.join(appConfig.queueDir, 'queue.db');
+interface IndexOptions {
+  queueDir?: string;
+  elasticsearchIndex?: string;
+  repoName?: string;
+  branch?: string;
+}
+
+async function getQueue(options?: IndexOptions): Promise<IQueue> {
+  const queueDir = options?.queueDir ?? appConfig.queueDir;
+  const queueDbPath = path.join(queueDir, 'queue.db');
   const queue = new SqliteQueue(queueDbPath);
   await queue.initialize();
   return queue;
 }
 
-async function index(directory: string, clean: boolean) {
-  const repoName = path.basename(path.resolve(directory));
-  const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory })
+export async function index(directory: string, clean: boolean, options?: IndexOptions) {
+  const repoName = options?.repoName ?? path.basename(path.resolve(directory));
+  const gitBranch = options?.branch ?? execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory })
     .toString()
     .trim();
 
@@ -39,11 +47,11 @@ async function index(directory: string, clean: boolean) {
   logger.info('Starting full indexing process (Producer)', { directory, clean, supportedFileExtensions });
   if (clean) {
     logger.info('Clean flag is set, deleting existing index.');
-    await deleteIndex();
+    await deleteIndex(options?.elasticsearchIndex);
   }
 
   await setupElser();
-  await createIndex();
+  await createIndex(options?.elasticsearchIndex);
   await createSettingsIndex();
 
   const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
@@ -72,7 +80,7 @@ async function index(directory: string, clean: boolean) {
   const { cpuCores } = indexingConfig;
   const producerQueue = new PQueue({ concurrency: cpuCores });
   
-  const workQueue: IQueue = await getQueue();
+  const workQueue: IQueue = await getQueue(options);
 
   const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
@@ -109,7 +117,7 @@ async function index(directory: string, clean: boolean) {
   await producerQueue.onIdle();
 
   const commitHash = execSync('git rev-parse HEAD', { cwd: directory }).toString().trim();
-  await updateLastIndexedCommit(gitBranch, commitHash);
+  await updateLastIndexedCommit(gitBranch, commitHash, options?.elasticsearchIndex);
 
   logger.info('--- Producer Summary ---');
   logger.info(`Successfully processed: ${successCount} files`);

@@ -18,6 +18,7 @@
     "setup": "ts-node src/index.ts setup",
     "test": "jest",
     "bulk:incremental-index": "ts-node src/index.ts bulk:incremental-index",
+    "bulk:reindex": "ts-node src/index.ts bulk:reindex",
     "dump-tree": "ts-node src/index.ts dump-tree",
     "prepare": "husky"
   },
