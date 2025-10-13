@@ -1,0 +1,67 @@
+# Dockerfile ignore file
+# Exclude files that shouldn't be copied to Docker build context
+
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist
+
+# Environment files
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+coverage
+*.test.js
+test/
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Runtime directories
+.repos/
+.queue/
+.queues/
+
+# Logs
+logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Development files
+.eslintrc*
+.prettierrc*
+jest.config.js
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Other
+matches.json
+commit_message.txt
+COMMIT_MESSAGE.md
+.marprc.js

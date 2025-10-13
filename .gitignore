@@ -8,4 +8,5 @@ commit_message.txt
 COMMIT_MESSAGE.md
 .marprc.js
 matches.json
-.queue
+.queue/
+.queues/

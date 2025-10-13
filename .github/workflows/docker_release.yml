@@ -1,0 +1,72 @@
+---
+name: Docker release
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "Dockerfile"
+      - "src/**"
+      - ".github/workflows/docker_release.yml"
+      - "package*.json"
+      - "tsconfig*.json"
+  push:
+    branches:
+      - "main"
+    paths:
+      - "Dockerfile"
+      - "src/**"
+      - ".github/workflows/docker_release.yml"
+      - "package*.json"
+      - "tsconfig*.json"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: "release-scsi-${{ github.ref }}"
+  cancel-in-progress: true
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # ratchet:docker/setup-buildx-action@v3
+
+      - name: Login to Docker registry
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # ratchet:docker/login-action@v3
+        with:
+          registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
+          username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
+          password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # ratchet:docker/metadata-action@v5
+        with:
+          images: docker.elastic.co/observability-ci/scsi
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # ratchet:docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          sbom: true
+          provenance: mode=max
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+
