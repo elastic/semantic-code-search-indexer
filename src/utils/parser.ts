@@ -260,7 +260,7 @@ export class LanguageParser {
         } as CodeChunk);
       }
     } catch (error) {
-      console.error(`Failed to parse JSON file: ${filePath}`, error);
+      logger.error(`Failed to parse JSON file: ${filePath}`, error);
     }
     return allChunks;
   }
