@@ -120,7 +120,10 @@ describe('LanguageParser', () => {
 
     try {
       const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
-      expect(chunks.length).toBe(0);
+      // With the new chunking approach, JSON is split by properties
+      // The small_chunk should pass, but large_chunk should be filtered out
+      expect(chunks.length).toBe(1);
+      expect(chunks[0].content).toContain('small_chunk');
     } finally {
       indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
     }
