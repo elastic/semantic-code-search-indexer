@@ -97,11 +97,30 @@ export class LanguageParser {
     return this.parseWithTreeSitter(filePath, gitBranch, relativePath, langConfig);
   }
 
+  /**
+   * Parses text files by splitting content into paragraph-based chunks.
+   * Each chunk represents a logical section separated by double newlines.
+   *
+   * @param filePath - Absolute path to the file
+   * @param gitBranch - Git branch name
+   * @param relativePath - Relative path from repository root
+   * @returns Array of CodeChunk objects
+   */
   private parseText(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
     const now = new Date().toISOString();
-    const content = fs.readFileSync(filePath, 'utf8');
+    let content: string;
+    let gitFileHash: string;
+
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+      gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    } catch (error) {
+      logger.error(`Failed to read file ${filePath}:`, error instanceof Error ? error : new Error(String(error)));
+      return [];
+    }
+
     const chunks = content.split(/\n\s*\n/); // Split by paragraphs
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    let searchIndex = 0;
 
     return chunks
       .filter(chunk => {
@@ -112,11 +131,18 @@ export class LanguageParser {
         return /[a-zA-Z0-9]/.test(chunk); // Filter out chunks with no alphanumeric characters
       })
       .map(chunk => {
-        const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
+        // Calculate line numbers by tracking position in original content
+        let chunkStartIndex = content.indexOf(chunk, searchIndex);
+        if (chunkStartIndex === -1) {
+          chunkStartIndex = content.indexOf(chunk);
+        }
+        const startLine = (content.substring(0, chunkStartIndex).match(/\n/g) || []).length + 1;
         const endLine = startLine + (chunk.match(/\n/g) || []).length;
+        searchIndex = chunkStartIndex + chunk.length;
+
         const chunkHash = createHash('sha256').update(chunk).digest('hex');
         const directoryInfo = extractDirectoryInfo(relativePath);
-        
+
         const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
             type: 'doc',
             language: 'text',
@@ -138,11 +164,30 @@ export class LanguageParser {
     });
   }
 
+  /**
+   * Parses Markdown files by splitting content into paragraph-based chunks.
+   * Each chunk represents a logical section separated by double newlines.
+   *
+   * @param filePath - Absolute path to the file
+   * @param gitBranch - Git branch name
+   * @param relativePath - Relative path from repository root
+   * @returns Array of CodeChunk objects
+   */
   private parseMarkdown(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
     const now = new Date().toISOString();
-    const content = fs.readFileSync(filePath, 'utf8');
+    let content: string;
+    let gitFileHash: string;
+
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+      gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    } catch (error) {
+      logger.error(`Failed to read file ${filePath}:`, error instanceof Error ? error : new Error(String(error)));
+      return [];
+    }
+
     const chunks = content.split(/\n\s*\n/); // Split by paragraphs
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    let searchIndex = 0;
 
     return chunks
       .filter(chunk => {
@@ -153,11 +198,18 @@ export class LanguageParser {
         return /[a-zA-Z0-9]/.test(chunk); // Filter out chunks with no alphanumeric characters
       })
       .map(chunk => {
-        const startLine = (content.substring(0, content.indexOf(chunk)).match(/\n/g) || []).length + 1;
+        // Calculate line numbers by tracking position in original content
+        let chunkStartIndex = content.indexOf(chunk, searchIndex);
+        if (chunkStartIndex === -1) {
+          chunkStartIndex = content.indexOf(chunk);
+        }
+        const startLine = (content.substring(0, chunkStartIndex).match(/\n/g) || []).length + 1;
         const endLine = startLine + (chunk.match(/\n/g) || []).length;
+        searchIndex = chunkStartIndex + chunk.length;
+
         const chunkHash = createHash('sha256').update(chunk).digest('hex');
         const directoryInfo = extractDirectoryInfo(relativePath);
-        
+
         const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
             type: 'doc',
             language: 'markdown',
@@ -179,25 +231,48 @@ export class LanguageParser {
     });
   }
 
+  /**
+   * Parses YAML files by splitting on document separators (---) and then
+   * creating individual chunks for each non-empty line within each document.
+   *
+   * @param filePath - Absolute path to the file
+   * @param gitBranch - Git branch name
+   * @param relativePath - Relative path from repository root
+   * @returns Array of CodeChunk objects
+   */
   private parseYaml(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
     const now = new Date().toISOString();
-    const content = fs.readFileSync(filePath, 'utf8');
+    let content: string;
+    let gitFileHash: string;
+
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+      gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    } catch (error) {
+      logger.error(`Failed to read file ${filePath}:`, error instanceof Error ? error : new Error(String(error)));
+      return [];
+    }
+
     const documents = content.split(/^---/m); // Split by document separator
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
     const allChunks: CodeChunk[] = [];
+    let globalLineNumber = 1;
 
     documents.forEach(doc => {
       if (/[a-zA-Z0-9]/.test(doc)) {
         const lines = doc.trim().split('\n');
-        lines.forEach((line, index) => {
+        lines.forEach((line, localIndex) => {
           if (line.trim().length > 0) {
             if (Buffer.byteLength(line, 'utf8') > indexingConfig.maxChunkSizeBytes) {
               logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
               return;
             }
+
+            // Calculate absolute line number in the original file
+            const absoluteLineNumber = globalLineNumber + localIndex;
+
             const chunkHash = createHash('sha256').update(line).digest('hex');
             const directoryInfo = extractDirectoryInfo(relativePath);
-            
+
             const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
               type: 'doc',
               language: 'yaml',
@@ -207,8 +282,8 @@ export class LanguageParser {
               git_branch: gitBranch,
               chunk_hash: chunkHash,
               content: line,
-              startLine: index + 1,
-              endLine: index + 1,
+              startLine: absoluteLineNumber,
+              endLine: absoluteLineNumber,
               created_at: now,
               updated_at: now,
             };
@@ -218,15 +293,35 @@ export class LanguageParser {
             } as CodeChunk);
           }
         });
+        // Update global line number for next document
+        globalLineNumber += lines.length + 1; // +1 for the document separator line
       }
     });
     return allChunks;
   }
 
+  /**
+   * Parses JSON files by creating individual chunks for each key-value pair.
+   * Each chunk contains a single property with its value formatted as JSON.
+   *
+   * @param filePath - Absolute path to the file
+   * @param gitBranch - Git branch name
+   * @param relativePath - Relative path from repository root
+   * @returns Array of CodeChunk objects
+   */
   private parseJson(filePath: string, gitBranch: string, relativePath: string): CodeChunk[] {
     const now = new Date().toISOString();
-    const content = fs.readFileSync(filePath, 'utf8');
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    let content: string;
+    let gitFileHash: string;
+
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+      gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    } catch (error) {
+      logger.error(`Failed to read file ${filePath}:`, error instanceof Error ? error : new Error(String(error)));
+      return [];
+    }
+
     const allChunks: CodeChunk[] = [];
     try {
       const json = JSON.parse(content);
@@ -239,7 +334,7 @@ export class LanguageParser {
         }
         const chunkHash = createHash('sha256').update(chunkContent).digest('hex');
         const directoryInfo = extractDirectoryInfo(relativePath);
-        
+
         const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
           type: 'doc',
           language: 'json',
@@ -260,7 +355,7 @@ export class LanguageParser {
         } as CodeChunk);
       }
     } catch (error) {
-      logger.error(`Failed to parse JSON file: ${filePath}`, error);
+      logger.error(`Failed to parse JSON file: ${filePath}`, error instanceof Error ? error : new Error(String(error)));
     }
     return allChunks;
   }
@@ -274,7 +369,6 @@ export class LanguageParser {
     const tree = parser.parse(sourceCode);
     const query = new Query(langConfig.parser, langConfig.queries.join('\n'));
     const matches = query.matches(tree.rootNode);
-    fs.writeFileSync('matches.json', JSON.stringify(matches, null, 2));
     const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
 
     const importsByLine: { [line: number]: { path: string; type: 'module' | 'file'; symbols?: string[] }[] } = {};
@@ -374,7 +468,7 @@ export class LanguageParser {
           chunkSymbols.push(...symbolsByLine[i]);
         }
       }
-      
+
       const directoryInfo = extractDirectoryInfo(relativePath);
 
       const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
