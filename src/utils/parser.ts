@@ -5,7 +5,7 @@ import path from 'path';
 import { createHash } from 'crypto';
 import { execSync } from 'child_process';
 import { languageConfigurations } from '../languages';
-import { CodeChunk, SymbolInfo } from './elasticsearch';
+import { CodeChunk, SymbolInfo, ExportInfo } from './elasticsearch';
 import { indexingConfig } from '../config';
 import { logger } from './logger';
 
@@ -412,7 +412,7 @@ export class LanguageParser {
       }
     }
 
-    const exportsByLine: { [line: number]: { name: string; type: 'named' | 'default' | 'namespace'; target?: string }[] } = {};
+    const exportsByLine: { [line: number]: ExportInfo[] } = {};
     if (langConfig.exportQueries) {
       const exportQuery = new Query(langConfig.parser, langConfig.exportQueries.join('\n'));
       const exportMatches = exportQuery.matches(tree.rootNode);
@@ -427,7 +427,7 @@ export class LanguageParser {
             exportName = capture.node.text;
           } else if (capture.name === 'export.default') {
             exportType = 'default';
-            // For default exports, try to find the identifier being exported
+            // For default exports like "export default MyClass", traverse AST to find the identifier being exported
             const parent = capture.node.parent;
             if (parent) {
               const identifierNode = parent.children.find(child => child.type === 'identifier' || child.type === 'type_identifier');
@@ -442,9 +442,14 @@ export class LanguageParser {
             exportTarget = capture.node.text.replace(/['"]/g, '');
             // Resolve relative paths
             if (exportTarget.startsWith('.')) {
-              const resolvedPath = path.resolve(path.dirname(filePath), exportTarget);
-              const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: path.dirname(filePath) }).toString().trim();
-              exportTarget = path.relative(gitRoot, resolvedPath);
+              try {
+                const resolvedPath = path.resolve(path.dirname(filePath), exportTarget);
+                const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: path.dirname(filePath) }).toString().trim();
+                exportTarget = path.relative(gitRoot, resolvedPath);
+              } catch (error) {
+                logger.warn(`Failed to resolve re-export path: ${exportTarget}`, error instanceof Error ? error : new Error(String(error)));
+                // Keep the original relative path
+              }
             }
           }
         }

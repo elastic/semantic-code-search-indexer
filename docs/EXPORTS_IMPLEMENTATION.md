@@ -159,6 +159,23 @@ Exports are associated with chunks based on the start line of the export stateme
 - Multiple exports on the same line are grouped together
 - Re-exports maintain their association with the correct chunk
 
+### Export Duplication Behavior
+
+**Important Note**: For exported declarations (e.g., `export class MyClass {}`), exports appear on **both** the `export_statement` chunk AND the declaration chunk (e.g., `class_declaration`). This is intentional and follows the tree-sitter AST structure:
+
+1. **Export Statement Chunk** (kind: `export_statement`) - Contains the entire export statement including the declaration
+2. **Declaration Chunk** (kind: `class_declaration`, `function_declaration`, etc.) - Contains just the declaration
+
+For example, `export class MyClass {}` creates:
+- Chunk 1: `kind: "export_statement"`, `exports: [{ name: "MyClass", type: "named" }]`
+- Chunk 2: `kind: "class_declaration"`, `exports: [{ name: "MyClass", type: "named" }]`
+
+This duplication allows querying exports at both levels:
+- Search for export statements specifically (using `kind: export_statement`)
+- Search for exported classes/functions (using `kind: class_declaration` with `exports` filter)
+
+When aggregating exports, ensure deduplication based on `name` and `type` to avoid counting the same export twice.
+
 ## Use Cases Enabled
 
 1. **API Discovery**: Find all public APIs exported by a module

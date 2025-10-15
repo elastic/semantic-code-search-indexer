@@ -210,13 +210,19 @@ export interface SymbolInfo {
   line: number;
 }
 
+export interface ExportInfo {
+  name: string;
+  type: 'named' | 'default' | 'namespace';
+  target?: string;
+}
+
 export interface CodeChunk {
   type: 'code' | 'doc';
   language: string;
   kind?: string;
   imports?: { path: string; type: 'module' | 'file'; symbols?: string[] }[];
   symbols?: SymbolInfo[];
-  exports?: { name: string; type: 'named' | 'default' | 'namespace'; target?: string }[];
+  exports?: ExportInfo[];
   containerPath?: string;
   filePath: string;
   directoryPath: string;

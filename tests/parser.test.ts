@@ -407,5 +407,53 @@ Third paragraph`;
         ])
       );
     });
+
+    it('should handle re-exports and mixed export styles', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/exports_edge_cases.ts');
+      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/exports_edge_cases.ts');
+      
+      const allExports = chunks.flatMap(chunk => chunk.exports || []);
+      
+      // Should capture re-exports with aliasing (captures the alias)
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'bar', type: 'named' }),
+        ])
+      );
+      
+      // Should capture namespace re-exports
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: '*', type: 'namespace' }),
+        ])
+      );
+      
+      // Should capture named exports
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'a', type: 'named' }),
+        ])
+      );
+      
+      // Should capture default exports
+      // Note: For "export default class B {}", both named and default exports are captured
+      // This is expected behavior as documented in EXPORTS_IMPLEMENTATION.md
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'B', type: 'default' }),
+        ])
+      );
+      
+      // Should capture re-exported symbols
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'util', type: 'named' }),
+          expect.objectContaining({ name: 'c', type: 'named' }),
+          expect.objectContaining({ name: 'x', type: 'named' }),
+          expect.objectContaining({ name: 'y', type: 'named' }),
+          expect.objectContaining({ name: 'z', type: 'named' }),
+        ])
+      );
+    });
   });
 });
