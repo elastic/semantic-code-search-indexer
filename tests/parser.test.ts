@@ -261,11 +261,24 @@ Third paragraph`;
       const filePath = path.resolve(__dirname, 'fixtures/json.json');
       const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
       
-      // JSON chunks all start at line 1 since they're individual key-value pairs
-      chunks.forEach(chunk => {
-        expect(chunk.startLine).toBe(1);
-        expect(chunk.endLine).toBe(1);
-      });
+      // Verify that JSON chunks have correct line numbers matching their position in the file
+      expect(chunks.length).toBe(10);
+      
+      // Check first few chunks to verify line numbers are correct
+      expect(chunks[0].content).toContain('"name"');
+      expect(chunks[0].startLine).toBe(2); // "name" is on line 2
+      
+      expect(chunks[1].content).toContain('"version"');
+      expect(chunks[1].startLine).toBe(3); // "version" is on line 3
+      
+      expect(chunks[2].content).toContain('"description"');
+      expect(chunks[2].startLine).toBe(4); // "description" is on line 4
+      
+      expect(chunks[3].content).toContain('"main"');
+      expect(chunks[3].startLine).toBe(5); // "main" is on line 5
+      
+      expect(chunks[4].content).toContain('"scripts"');
+      expect(chunks[4].startLine).toBe(6); // "scripts" is on line 6
     });
 
     it('should calculate correct line numbers for text files', () => {

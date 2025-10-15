@@ -205,7 +205,7 @@ exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 2,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -214,7 +214,7 @@ exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
 directoryPath: tests/fixtures
 
 "name": "code-indexer"",
-    "startLine": 1,
+    "startLine": 2,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -225,7 +225,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 3,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -234,7 +234,7 @@ directoryPath: tests/fixtures
 directoryPath: tests/fixtures
 
 "version": "1.0.0"",
-    "startLine": 1,
+    "startLine": 3,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -245,7 +245,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 4,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -254,7 +254,7 @@ directoryPath: tests/fixtures
 directoryPath: tests/fixtures
 
 "description": "A tool to index codebases for semantic search."",
-    "startLine": 1,
+    "startLine": 4,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -265,7 +265,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 5,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -274,7 +274,7 @@ directoryPath: tests/fixtures
 directoryPath: tests/fixtures
 
 "main": "dist/index.js"",
-    "startLine": 1,
+    "startLine": 5,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -289,7 +289,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 10,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -302,7 +302,7 @@ directoryPath: tests/fixtures
   "build": "tsc",
   "test": "jest"
 }",
-    "startLine": 1,
+    "startLine": 6,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -318,7 +318,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 16,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -332,7 +332,7 @@ directoryPath: tests/fixtures
   "semantic",
   "search"
 ]",
-    "startLine": 1,
+    "startLine": 11,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -343,7 +343,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 17,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -352,7 +352,7 @@ directoryPath: tests/fixtures
 directoryPath: tests/fixtures
 
 "author": "Your Name"",
-    "startLine": 1,
+    "startLine": 17,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -363,7 +363,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 18,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -372,7 +372,7 @@ directoryPath: tests/fixtures
 directoryPath: tests/fixtures
 
 "license": "ISC"",
-    "startLine": 1,
+    "startLine": 18,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -387,7 +387,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 23,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -400,7 +400,7 @@ directoryPath: tests/fixtures
   "glob": "^7.2.0",
   "tree-sitter-javascript": "^0.19.0"
 }",
-    "startLine": 1,
+    "startLine": 19,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -417,7 +417,7 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 30,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -432,7 +432,7 @@ directoryPath: tests/fixtures
   "ts-node": "^10.4.0",
   "typescript": "^4.5.4"
 }",
-    "startLine": 1,
+    "startLine": 24,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
