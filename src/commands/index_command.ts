@@ -52,7 +52,7 @@ export async function index(directory: string, clean: boolean, options?: IndexOp
 
   await setupElser();
   await createIndex(options?.elasticsearchIndex);
-  await createSettingsIndex();
+  await createSettingsIndex(options?.elasticsearchIndex);
 
   const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
   const ig = ignore();
