@@ -354,6 +354,19 @@ export class LanguageParser {
     const matches = query.matches(tree.rootNode);
     const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
 
+    // Tree-sitter capture names for imports and exports
+    const IMPORT_CAPTURE_NAMES = {
+      PATH: 'import.path',
+      SYMBOL: 'import.symbol',
+    } as const;
+
+    const EXPORT_CAPTURE_NAMES = {
+      NAME: 'export.name',
+      DEFAULT: 'export.default',
+      NAMESPACE: 'export.namespace',
+      SOURCE: 'export.source',
+    } as const;
+
     const importsByLine: { [line: number]: { path: string; type: 'module' | 'file'; symbols?: string[] }[] } = {};
     if (langConfig.importQueries) {
       const importQuery = new Query(langConfig.parser, langConfig.importQueries.join('\n'));
@@ -365,10 +378,10 @@ export class LanguageParser {
         let pathFound = false;
 
         for (const capture of match.captures) {
-          if (capture.name === 'import.path') {
+          if (capture.name === IMPORT_CAPTURE_NAMES.PATH) {
             importPath = capture.node.text.replace(/['"]/g, '');
             pathFound = true;
-          } else if (capture.name === 'import.symbol') {
+          } else if (capture.name === IMPORT_CAPTURE_NAMES.SYMBOL) {
             symbols.push(capture.node.text);
           }
         }
@@ -423,9 +436,9 @@ export class LanguageParser {
         let exportTarget: string | undefined = undefined;
 
         for (const capture of match.captures) {
-          if (capture.name === 'export.name') {
+          if (capture.name === EXPORT_CAPTURE_NAMES.NAME) {
             exportName = capture.node.text;
-          } else if (capture.name === 'export.default') {
+          } else if (capture.name === EXPORT_CAPTURE_NAMES.DEFAULT) {
             exportType = 'default';
             // For default exports like "export default MyClass", traverse AST to find the identifier being exported
             const parent = capture.node.parent;
@@ -435,10 +448,10 @@ export class LanguageParser {
                 exportName = identifierNode.text;
               }
             }
-          } else if (capture.name === 'export.namespace') {
+          } else if (capture.name === EXPORT_CAPTURE_NAMES.NAMESPACE) {
             exportType = 'namespace';
             exportName = '*';
-          } else if (capture.name === 'export.source') {
+          } else if (capture.name === EXPORT_CAPTURE_NAMES.SOURCE) {
             exportTarget = capture.node.text.replace(/['"]/g, '');
             // Resolve relative paths
             if (exportTarget.startsWith('.')) {
