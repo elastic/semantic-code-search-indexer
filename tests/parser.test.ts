@@ -3,6 +3,7 @@ import { LanguageParser } from '../src/utils/parser';
 import { CodeChunk } from '../src/utils/elasticsearch';
 import path from 'path';
 import { indexingConfig } from '../src/config';
+import fs from 'fs';
 
 const MOCK_TIMESTAMP = '[TIMESTAMP]';
 
@@ -120,7 +121,10 @@ describe('LanguageParser', () => {
 
     try {
       const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
-      expect(chunks.length).toBe(0);
+      // With the new chunking approach, JSON is split by properties
+      // The small_chunk should pass, but large_chunk should be filtered out
+      expect(chunks.length).toBe(1);
+      expect(chunks[0].content).toContain('small_chunk');
     } finally {
       indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
     }
@@ -165,6 +169,144 @@ describe('LanguageParser', () => {
       expect(chunk.directoryPath).toBe('src/utils/helpers');
       expect(chunk.directoryName).toBe('helpers');
       expect(chunk.directoryDepth).toBe(3);
+    });
+  });
+
+  describe('Line Number Calculation', () => {
+    it('should calculate correct line numbers for Markdown files', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
+      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
+      
+      // First chunk should start at line 1 (heading)
+      expect(chunks[0].startLine).toBe(1);
+      expect(chunks[0].endLine).toBe(1);
+      
+      // Second chunk should start at line 3 (paragraph after empty line)
+      expect(chunks[1].startLine).toBe(3);
+      expect(chunks[1].endLine).toBe(3);
+      
+      // Third chunk should start at line 5 (heading)
+      expect(chunks[2].startLine).toBe(5);
+      expect(chunks[2].endLine).toBe(5);
+      
+      // Fourth chunk should start at line 7 (paragraph)
+      expect(chunks[3].startLine).toBe(7);
+      expect(chunks[3].endLine).toBe(8); // Includes the newline
+    });
+
+    it('should calculate correct line numbers for YAML multi-document files', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
+      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
+      
+      // First document chunks
+      expect(chunks[0].startLine).toBe(1); // "document: one"
+      expect(chunks[0].endLine).toBe(1);
+      expect(chunks[1].startLine).toBe(2); // "pair:"
+      expect(chunks[1].endLine).toBe(2);
+      expect(chunks[2].startLine).toBe(3); // "  key: value"
+      expect(chunks[2].endLine).toBe(3);
+      
+      // Second document chunks (after --- separator)
+      expect(chunks[3].startLine).toBe(5); // "document: two"
+      expect(chunks[3].endLine).toBe(5);
+      expect(chunks[4].startLine).toBe(6); // "another_pair:"
+      expect(chunks[4].endLine).toBe(6);
+      expect(chunks[5].startLine).toBe(7); // "  nested_key: nested_value"
+      expect(chunks[5].endLine).toBe(7);
+    });
+
+    it('should handle duplicate content correctly in line number calculation', () => {
+      // Create a test file with duplicate content to test the fix
+      const testContent = `First paragraph
+
+Second paragraph
+
+First paragraph
+
+Third paragraph`;
+      
+      const testFilePath = path.resolve(__dirname, 'fixtures/duplicate_test.txt');
+      fs.writeFileSync(testFilePath, testContent);
+      
+      try {
+        const chunks = parser.parseFile(testFilePath, 'main', 'tests/fixtures/duplicate_test.txt');
+        
+        // Should have 4 chunks
+        expect(chunks.length).toBe(4);
+        
+        // First occurrence of "First paragraph" should be at line 1
+        expect(chunks[0].startLine).toBe(1);
+        expect(chunks[0].content).toBe('First paragraph');
+        
+        // "Second paragraph" should be at line 3
+        expect(chunks[1].startLine).toBe(3);
+        expect(chunks[1].content).toBe('Second paragraph');
+        
+        // Second occurrence of "First paragraph" should be at line 5
+        expect(chunks[2].startLine).toBe(5);
+        expect(chunks[2].content).toBe('First paragraph');
+        
+        // "Third paragraph" should be at line 7
+        expect(chunks[3].startLine).toBe(7);
+        expect(chunks[3].content).toBe('Third paragraph');
+      } finally {
+        // Clean up test file
+        if (fs.existsSync(testFilePath)) {
+          fs.unlinkSync(testFilePath);
+        }
+      }
+    });
+
+    it('should calculate correct line numbers for JSON files', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/json.json');
+      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
+      
+      // Verify that JSON chunks have correct line numbers matching their position in the file
+      expect(chunks.length).toBe(10);
+      
+      // Check first few chunks to verify line numbers are correct
+      expect(chunks[0].content).toContain('"name"');
+      expect(chunks[0].startLine).toBe(2); // "name" is on line 2
+      
+      expect(chunks[1].content).toContain('"version"');
+      expect(chunks[1].startLine).toBe(3); // "version" is on line 3
+      
+      expect(chunks[2].content).toContain('"description"');
+      expect(chunks[2].startLine).toBe(4); // "description" is on line 4
+      
+      expect(chunks[3].content).toContain('"main"');
+      expect(chunks[3].startLine).toBe(5); // "main" is on line 5
+      
+      expect(chunks[4].content).toContain('"scripts"');
+      expect(chunks[4].startLine).toBe(6); // "scripts" is on line 6
+    });
+
+    it('should calculate correct line numbers for text files', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/text.txt');
+      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
+      
+      // Single line text file
+      expect(chunks.length).toBe(1);
+      expect(chunks[0].startLine).toBe(1);
+      expect(chunks[0].endLine).toBe(1);
+    });
+
+    it('should calculate correct line numbers for repeated paragraphs', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/repeated_paragraphs.txt');
+      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/repeated_paragraphs.txt');
+
+      expect(chunks).toHaveLength(3);
+      expect(chunks[0].content).toBe('Repeat me');
+      expect(chunks[0].startLine).toBe(1);
+      expect(chunks[0].endLine).toBe(1);
+
+      expect(chunks[1].content).toBe('Repeat me');
+      expect(chunks[1].startLine).toBe(3);
+      expect(chunks[1].endLine).toBe(3);
+
+      expect(chunks[2].content).toBe('Repeat me');
+      expect(chunks[2].startLine).toBe(5);
+      expect(chunks[2].endLine).toBe(5);
     });
   });
 });
