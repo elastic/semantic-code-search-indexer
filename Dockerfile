@@ -24,7 +24,7 @@ RUN chown -R indexer:nodejs .
 USER indexer
 
 ENV NODE_ENV=production
-ENV LOG_FORMAT=json
+# Configure OpenTelemetry via OTEL_* environment variables
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD node dist/index.js --help || exit 1
