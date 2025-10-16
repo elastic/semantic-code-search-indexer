@@ -29,11 +29,26 @@ async function setup(repoUrl: string, options: { token?: string }) {
       if (token && remoteUrlRaw) {
         const remoteUrl = remoteUrlRaw.trim();
         const hasBasicAuth = remoteUrl.includes('oauth2:');
-        if (!hasBasicAuth) {
-          const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`).trim();
+
+        // Extract existing token from remote URL if present
+        let existingToken: string | null = null;
+        if (hasBasicAuth) {
+          const tokenMatch = remoteUrl.match(/oauth2:([^@]+)@/);
+          existingToken = tokenMatch ? tokenMatch[1] : null;
+        }
+
+        // Only update remote URL if token is different
+        if (!hasBasicAuth || existingToken !== token) {
+          let newRemoteUrl: string;
+          if (hasBasicAuth) {
+            newRemoteUrl = remoteUrl.replace(/oauth2:[^@]+@/, `oauth2:${token}@`);
+          } else {
+            newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`);
+          }
           await git.cwd(repoPath).remote(['set-url', 'origin', newRemoteUrl]);
+          logger.info('Updated remote URL with fresh GitHub token.');
         } else {
-          await git.cwd(repoPath).remote(['set-url', 'origin', remoteUrl]);
+          logger.info('GitHub token is already up to date.');
         }
       }
       await git.cwd(repoPath).pull();
