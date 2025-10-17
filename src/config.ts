@@ -27,7 +27,13 @@ export const elasticsearchConfig = {
   apiKey: process.env.ELASTICSEARCH_API_KEY,
   model: process.env.ELASTICSEARCH_MODEL || '.elser_model_2',
   index: process.env.ELASTICSEARCH_INDEX || 'code-chunks',
-  logging: process.env.ELASTICSEARCH_LOGGING === 'true',
+};
+
+export const otelConfig = {
+  enabled: process.env.OTEL_LOGGING_ENABLED === 'true',
+  serviceName: process.env.OTEL_SERVICE_NAME || 'semantic-code-search-indexer',
+  endpoint: process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT || process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318',
+  headers: process.env.OTEL_EXPORTER_OTLP_HEADERS || '',
 };
 
 export const indexingConfig = {

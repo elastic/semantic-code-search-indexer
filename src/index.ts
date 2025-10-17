@@ -12,6 +12,7 @@ import { referencesCommand } from './commands/references_command';
 import { retryFailedCommand } from './commands/retry_failed_command';
 import { setupCommand } from './commands/setup_command';
 import { workerCommand } from './commands/worker_command';
+import { shutdown } from './utils/otel_provider';
 
 async function main() {
   const program = new Command();
@@ -37,7 +38,31 @@ async function main() {
   await program.parseAsync(process.argv);
 }
 
-main().catch(error => {
+// Graceful shutdown handlers
+/**
+ * Handles graceful shutdown of the application.
+ * 
+ * Flushes any pending OpenTelemetry logs to the collector before exiting.
+ * Called on SIGTERM and SIGINT signals to ensure clean application termination.
+ * 
+ * @param signal - The signal name that triggered the shutdown (e.g., 'SIGTERM', 'SIGINT').
+ */
+async function handleShutdown(signal: string) {
+  console.log(`\nReceived ${signal}, shutting down gracefully...`);
+  try {
+    await shutdown();
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));
+
+main().catch(async error => {
   console.error('An error occurred:', error);
+  await shutdown();
   process.exit(1);
 });

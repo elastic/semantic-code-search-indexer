@@ -2,10 +2,6 @@ import { SqliteQueue } from '../src/utils/sqlite_queue';
 import { CodeChunk } from '../src/utils/elasticsearch';
 import path from 'path';
 import fs from 'fs';
-import { logger } from '../src/utils/logger';
-
-// Disable verbose logging for this test to avoid flooding the console
-logger.silent = true;
 
 const MOCK_CHUNK: CodeChunk = {
   type: 'code',
@@ -43,8 +39,6 @@ describe('SqliteQueue Scalability', () => {
     if (fs.existsSync(queueDir)) {
       fs.rmSync(queueDir, { recursive: true, force: true });
     }
-    // Re-enable logging
-    logger.silent = false;
   });
 
   it('should handle a large volume of documents without errors', async () => {
