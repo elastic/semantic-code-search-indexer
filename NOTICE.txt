@@ -1,0 +1,2 @@
+semantic-code-search-indexer
+Copyright 2025 Elasticsearch B.V.
