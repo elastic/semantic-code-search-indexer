@@ -93,7 +93,11 @@ The `REPOSITORIES_TO_INDEX` variable is a space-separated list. Each item is a s
 # Elasticsearch Configuration
 ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
 ELASTICSEARCH_API_KEY="YourEncodedApiKey"
-ELASTICSEARCH_LOGGING="true"
+
+# OpenTelemetry Configuration (optional)
+# OTEL_LOGGING_ENABLED="true"
+# OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+# OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
 
 # Application Configuration
 # Base directory where all queue databases will be stored.

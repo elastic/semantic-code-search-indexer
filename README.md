@@ -7,7 +7,7 @@ This project is a high-performance code indexer designed to provide deep, contex
 -   **High-Throughput Indexing**: Utilizes a multi-threaded, streaming architecture to efficiently parse and index thousands of files in parallel.
 -   **Semantic Search**: Uses Elasticsearch's ELSER model to generate vector embeddings for code chunks, enabling powerful natural language search.
 -   **Incremental Updates**: Can efficiently update the index by only processing files that have changed since the last indexed commit.
--   **Structured Logging**: Outputs logs in JSON format, making it easy to monitor and integrate with log management systems.
+-   **OpenTelemetry Integration**: Built-in support for structured logging via OpenTelemetry, enabling integration with modern observability platforms.
 -   **Efficient `.gitignore` Handling**: Correctly applies `.gitignore` rules to exclude irrelevant files and directories.
 
 ---
@@ -267,7 +267,11 @@ Configuration is managed via environment variables in a `.env` file.
 | `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication. | |
 | `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts. | `code-chunks` |
 | `ELASTICSEARCH_MODEL` | The name of the ELSER model to use. | `.elser_model_2` |
-| `ELASTICSEARCH_LOGGING` | Whether to enable Elasticsearch client logging. | `false` |
+| `OTEL_LOGGING_ENABLED` | Enable OpenTelemetry logging. | `false` |
+| `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs. | `semantic-code-search-indexer` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint. | `http://localhost:4318` |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | Logs-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT). | |
+| `OTEL_EXPORTER_OTLP_HEADERS` | Headers for OTLP exporter (e.g., `authorization=Bearer token`). | |
 | `QUEUE_DIR` | The directory for the queue database. Used by the `index-worker` and `clear-queue` commands. | `.queue` |
 | `QUEUE_BASE_DIR` | The base directory for all multi-repo queue databases. | `.queues` |
 | `BATCH_SIZE` | The number of chunks to index in a single bulk request. | `500` |
@@ -277,8 +281,104 @@ Configuration is managed via environment variables in a `.env` file.
 | `ENABLE_DENSE_VECTORS` | Whether to enable dense vectors for code similarity search. | `false` |
 | `GIT_PATH` | The path to the `git` executable. | `git` |
 | `NODE_ENV` | The node environment. | `development` |
-| `LOG_FORMAT` | The format of the logs. Can be `json` or `text`. | `json` |
 | `SEMANTIC_CODE_INDEXER_LANGUAGES` | A comma-separated list of languages to index. | `typescript,javascript,markdown,yaml,java,go,python` |
+
+---
+
+## OpenTelemetry Integration
+
+This indexer supports OpenTelemetry for structured logging, enabling integration with modern observability platforms. Logs are sent via OTLP/HTTP protocol to an OpenTelemetry Collector, which can then route them to various backends (Elasticsearch, Loki, etc.).
+
+### Console Logging
+
+By default, the indexer outputs text-format logs to the console (except when `NODE_ENV=test`):
+
+```
+[2025-10-16T10:30:45.123Z] [INFO] Successfully indexed 500 files
+[2025-10-16T10:30:45.234Z] [ERROR] Failed to parse file: syntax error
+```
+
+### Enabling OpenTelemetry Export
+
+To enable OpenTelemetry log export, set the following environment variables:
+
+```bash
+OTEL_LOGGING_ENABLED=true
+OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+```
+
+For authentication to the collector:
+
+```bash
+OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
+```
+
+### Resource Attributes
+
+The following resource attributes are automatically attached to all logs:
+- `service.name`: Service name (from `OTEL_SERVICE_NAME`)
+- `service.version`: Version from package.json
+- `deployment.environment`: From `NODE_ENV`
+- `host.name`, `host.arch`, `host.type`, `os.type`: Host information
+- `git.indexer.branch`, `git.indexer.remote.url`, `git.indexer.root.path`: Git information about the indexer itself
+
+### Log Attributes
+
+Each log entry includes attributes based on context:
+- `repo.name`: Repository being indexed
+- `repo.branch`: Branch being indexed
+- Custom metadata passed to logging calls
+
+### Example OpenTelemetry Collector Configuration
+
+Create a `collector-config.yaml` file:
+
+```yaml
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  elasticsearch:
+    endpoints: [https://elasticsearch:9200]
+    logs_index: logs-semantic.codesearch
+    auth:
+      authenticator: basicauth
+  
+  debug:
+    verbosity: detailed
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+extensions:
+  basicauth:
+    client_auth:
+      username: elastic
+      password: changeme
+
+service:
+  extensions: [basicauth]
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elasticsearch, debug]
+```
+
+Run the collector:
+
+```bash
+docker run -p 4318:4318 -v $(pwd)/collector-config.yaml:/etc/otelcol/config.yaml \
+  otel/opentelemetry-collector-contrib:latest
+```
+
+This setup routes logs from the indexer through the OpenTelemetry Collector to Elasticsearch, maintaining compatibility with the existing Elasticsearch-based log management while adding flexibility for future observability improvements.
 
 ---
 
