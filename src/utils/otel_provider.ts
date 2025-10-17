@@ -2,12 +2,26 @@
 import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { Resource } from '@opentelemetry/resources';
+import {
+  ATTR_SERVICE_NAME,
+  ATTR_SERVICE_VERSION,
+} from '@opentelemetry/semantic-conventions';
 import { otelConfig } from '../config';
 import { findProjectRoot } from './find_project_root';
 import { execSync } from 'child_process';
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
+
+// Import experimental attributes from incubating entry point
+const {
+  ATTR_DEPLOYMENT_ENVIRONMENT,
+  ATTR_HOST_NAME,
+  ATTR_HOST_ARCH,
+  ATTR_HOST_TYPE,
+  ATTR_OS_TYPE,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+} = require('@opentelemetry/semantic-conventions/incubating');
 
 let loggerProvider: LoggerProvider | null = null;
 
@@ -93,13 +107,13 @@ export function getLoggerProvider(): LoggerProvider | null {
   const serviceVersion = getServiceVersion();
 
   const resourceAttributes: Record<string, string | number> = {
-    'service.name': otelConfig.serviceName,
-    'service.version': serviceVersion,
-    'deployment.environment': process.env.NODE_ENV || 'production',
-    'host.name': os.hostname(),
-    'host.arch': os.arch(),
-    'host.type': os.type(),
-    'os.type': os.platform(),
+    [ATTR_SERVICE_NAME]: otelConfig.serviceName,
+    [ATTR_SERVICE_VERSION]: serviceVersion,
+    [ATTR_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'production',
+    [ATTR_HOST_NAME]: os.hostname(),
+    [ATTR_HOST_ARCH]: os.arch(),
+    [ATTR_HOST_TYPE]: os.type(),
+    [ATTR_OS_TYPE]: os.platform(),
   };
 
   if (gitInfo) {
