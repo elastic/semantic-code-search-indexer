@@ -16,152 +16,225 @@ describe('Logger', () => {
     consoleLogSpy.mockRestore();
   });
 
-  describe('Console output', () => {
-    it('should output to console when NODE_ENV is not test', () => {
-      process.env.NODE_ENV = 'production';
-      process.env.OTEL_LOGGING_ENABLED = 'false';
-      
-      logger.info('test message');
-      
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toContain('[INFO]');
-      expect(logOutput).toContain('test message');
+  describe('console output', () => {
+    describe('when NODE_ENV is not `test`', () => {
+      beforeEach(() => {
+        process.env.NODE_ENV = 'production';
+        process.env.OTEL_LOGGING_ENABLED = 'false';
+      });
+
+      it('outputs to the console', () => {
+        logger.info('test message');
+        
+        expect(consoleLogSpy).toHaveBeenCalled();
+      });
+
+      it('includes the log level in the output', () => {
+        logger.info('test message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('[INFO]');
+      });
+
+      it('includes the message in the output', () => {
+        logger.info('test message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('test message');
+      });
+
+      it('includes an ISO timestamp in the output', () => {
+        logger.info('test message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toMatch(/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
+      });
     });
 
-    it('should not output to console when NODE_ENV is test', () => {
-      process.env.NODE_ENV = 'test';
-      process.env.OTEL_LOGGING_ENABLED = 'false';
-      
-      logger.info('test message');
-      
-      expect(consoleLogSpy).not.toHaveBeenCalled();
-    });
+    describe('when NODE_ENV is `test`', () => {
+      beforeEach(() => {
+        process.env.NODE_ENV = 'test';
+        process.env.OTEL_LOGGING_ENABLED = 'false';
+      });
 
-    it('should include timestamp in console output', () => {
-      process.env.NODE_ENV = 'production';
-      process.env.OTEL_LOGGING_ENABLED = 'false';
-      
-      logger.info('test message');
-      
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toMatch(/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
+      it('does not output to the console', () => {
+        logger.info('test message');
+        
+        expect(consoleLogSpy).not.toHaveBeenCalled();
+      });
     });
   });
 
-  describe('Log levels', () => {
+  describe('log levels', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production';
       process.env.OTEL_LOGGING_ENABLED = 'false';
     });
 
-    it('should log INFO messages', () => {
-      logger.info('info message');
-      
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toContain('[INFO]');
-      expect(logOutput).toContain('info message');
+    describe('.info()', () => {
+      it('outputs with INFO level', () => {
+        logger.info('info message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('[INFO]');
+      });
+
+      it('outputs the provided message', () => {
+        logger.info('info message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('info message');
+      });
     });
 
-    it('should log WARN messages', () => {
-      logger.warn('warn message');
-      
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toContain('[WARN]');
-      expect(logOutput).toContain('warn message');
+    describe('.warn()', () => {
+      it('outputs with WARN level', () => {
+        logger.warn('warn message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('[WARN]');
+      });
+
+      it('outputs the provided message', () => {
+        logger.warn('warn message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('warn message');
+      });
     });
 
-    it('should log ERROR messages', () => {
-      logger.error('error message');
-      
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toContain('[ERROR]');
-      expect(logOutput).toContain('error message');
+    describe('.error()', () => {
+      it('outputs with ERROR level', () => {
+        logger.error('error message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('[ERROR]');
+      });
+
+      it('outputs the provided message', () => {
+        logger.error('error message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('error message');
+      });
     });
 
-    it('should log DEBUG messages', () => {
-      logger.debug('debug message');
-      
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toContain('[DEBUG]');
-      expect(logOutput).toContain('debug message');
+    describe('.debug()', () => {
+      it('outputs with DEBUG level', () => {
+        logger.debug('debug message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('[DEBUG]');
+      });
+
+      it('outputs the provided message', () => {
+        logger.debug('debug message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('debug message');
+      });
     });
   });
 
-  describe('Logger with repository context', () => {
+  describe('createLogger', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production';
       process.env.OTEL_LOGGING_ENABLED = 'false';
     });
 
-    it('should create logger with repo info', () => {
-      const repoLogger = createLogger({ name: 'kibana', branch: 'main' });
-      
-      repoLogger.info('test message');
-      
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toContain('test message');
+    describe('when created with repository context', () => {
+      it('outputs logs to console', () => {
+        const repoLogger = createLogger({ name: 'kibana', branch: 'main' });
+        
+        repoLogger.info('test message');
+        
+        expect(consoleLogSpy).toHaveBeenCalled();
+      });
+
+      it('includes the message in the output', () => {
+        const repoLogger = createLogger({ name: 'kibana', branch: 'main' });
+        
+        repoLogger.info('test message');
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('test message');
+      });
     });
 
-    it('should handle metadata in log calls', () => {
-      logger.info('test message', { key: 'value', count: 42 });
-      
-      expect(consoleLogSpy).toHaveBeenCalled();
-      // Metadata should not appear in console output (only sent to OTel)
-      const logOutput = consoleLogSpy.mock.calls[0][0];
-      expect(logOutput).toContain('test message');
+    describe('when provided with metadata', () => {
+      it('outputs the message', () => {
+        logger.info('test message', { key: 'value', count: 42 });
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).toContain('test message');
+      });
+
+      it('does not include metadata in console output', () => {
+        logger.info('test message', { key: 'value', count: 42 });
+        
+        const logOutput = consoleLogSpy.mock.calls[0][0];
+        expect(logOutput).not.toContain('key');
+        expect(logOutput).not.toContain('value');
+      });
     });
   });
 
   describe('OpenTelemetry integration', () => {
-    it('should not throw when OTEL is disabled', () => {
-      process.env.NODE_ENV = 'production';
-      process.env.OTEL_LOGGING_ENABLED = 'false';
-      
-      expect(() => {
-        logger.info('test message');
-        logger.warn('warn message');
-        logger.error('error message');
-        logger.debug('debug message');
-      }).not.toThrow();
+    describe('when OTEL is disabled', () => {
+      beforeEach(() => {
+        process.env.NODE_ENV = 'production';
+        process.env.OTEL_LOGGING_ENABLED = 'false';
+      });
+
+      it('does not throw errors', () => {
+        expect(() => {
+          logger.info('test message');
+          logger.warn('warn message');
+          logger.error('error message');
+          logger.debug('debug message');
+        }).not.toThrow();
+      });
     });
 
-    it('should not throw when OTEL is enabled', () => {
-      process.env.NODE_ENV = 'production';
-      process.env.OTEL_LOGGING_ENABLED = 'true';
-      
-      expect(() => {
-        logger.info('test message');
-        logger.warn('warn message');
-        logger.error('error message');
-        logger.debug('debug message');
-      }).not.toThrow();
+    describe('when OTEL is enabled', () => {
+      beforeEach(() => {
+        process.env.NODE_ENV = 'production';
+        process.env.OTEL_LOGGING_ENABLED = 'true';
+      });
+
+      it('does not throw errors', () => {
+        expect(() => {
+          logger.info('test message');
+          logger.warn('warn message');
+          logger.error('error message');
+          logger.debug('debug message');
+        }).not.toThrow();
+      });
     });
   });
 
   describe('API compatibility', () => {
-    it('should expose info method', () => {
+    it('exposes an info method', () => {
       expect(logger.info).toBeDefined();
       expect(typeof logger.info).toBe('function');
     });
 
-    it('should expose warn method', () => {
+    it('exposes a warn method', () => {
       expect(logger.warn).toBeDefined();
       expect(typeof logger.warn).toBe('function');
     });
 
-    it('should expose error method', () => {
+    it('exposes an error method', () => {
       expect(logger.error).toBeDefined();
       expect(typeof logger.error).toBe('function');
     });
 
-    it('should expose debug method', () => {
+    it('exposes a debug method', () => {
       expect(logger.debug).toBeDefined();
       expect(typeof logger.debug).toBe('function');
     });
 
-    it('should not expose silent property', () => {
+    it('does not expose a silent property', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((logger as any).silent).toBeUndefined();
     });
