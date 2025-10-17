@@ -11,6 +11,11 @@ import fs from 'fs';
 
 let loggerProvider: LoggerProvider | null = null;
 
+/**
+ * Retrieves git repository information for the current project.
+ * 
+ * @returns An object containing branch name, remote URL, and root path, or null if git info cannot be retrieved.
+ */
 function getGitInfo(): { branch: string; remoteUrl: string; rootPath: string } | null {
   try {
     const rootPath = findProjectRoot(process.cwd()) || process.cwd();
@@ -23,6 +28,11 @@ function getGitInfo(): { branch: string; remoteUrl: string; rootPath: string } |
   }
 }
 
+/**
+ * Retrieves the service version from package.json.
+ * 
+ * @returns The version string from package.json, or '1.0.0' as a fallback.
+ */
 function getServiceVersion(): string {
   try {
     const rootPath = findProjectRoot(process.cwd()) || process.cwd();
@@ -37,6 +47,16 @@ function getServiceVersion(): string {
   return '1.0.0';
 }
 
+/**
+ * Parses a comma-separated string of key=value pairs into a headers object.
+ * 
+ * @param headersString - A comma-separated string of headers in the format "key1=value1,key2=value2".
+ * @returns An object mapping header names to their values.
+ * 
+ * @example
+ * parseHeaders("authorization=Bearer token,content-type=application/json")
+ * // Returns: { authorization: "Bearer token", "content-type": "application/json" }
+ */
 function parseHeaders(headersString: string): Record<string, string> {
   const headers: Record<string, string> = {};
   if (!headersString) return headers;
@@ -50,6 +70,16 @@ function parseHeaders(headersString: string): Record<string, string> {
   return headers;
 }
 
+/**
+ * Gets or creates the singleton OpenTelemetry LoggerProvider instance.
+ * 
+ * Creates a LoggerProvider configured with:
+ * - Resource attributes (service info, host info, git info)
+ * - OTLP HTTP exporter for sending logs to a collector
+ * - Batch log record processor for efficient transmission
+ * 
+ * @returns The LoggerProvider instance if OTEL_LOGGING_ENABLED is true, otherwise null.
+ */
 export function getLoggerProvider(): LoggerProvider | null {
   if (!otelConfig.enabled) {
     return null;
@@ -96,6 +126,14 @@ export function getLoggerProvider(): LoggerProvider | null {
   return loggerProvider;
 }
 
+/**
+ * Gracefully shuts down the OpenTelemetry LoggerProvider.
+ * 
+ * Ensures all buffered log records are flushed to the collector before the application exits.
+ * Should be called during application shutdown (e.g., on SIGTERM/SIGINT).
+ * 
+ * @returns A promise that resolves when shutdown is complete.
+ */
 export async function shutdown(): Promise<void> {
   if (loggerProvider) {
     await loggerProvider.shutdown();

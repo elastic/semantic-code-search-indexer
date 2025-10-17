@@ -21,6 +21,18 @@ interface RepoInfo {
   branch: string;
 }
 
+/**
+ * Internal logging function that handles both console and OpenTelemetry output.
+ * 
+ * - Outputs text format logs to console (unless NODE_ENV=test)
+ * - Sends structured logs to OpenTelemetry collector if enabled
+ * - Attaches repository context and custom metadata to OTel logs
+ * 
+ * @param level - The log level (INFO, WARN, ERROR, DEBUG).
+ * @param message - The log message.
+ * @param metadata - Additional metadata to attach to the log entry.
+ * @param repoInfo - Optional repository context (name and branch).
+ */
 function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?: RepoInfo) {
   // Silent mode: skip console output in test environment
   if (process.env.NODE_ENV !== 'test') {
@@ -52,6 +64,25 @@ function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?:
   }
 }
 
+/**
+ * Creates a logger instance with optional repository context.
+ * 
+ * The logger provides methods for logging at different severity levels (info, warn, error, debug).
+ * If repository information is provided, it will be attached to all log entries from this logger.
+ * 
+ * @param repoInfo - Optional repository context to attach to all logs (name and branch).
+ * @returns A logger object with info, warn, error, and debug methods.
+ * 
+ * @example
+ * // Create a logger without context
+ * const logger = createLogger();
+ * logger.info('Application started');
+ * 
+ * @example
+ * // Create a logger with repository context
+ * const repoLogger = createLogger({ name: 'kibana', branch: 'main' });
+ * repoLogger.info('Processing repository', { fileCount: 42 });
+ */
 export function createLogger(repoInfo?: RepoInfo) {
   return {
     info: (message: string, metadata?: object) => log(LogLevel.INFO, message, metadata, repoInfo),

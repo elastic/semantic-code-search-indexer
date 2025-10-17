@@ -39,6 +39,14 @@ async function main() {
 }
 
 // Graceful shutdown handlers
+/**
+ * Handles graceful shutdown of the application.
+ * 
+ * Flushes any pending OpenTelemetry logs to the collector before exiting.
+ * Called on SIGTERM and SIGINT signals to ensure clean application termination.
+ * 
+ * @param signal - The signal name that triggered the shutdown (e.g., 'SIGTERM', 'SIGINT').
+ */
 async function handleShutdown(signal: string) {
   console.log(`\nReceived ${signal}, shutting down gracefully...`);
   try {
