@@ -10,7 +10,7 @@ import { indexingConfig, appConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
-import { logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 import simpleGit from 'simple-git';
@@ -21,6 +21,8 @@ interface IncrementalIndexOptions {
   queueDir: string;
   elasticsearchIndex: string;
   token?: string;
+  repoName?: string;
+  branch?: string;
 }
 
 async function getQueue(options?: IncrementalIndexOptions): Promise<IQueue> {
@@ -32,11 +34,16 @@ async function getQueue(options?: IncrementalIndexOptions): Promise<IQueue> {
 }
 
 export async function incrementalIndex(directory: string, options?: IncrementalIndexOptions) {
+  const repoName = options?.repoName ?? path.basename(path.resolve(directory));
+  
+  const git = simpleGit(directory);
+  const gitBranch = options?.branch ?? await git.revparse(['--abbrev-ref', 'HEAD']);
+
+  const logger = createLogger({ name: repoName, branch: gitBranch });
+
   logger.info('Starting incremental indexing process (Producer)', { directory, ...options });
   await setupElser();
 
-  const git = simpleGit(directory);
-  const gitBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
   const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
 
   if (!lastCommitHash) {
@@ -138,7 +145,6 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
     const workQueue: IQueue = await getQueue(options);
 
     const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
-    const repoName = path.basename(directory);
 
     filesToIndex.forEach(file => {
       producerQueue.add(() => new Promise<void>((resolve, reject) => {

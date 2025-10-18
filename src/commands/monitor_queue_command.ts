@@ -1,12 +1,19 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { appConfig } from '../config';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 import moment from 'moment';
 
-async function monitorQueue() {
-  const dbPath = path.join(appConfig.queueDir, 'queue.db');
+async function monitorQueue(options?: { repoName?: string }) {
+  const logger = options?.repoName 
+    ? createLogger({ name: options.repoName, branch: 'unknown' })
+    : createLogger();
+  
+  const queueDir = options?.repoName 
+    ? path.join(appConfig.queueBaseDir, options.repoName)
+    : appConfig.queueDir;
+  const dbPath = path.join(queueDir, 'queue.db');
   const db = new Database(dbPath, { readonly: true });
 
   logger.info('--- Queue Monitor ---');
@@ -53,4 +60,10 @@ async function monitorQueue() {
 
 export const monitorQueueCommand = new Command('queue:monitor')
   .description('Display statistics about the document queue')
+  .addOption(
+    new Option(
+      '--repo-name <repoName>',
+      'Optional: The name of the repository to monitor. If not provided, monitors the default queue.'
+    )
+  )
   .action(monitorQueue);

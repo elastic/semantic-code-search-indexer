@@ -4,6 +4,7 @@ import { worker } from './worker_command';
 import { appConfig } from '../config';
 import { logger } from '../utils/logger';
 import path from 'path';
+import { execSync } from 'child_process';
 
 async function startReindexProducer(repoConfigs: string[], concurrency: number) {
   logger.info('Starting multi-repository reindex producer...');
@@ -22,6 +23,16 @@ async function startReindexProducer(repoConfigs: string[], concurrency: number) 
     const repoName = path.basename(repoPath);
     const queueDir = path.join(appConfig.queueBaseDir, repoName);
 
+    // Extract git branch from the repository path
+    let gitBranch = 'unknown';
+    try {
+      gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: repoPath })
+        .toString()
+        .trim();
+    } catch {
+      logger.warn(`Could not extract git branch for ${repoName}. Using 'unknown'.`);
+    }
+
     logger.info(`--- Processing repository: ${repoName} ---`);
 
     const options = {
@@ -29,6 +40,7 @@ async function startReindexProducer(repoConfigs: string[], concurrency: number) 
       elasticsearchIndex: esIndex,
       token,
       repoName,
+      branch: gitBranch,
     };
 
     try {

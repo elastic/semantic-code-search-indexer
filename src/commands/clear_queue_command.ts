@@ -1,12 +1,19 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { appConfig } from '../config';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 import fs from 'fs';
 
-async function clearQueue() {
-  const dbPath = path.join(appConfig.queueDir, 'queue.db');
+async function clearQueue(options?: { repoName?: string }) {
+  const logger = options?.repoName 
+    ? createLogger({ name: options.repoName, branch: 'unknown' })
+    : createLogger();
+
+  const queueDir = options?.repoName 
+    ? path.join(appConfig.queueBaseDir, options.repoName)
+    : appConfig.queueDir;
+  const dbPath = path.join(queueDir, 'queue.db');
 
   if (!fs.existsSync(dbPath)) {
     logger.info('Queue database does not exist. Nothing to clear.');
@@ -41,4 +48,10 @@ async function clearQueue() {
 
 export const clearQueueCommand = new Command('queue:clear')
     .description('Deletes all documents from the queue')
+    .addOption(
+      new Option(
+        '--repo-name <repoName>',
+        'Optional: The name of the repository to clear. If not provided, clears the default queue.'
+      )
+    )
     .action(clearQueue);

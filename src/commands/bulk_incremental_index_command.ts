@@ -5,6 +5,7 @@ import { worker } from './worker_command';
 import { appConfig } from '../config';
 import { logger } from '../utils/logger';
 import path from 'path';
+import simpleGit from 'simple-git';
 
 async function startProducer(repoConfigs: string[], concurrency: number) {
   logger.info('Starting multi-repository producer service...');
@@ -23,6 +24,15 @@ async function startProducer(repoConfigs: string[], concurrency: number) {
     const repoName = path.basename(repoPath);
     const queueDir = path.join(appConfig.queueBaseDir, repoName);
 
+    // Extract git branch from the repository path
+    let gitBranch = 'unknown';
+    try {
+      const git = simpleGit(repoPath);
+      gitBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
+    } catch {
+      logger.warn(`Could not extract git branch for ${repoName}. Using 'unknown'.`);
+    }
+
     logger.info(`--- Processing repository: ${repoName} ---`);
 
     const options = {
@@ -30,6 +40,7 @@ async function startProducer(repoConfigs: string[], concurrency: number) {
       elasticsearchIndex: esIndex,
       token,
       repoName,
+      branch: gitBranch,
     };
 
     try {

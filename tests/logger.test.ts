@@ -179,6 +179,41 @@ describe('Logger', () => {
     });
   });
 
+  describe('repository context', () => {
+    beforeEach(() => {
+      process.env.NODE_ENV = 'test';
+      process.env.OTEL_LOGGING_ENABLED = 'false';
+    });
+
+    it('allows creating a logger with repository name and branch', () => {
+      expect(() => {
+        const repoLogger = createLogger({ name: 'kibana', branch: 'main' });
+        repoLogger.info('test message');
+      }).not.toThrow();
+    });
+
+    it('allows creating a logger without repository context', () => {
+      expect(() => {
+        const defaultLogger = createLogger();
+        defaultLogger.info('test message');
+      }).not.toThrow();
+    });
+
+    it('creates a logger that has all required methods', () => {
+      const repoLogger = createLogger({ name: 'elasticsearch', branch: 'feature-branch' });
+      
+      expect(repoLogger.info).toBeDefined();
+      expect(repoLogger.warn).toBeDefined();
+      expect(repoLogger.error).toBeDefined();
+      expect(repoLogger.debug).toBeDefined();
+      
+      expect(typeof repoLogger.info).toBe('function');
+      expect(typeof repoLogger.warn).toBe('function');
+      expect(typeof repoLogger.error).toBe('function');
+      expect(typeof repoLogger.debug).toBe('function');
+    });
+  });
+
   describe('OpenTelemetry integration', () => {
     describe('when OTEL is disabled', () => {
       beforeEach(() => {

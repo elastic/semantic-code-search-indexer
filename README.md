@@ -321,13 +321,12 @@ The following resource attributes are automatically attached to all logs:
 - `service.version`: Version from package.json
 - `deployment.environment`: From `NODE_ENV`
 - `host.name`, `host.arch`, `host.type`, `os.type`: Host information
-- `git.indexer.branch`, `git.indexer.remote.url`, `git.indexer.root.path`: Git information about the indexer itself
 
 ### Log Attributes
 
 Each log entry includes attributes based on context:
-- `repo.name`: Repository being indexed
-- `repo.branch`: Branch being indexed
+- `repo.name`: Repository being indexed (when repository context is available)
+- `repo.branch`: Branch being indexed (when repository context is available)
 - Custom metadata passed to logging calls
 
 ### Example OpenTelemetry Collector Configuration

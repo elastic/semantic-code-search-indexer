@@ -90,4 +90,39 @@ describe('OTel Provider', () => {
     const { shutdown } = await import('../src/utils/otel_provider');
     await expect(shutdown()).resolves.not.toThrow();
   });
+
+  it('should not include git.indexer.* resource attributes', async () => {
+    process.env.OTEL_LOGGING_ENABLED = 'true';
+    const { getLoggerProvider } = await import('../src/utils/otel_provider');
+    const provider = getLoggerProvider();
+    expect(provider).not.toBeNull();
+    
+    // Access the resource attributes through the provider's _sharedState
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const resource = (provider as any)._sharedState.resource;
+    const attributes = resource.attributes;
+    
+    // Verify git.indexer.* attributes are NOT present
+    expect(attributes['git.indexer.branch']).toBeUndefined();
+    expect(attributes['git.indexer.remote.url']).toBeUndefined();
+    expect(attributes['git.indexer.root.path']).toBeUndefined();
+  });
+
+  it('should still include standard resource attributes', async () => {
+    process.env.OTEL_LOGGING_ENABLED = 'true';
+    process.env.OTEL_SERVICE_NAME = 'test-service';
+    const { getLoggerProvider } = await import('../src/utils/otel_provider');
+    const provider = getLoggerProvider();
+    expect(provider).not.toBeNull();
+    
+    // Access the resource attributes through the provider's _sharedState
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const resource = (provider as any)._sharedState.resource;
+    const attributes = resource.attributes;
+    
+    // Verify standard attributes are still present
+    expect(attributes['service.name']).toBeDefined();
+    expect(attributes['host.name']).toBeDefined();
+    expect(attributes['host.arch']).toBeDefined();
+  });
 });

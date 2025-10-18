@@ -1,7 +1,7 @@
 import { Command, Option } from 'commander';
 import path from 'path';
 import Database from 'better-sqlite3';
-import { logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 import { appConfig } from '../config';
 
 export const retryFailedCommand = new Command('queue:retry-failed')
@@ -14,6 +14,7 @@ export const retryFailedCommand = new Command('queue:retry-failed')
   )
   .action(async (options) => {
     const { repoName } = options;
+    const logger = createLogger({ name: repoName, branch: 'unknown' });
     const queueDir = path.join(appConfig.queueBaseDir, repoName);
     const dbPath = path.join(queueDir, 'queue.db');
 

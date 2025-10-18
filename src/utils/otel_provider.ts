@@ -7,8 +7,6 @@ import {
   ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions';
 import { otelConfig } from '../config';
-import { findProjectRoot } from './find_project_root';
-import { execSync } from 'child_process';
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
@@ -25,22 +23,7 @@ const {
 
 let loggerProvider: LoggerProvider | null = null;
 
-/**
- * Retrieves git repository information for the current project.
- * 
- * @returns An object containing branch name, remote URL, and root path, or null if git info cannot be retrieved.
- */
-function getGitInfo(): { branch: string; remoteUrl: string; rootPath: string } | null {
-  try {
-    const rootPath = findProjectRoot(process.cwd()) || process.cwd();
-    const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: rootPath }).toString().trim();
-    const remoteUrl = execSync('git config --get remote.origin.url', { cwd: rootPath }).toString().trim();
-    return { branch, remoteUrl, rootPath };
-  } catch (error) {
-    console.error('Could not get git info', error);
-    return null;
-  }
-}
+
 
 /**
  * Retrieves the service version from package.json.
@@ -49,8 +32,7 @@ function getGitInfo(): { branch: string; remoteUrl: string; rootPath: string } |
  */
 function getServiceVersion(): string {
   try {
-    const rootPath = findProjectRoot(process.cwd()) || process.cwd();
-    const packageJsonPath = path.join(rootPath, 'package.json');
+    const packageJsonPath = path.join(process.cwd(), 'package.json');
     if (fs.existsSync(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
       return packageJson.version || '1.0.0';
@@ -88,7 +70,7 @@ function parseHeaders(headersString: string): Record<string, string> {
  * Gets or creates the singleton OpenTelemetry LoggerProvider instance.
  * 
  * Creates a LoggerProvider configured with:
- * - Resource attributes (service info, host info, git info)
+ * - Resource attributes (service info, host info)
  * - OTLP HTTP exporter for sending logs to a collector
  * - Batch log record processor for efficient transmission
  * 
@@ -103,7 +85,6 @@ export function getLoggerProvider(): LoggerProvider | null {
     return loggerProvider;
   }
 
-  const gitInfo = getGitInfo();
   const serviceVersion = getServiceVersion();
 
   const resourceAttributes: Record<string, string | number> = {
@@ -115,12 +96,6 @@ export function getLoggerProvider(): LoggerProvider | null {
     [ATTR_HOST_TYPE]: os.type(),
     [ATTR_OS_TYPE]: os.platform(),
   };
-
-  if (gitInfo) {
-    resourceAttributes['git.indexer.branch'] = gitInfo.branch;
-    resourceAttributes['git.indexer.remote.url'] = gitInfo.remoteUrl;
-    resourceAttributes['git.indexer.root.path'] = gitInfo.rootPath;
-  }
 
   const resource = new Resource(resourceAttributes);
 
