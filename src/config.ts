@@ -3,7 +3,8 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-dotenv.config({ quiet: true });
+// Don't override existing environment variables (important for tests)
+dotenv.config({ quiet: true, override: false });
 
 // Helper to find the project root by looking for package.json
 function findProjectRoot(startPath: string): string {

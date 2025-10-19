@@ -126,5 +126,6 @@ export function getLoggerProvider(): LoggerProvider | null {
 export async function shutdown(): Promise<void> {
   if (loggerProvider) {
     await loggerProvider.shutdown();
+    loggerProvider = null;
   }
 }
