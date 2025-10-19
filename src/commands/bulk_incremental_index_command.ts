@@ -4,6 +4,7 @@ import { incrementalIndex } from './incremental_index_command';
 import { worker } from './worker_command';
 import { appConfig } from '../config';
 import { logger } from '../utils/logger';
+import { shutdown } from '../utils/otel_provider';
 import path from 'path';
 import simpleGit from 'simple-git';
 
@@ -58,6 +59,9 @@ async function startProducer(repoConfigs: string[], concurrency: number) {
   }
 
   logger.info('All repositories processed. Producer service finished.');
+  
+  // Flush OpenTelemetry logs before exiting
+  await shutdown();
 }
 
 export const bulkIncrementalIndexCommand = new Command('bulk:incremental-index')
@@ -66,5 +70,11 @@ export const bulkIncrementalIndexCommand = new Command('bulk:incremental-index')
   .option('--concurrency <number>', 'Number of parallel workers to run per repository', '1')
   .action(async (repoConfigs, options) => {
     const concurrency = parseInt(options.concurrency, 10);
-    await startProducer(repoConfigs, concurrency);
+    try {
+      await startProducer(repoConfigs, concurrency);
+    } catch (error) {
+      logger.error('Fatal error in bulk incremental index command', { error });
+      await shutdown();
+      throw error;
+    }
   });
