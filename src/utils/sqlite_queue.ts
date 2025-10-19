@@ -8,7 +8,7 @@ import { logger, createLogger } from './logger';
 export const MAX_RETRIES = 3;
 const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
-interface SqliteQueueOptions {
+export interface SqliteQueueOptions {
   dbPath: string;
   repoName?: string;
   branch?: string;
