@@ -3,20 +3,31 @@ import fs from 'fs';
 import Database from 'better-sqlite3';
 import { IQueue, QueuedDocument } from './queue';
 import { CodeChunk } from './elasticsearch';
-import { logger } from './logger';
+import { logger, createLogger } from './logger';
 
 export const MAX_RETRIES = 3;
 const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
+export interface SqliteQueueOptions {
+  dbPath: string;
+  repoName?: string;
+  branch?: string;
+}
+
 export class SqliteQueue implements IQueue {
   private db: Database.Database;
+  private logger: ReturnType<typeof createLogger>;
 
-  constructor(dbPath: string) {
+  constructor(options: SqliteQueueOptions) {
+    const { dbPath, repoName, branch } = options;
     const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
     this.db = new Database(dbPath);
+    this.logger = repoName && branch 
+      ? createLogger({ name: repoName, branch })
+      : logger;
   }
 
   async initialize(): Promise<void> {
@@ -50,7 +61,7 @@ export class SqliteQueue implements IQueue {
       }
     });
     transaction(documents);
-    logger.info(`Enqueued batch of ${documents.length} documents with batch_id: ${batchId}`);
+    this.logger.info(`Enqueued batch of ${documents.length} documents with batch_id: ${batchId}`);
   }
 
   async dequeue(count: number): Promise<QueuedDocument[]> {
@@ -90,7 +101,7 @@ export class SqliteQueue implements IQueue {
       `DELETE FROM queue WHERE id IN (${ids.map(() => '?').join(',')})`
     );
     const result = deleteStmt.run(...ids);
-    logger.info(`Committed and deleted ${result.changes} documents.`);
+    this.logger.info(`Committed and deleted ${result.changes} documents.`);
   }
 
   async requeue(documents: QueuedDocument[]): Promise<void> {
@@ -120,7 +131,7 @@ export class SqliteQueue implements IQueue {
             `UPDATE queue SET status = 'pending', retry_count = retry_count + 1, processing_started_at = NULL WHERE id IN (${toRequeue.map(() => '?').join(',')})`
         );
         requeueStmt.run(...toRequeue);
-        logger.warn(`Requeued ${toRequeue.length} documents.`);
+        this.logger.warn(`Requeued ${toRequeue.length} documents.`);
     }
 
     if (toFail.length > 0) {
@@ -128,7 +139,7 @@ export class SqliteQueue implements IQueue {
             `UPDATE queue SET status = 'failed' WHERE id IN (${toFail.map(() => '?').join(',')})`
         );
         failStmt.run(...toFail);
-        logger.error(`Moved ${toFail.length} documents to failed status after ${MAX_RETRIES} retries.`);
+        this.logger.error(`Moved ${toFail.length} documents to failed status after ${MAX_RETRIES} retries.`);
     }
   }
 
@@ -142,7 +153,7 @@ export class SqliteQueue implements IQueue {
 
     if (staleTasks.length > 0) {
         const ids = staleTasks.map(t => t.id);
-        logger.warn(`Found ${ids.length} stale tasks. Re-queueing...`);
+        this.logger.warn(`Found ${ids.length} stale tasks. Re-queueing...`);
         
         const documentsToRequeue: QueuedDocument[] = staleTasks.map(t => ({
             id: `stale_${t.id}`,

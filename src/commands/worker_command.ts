@@ -17,7 +17,11 @@ export async function worker(concurrency: number = 1, watch: boolean = false, op
   logger.info('Starting indexer worker process', { concurrency, ...options });
 
   const queuePath = options?.queueDir ? path.join(options.queueDir, 'queue.db') : path.join(appConfig.queueDir, 'queue.db');
-  const queue = new SqliteQueue(queuePath);
+  const queue = new SqliteQueue({
+    dbPath: queuePath,
+    repoName: options?.repoName,
+    branch: options?.branch,
+  });
   await queue.initialize();
 
   const indexerWorker = new IndexerWorker(queue, indexingConfig.batchSize, concurrency, watch, logger, options?.elasticsearchIndex);

@@ -25,10 +25,14 @@ interface IncrementalIndexOptions {
   branch?: string;
 }
 
-async function getQueue(options?: IncrementalIndexOptions): Promise<IQueue> {
+async function getQueue(options?: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
   const queueDir = options?.queueDir ?? appConfig.queueDir;
   const queuePath = path.join(queueDir, 'queue.db');
-  const queue = new SqliteQueue(queuePath);
+  const queue = new SqliteQueue({
+    dbPath: queuePath,
+    repoName,
+    branch,
+  });
   await queue.initialize();
   return queue;
 }
@@ -142,7 +146,7 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
     let failureCount = 0;
     const { cpuCores } = indexingConfig;
     const producerQueue = new PQueue({ concurrency: cpuCores });
-    const workQueue: IQueue = await getQueue(options);
+    const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
 
     const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 

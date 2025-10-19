@@ -31,7 +31,7 @@ describe('SqliteQueue Scalability', () => {
       fs.rmSync(queueDir, { recursive: true, force: true });
     }
     fs.mkdirSync(queueDir, { recursive: true });
-    queue = new SqliteQueue(dbPath);
+    queue = new SqliteQueue({ dbPath });
     await queue.initialize();
   });
 
