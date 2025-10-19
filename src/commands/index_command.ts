@@ -26,10 +26,14 @@ interface IndexOptions {
   branch?: string;
 }
 
-async function getQueue(options?: IndexOptions): Promise<IQueue> {
+async function getQueue(options?: IndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
   const queueDir = options?.queueDir ?? appConfig.queueDir;
   const queueDbPath = path.join(queueDir, 'queue.db');
-  const queue = new SqliteQueue(queueDbPath);
+  const queue = new SqliteQueue({
+    dbPath: queueDbPath,
+    repoName,
+    branch,
+  });
   await queue.initialize();
   return queue;
 }
@@ -80,7 +84,7 @@ export async function index(directory: string, clean: boolean, options?: IndexOp
   const { cpuCores } = indexingConfig;
   const producerQueue = new PQueue({ concurrency: cpuCores });
   
-  const workQueue: IQueue = await getQueue(options);
+  const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
 
   const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 

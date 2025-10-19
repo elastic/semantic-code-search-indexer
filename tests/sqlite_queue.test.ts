@@ -49,7 +49,7 @@ describe('SqliteQueue', () => {
       fs.rmSync(queueDir, { recursive: true, force: true });
     }
     fs.mkdirSync(queueDir, { recursive: true });
-    queue = new SqliteQueue(dbPath);
+    queue = new SqliteQueue({ dbPath });
     await queue.initialize();
   });
 
@@ -105,5 +105,33 @@ describe('SqliteQueue', () => {
 
     const requeued = await queue.dequeue(2);
     expect(requeued.length).toBe(2);
+  });
+
+  it('should create a queue with repository context', async () => {
+    const contextQueue = new SqliteQueue({
+      dbPath: path.join(queueDir, 'context-queue.db'),
+      repoName: 'test-repo',
+      branch: 'main',
+    });
+    await contextQueue.initialize();
+    
+    // Verify queue operations work correctly with context
+    await contextQueue.enqueue([MOCK_CHUNK_1]);
+    const dequeued = await contextQueue.dequeue(1);
+    expect(dequeued.length).toBe(1);
+    
+    contextQueue.close();
+  });
+
+  it('should create a queue without repository context (backward compatibility)', async () => {
+    const noContextQueue = new SqliteQueue({ dbPath: path.join(queueDir, 'no-context-queue.db') });
+    await noContextQueue.initialize();
+    
+    // Verify queue operations work correctly without context
+    await noContextQueue.enqueue([MOCK_CHUNK_1]);
+    const dequeued = await noContextQueue.dequeue(1);
+    expect(dequeued.length).toBe(1);
+    
+    noContextQueue.close();
   });
 });
