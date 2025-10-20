@@ -399,6 +399,11 @@ A complete example collector configuration is provided in [`docs/otel-collector-
 - Exports logs to `logs-semanticcode.otel-default` index
 - Exports metrics to `metrics-semanticcode.otel-default` index
 - Supports authentication to Elasticsearch
+- **Configured with `mapping: mode: otel`** for proper histogram support (requires Elasticsearch 8.12+)
+
+**Important:** The indexer configures metrics with **Delta temporality**, which is required by the Elasticsearch exporter for histogram metrics. Without this configuration, histograms (`parser.chunks.size`, `indexer.batch.duration`, `indexer.batch.size`) will be silently dropped.
+
+**Note on Histogram Visibility:** OpenTelemetry histogram metrics are stored as complex nested structures in Elasticsearch and may not appear in Kibana's field list or be easily queryable via ES|QL. This is a known limitation of Kibana's histogram support. Histograms are still indexed and can be accessed via direct Elasticsearch queries or specialized visualizations.
 
 To use the example configuration:
 

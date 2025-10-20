@@ -25,8 +25,8 @@ describe('LanguageParser', () => {
 
   it('should parse TypeScript usage fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/usage.ts');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/usage.ts');
-    const allSymbols = chunks.flatMap(chunk => chunk.symbols);
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/usage.ts');
+    const allSymbols = result.chunks.flatMap(chunk => chunk.symbols);
     expect(allSymbols).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'sayHello', kind: 'function.name' }),
@@ -44,62 +44,62 @@ describe('LanguageParser', () => {
 
   it('should parse JavaScript fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/javascript.js');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/javascript.js');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/javascript.js');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Markdown fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse YAML fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Java fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/java.java');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Go fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/go.go');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/go.go');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/go.go');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Python fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/python.py');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/python.py');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python.py');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse JSON fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/json.json');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Gradle fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/gradle.gradle');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/gradle.gradle');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/gradle.gradle');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Properties fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/properties.properties');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should extract symbols from Properties fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/properties.properties');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
-    const allSymbols = chunks.flatMap(chunk => chunk.symbols);
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
+    const allSymbols = result.chunks.flatMap(chunk => chunk.symbols);
     expect(allSymbols).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'key', kind: 'property.key' }),
@@ -110,8 +110,8 @@ describe('LanguageParser', () => {
 
   it('should parse Text fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/text.txt');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
-    expect(cleanTimestamps(chunks)).toMatchSnapshot();
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should filter out chunks larger than maxChunkSizeBytes', () => {
@@ -120,11 +120,11 @@ describe('LanguageParser', () => {
     indexingConfig.maxChunkSizeBytes = 50;
 
     try {
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
       // With the new chunking approach, JSON is split by properties
       // The small_chunk should pass, but large_chunk should be filtered out
-      expect(chunks.length).toBe(1);
-      expect(chunks[0].content).toContain('small_chunk');
+      expect(result.chunks.length).toBe(1);
+      expect(result.chunks[0].content).toContain('small_chunk');
     } finally {
       indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
     }
@@ -132,12 +132,12 @@ describe('LanguageParser', () => {
 
   it('should extract directory information correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
-    const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
     
-    expect(chunks.length).toBeGreaterThan(0);
+    expect(result.chunks.length).toBeGreaterThan(0);
     
     // All chunks should have directory information
-    chunks.forEach(chunk => {
+    result.chunks.forEach(chunk => {
       expect(chunk.directoryPath).toBe('tests/fixtures');
       expect(chunk.directoryName).toBe('fixtures');
       expect(chunk.directoryDepth).toBe(2);
@@ -146,12 +146,12 @@ describe('LanguageParser', () => {
 
   it('should handle root-level files correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
-    const chunks = parser.parseFile(filePath, 'main', 'typescript.ts');
+    const result = parser.parseFile(filePath, 'main', 'typescript.ts');
     
-    expect(chunks.length).toBeGreaterThan(0);
+    expect(result.chunks.length).toBeGreaterThan(0);
     
     // Root-level files should have empty directory path and depth 0
-    chunks.forEach(chunk => {
+    result.chunks.forEach(chunk => {
       expect(chunk.directoryPath).toBe('');
       expect(chunk.directoryName).toBe('');
       expect(chunk.directoryDepth).toBe(0);
@@ -160,12 +160,12 @@ describe('LanguageParser', () => {
 
   it('should handle nested directory paths correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
-    const chunks = parser.parseFile(filePath, 'main', 'src/utils/helpers/typescript.ts');
+    const result = parser.parseFile(filePath, 'main', 'src/utils/helpers/typescript.ts');
     
-    expect(chunks.length).toBeGreaterThan(0);
+    expect(result.chunks.length).toBeGreaterThan(0);
     
     // Nested files should have correct directory information
-    chunks.forEach(chunk => {
+    result.chunks.forEach(chunk => {
       expect(chunk.directoryPath).toBe('src/utils/helpers');
       expect(chunk.directoryName).toBe('helpers');
       expect(chunk.directoryDepth).toBe(3);
@@ -175,44 +175,44 @@ describe('LanguageParser', () => {
   describe('Line Number Calculation', () => {
     it('should calculate correct line numbers for Markdown files', () => {
       const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
       
       // First chunk should start at line 1 (heading)
-      expect(chunks[0].startLine).toBe(1);
-      expect(chunks[0].endLine).toBe(1);
+      expect(result.chunks[0].startLine).toBe(1);
+      expect(result.chunks[0].endLine).toBe(1);
       
       // Second chunk should start at line 3 (paragraph after empty line)
-      expect(chunks[1].startLine).toBe(3);
-      expect(chunks[1].endLine).toBe(3);
+      expect(result.chunks[1].startLine).toBe(3);
+      expect(result.chunks[1].endLine).toBe(3);
       
       // Third chunk should start at line 5 (heading)
-      expect(chunks[2].startLine).toBe(5);
-      expect(chunks[2].endLine).toBe(5);
+      expect(result.chunks[2].startLine).toBe(5);
+      expect(result.chunks[2].endLine).toBe(5);
       
       // Fourth chunk should start at line 7 (paragraph)
-      expect(chunks[3].startLine).toBe(7);
-      expect(chunks[3].endLine).toBe(8); // Includes the newline
+      expect(result.chunks[3].startLine).toBe(7);
+      expect(result.chunks[3].endLine).toBe(8); // Includes the newline
     });
 
     it('should calculate correct line numbers for YAML multi-document files', () => {
       const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
       
       // First document chunks
-      expect(chunks[0].startLine).toBe(1); // "document: one"
-      expect(chunks[0].endLine).toBe(1);
-      expect(chunks[1].startLine).toBe(2); // "pair:"
-      expect(chunks[1].endLine).toBe(2);
-      expect(chunks[2].startLine).toBe(3); // "  key: value"
-      expect(chunks[2].endLine).toBe(3);
+      expect(result.chunks[0].startLine).toBe(1); // "document: one"
+      expect(result.chunks[0].endLine).toBe(1);
+      expect(result.chunks[1].startLine).toBe(2); // "pair:"
+      expect(result.chunks[1].endLine).toBe(2);
+      expect(result.chunks[2].startLine).toBe(3); // "  key: value"
+      expect(result.chunks[2].endLine).toBe(3);
       
       // Second document chunks (after --- separator)
-      expect(chunks[3].startLine).toBe(5); // "document: two"
-      expect(chunks[3].endLine).toBe(5);
-      expect(chunks[4].startLine).toBe(6); // "another_pair:"
-      expect(chunks[4].endLine).toBe(6);
-      expect(chunks[5].startLine).toBe(7); // "  nested_key: nested_value"
-      expect(chunks[5].endLine).toBe(7);
+      expect(result.chunks[3].startLine).toBe(5); // "document: two"
+      expect(result.chunks[3].endLine).toBe(5);
+      expect(result.chunks[4].startLine).toBe(6); // "another_pair:"
+      expect(result.chunks[4].endLine).toBe(6);
+      expect(result.chunks[5].startLine).toBe(7); // "  nested_key: nested_value"
+      expect(result.chunks[5].endLine).toBe(7);
     });
 
     it('should handle duplicate content correctly in line number calculation', () => {
@@ -229,26 +229,26 @@ Third paragraph`;
       fs.writeFileSync(testFilePath, testContent);
       
       try {
-        const chunks = parser.parseFile(testFilePath, 'main', 'tests/fixtures/duplicate_test.txt');
+        const result = parser.parseFile(testFilePath, 'main', 'tests/fixtures/duplicate_test.txt');
         
         // Should have 4 chunks
-        expect(chunks.length).toBe(4);
+        expect(result.chunks.length).toBe(4);
         
         // First occurrence of "First paragraph" should be at line 1
-        expect(chunks[0].startLine).toBe(1);
-        expect(chunks[0].content).toBe('First paragraph');
+        expect(result.chunks[0].startLine).toBe(1);
+        expect(result.chunks[0].content).toBe('First paragraph');
         
         // "Second paragraph" should be at line 3
-        expect(chunks[1].startLine).toBe(3);
-        expect(chunks[1].content).toBe('Second paragraph');
+        expect(result.chunks[1].startLine).toBe(3);
+        expect(result.chunks[1].content).toBe('Second paragraph');
         
         // Second occurrence of "First paragraph" should be at line 5
-        expect(chunks[2].startLine).toBe(5);
-        expect(chunks[2].content).toBe('First paragraph');
+        expect(result.chunks[2].startLine).toBe(5);
+        expect(result.chunks[2].content).toBe('First paragraph');
         
         // "Third paragraph" should be at line 7
-        expect(chunks[3].startLine).toBe(7);
-        expect(chunks[3].content).toBe('Third paragraph');
+        expect(result.chunks[3].startLine).toBe(7);
+        expect(result.chunks[3].content).toBe('Third paragraph');
       } finally {
         // Clean up test file
         if (fs.existsSync(testFilePath)) {
@@ -259,63 +259,63 @@ Third paragraph`;
 
     it('should calculate correct line numbers for JSON files', () => {
       const filePath = path.resolve(__dirname, 'fixtures/json.json');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
       
       // Verify that JSON chunks have correct line numbers matching their position in the file
-      expect(chunks.length).toBe(10);
+      expect(result.chunks.length).toBe(10);
       
       // Check first few chunks to verify line numbers are correct
-      expect(chunks[0].content).toContain('"name"');
-      expect(chunks[0].startLine).toBe(2); // "name" is on line 2
+      expect(result.chunks[0].content).toContain('"name"');
+      expect(result.chunks[0].startLine).toBe(2); // "name" is on line 2
       
-      expect(chunks[1].content).toContain('"version"');
-      expect(chunks[1].startLine).toBe(3); // "version" is on line 3
+      expect(result.chunks[1].content).toContain('"version"');
+      expect(result.chunks[1].startLine).toBe(3); // "version" is on line 3
       
-      expect(chunks[2].content).toContain('"description"');
-      expect(chunks[2].startLine).toBe(4); // "description" is on line 4
+      expect(result.chunks[2].content).toContain('"description"');
+      expect(result.chunks[2].startLine).toBe(4); // "description" is on line 4
       
-      expect(chunks[3].content).toContain('"main"');
-      expect(chunks[3].startLine).toBe(5); // "main" is on line 5
+      expect(result.chunks[3].content).toContain('"main"');
+      expect(result.chunks[3].startLine).toBe(5); // "main" is on line 5
       
-      expect(chunks[4].content).toContain('"scripts"');
-      expect(chunks[4].startLine).toBe(6); // "scripts" is on line 6
+      expect(result.chunks[4].content).toContain('"scripts"');
+      expect(result.chunks[4].startLine).toBe(6); // "scripts" is on line 6
     });
 
     it('should calculate correct line numbers for text files', () => {
       const filePath = path.resolve(__dirname, 'fixtures/text.txt');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
       
       // Single line text file
-      expect(chunks.length).toBe(1);
-      expect(chunks[0].startLine).toBe(1);
-      expect(chunks[0].endLine).toBe(1);
+      expect(result.chunks.length).toBe(1);
+      expect(result.chunks[0].startLine).toBe(1);
+      expect(result.chunks[0].endLine).toBe(1);
     });
 
     it('should calculate correct line numbers for repeated paragraphs', () => {
       const filePath = path.resolve(__dirname, 'fixtures/repeated_paragraphs.txt');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/repeated_paragraphs.txt');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/repeated_paragraphs.txt');
 
-      expect(chunks).toHaveLength(3);
-      expect(chunks[0].content).toBe('Repeat me');
-      expect(chunks[0].startLine).toBe(1);
-      expect(chunks[0].endLine).toBe(1);
+      expect(result.chunks).toHaveLength(3);
+      expect(result.chunks[0].content).toBe('Repeat me');
+      expect(result.chunks[0].startLine).toBe(1);
+      expect(result.chunks[0].endLine).toBe(1);
 
-      expect(chunks[1].content).toBe('Repeat me');
-      expect(chunks[1].startLine).toBe(3);
-      expect(chunks[1].endLine).toBe(3);
+      expect(result.chunks[1].content).toBe('Repeat me');
+      expect(result.chunks[1].startLine).toBe(3);
+      expect(result.chunks[1].endLine).toBe(3);
 
-      expect(chunks[2].content).toBe('Repeat me');
-      expect(chunks[2].startLine).toBe(5);
-      expect(chunks[2].endLine).toBe(5);
+      expect(result.chunks[2].content).toBe('Repeat me');
+      expect(result.chunks[2].startLine).toBe(5);
+      expect(result.chunks[2].endLine).toBe(5);
     });
   });
 
   describe('Export Detection', () => {
     it('should extract TypeScript exports correctly', () => {
       const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
       
-      const allExports = chunks.flatMap(chunk => chunk.exports || []);
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
       
       // Check that we have the expected exports
       expect(allExports).toEqual(
@@ -332,9 +332,9 @@ Third paragraph`;
 
     it('should extract JavaScript exports correctly', () => {
       const filePath = path.resolve(__dirname, 'fixtures/javascript.js');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/javascript.js');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/javascript.js');
       
-      const allExports = chunks.flatMap(chunk => chunk.exports || []);
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
       
       // Check that we have the expected exports
       expect(allExports).toEqual(
@@ -349,9 +349,9 @@ Third paragraph`;
 
     it('should extract Python exports correctly', () => {
       const filePath = path.resolve(__dirname, 'fixtures/python.py');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/python.py');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python.py');
       
-      const allExports = chunks.flatMap(chunk => chunk.exports || []);
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
       
       // Python should export top-level functions, classes, and uppercase constants
       expect(allExports).toEqual(
@@ -365,9 +365,9 @@ Third paragraph`;
 
     it('should extract Java public exports correctly', () => {
       const filePath = path.resolve(__dirname, 'fixtures/java.java');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
       
-      const allExports = chunks.flatMap(chunk => chunk.exports || []);
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
       
       // Java should export public declarations
       expect(allExports).toEqual(
@@ -387,9 +387,9 @@ Third paragraph`;
 
     it('should extract Go capitalized exports correctly', () => {
       const filePath = path.resolve(__dirname, 'fixtures/go.go');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/go.go');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/go.go');
       
-      const allExports = chunks.flatMap(chunk => chunk.exports || []);
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
       
       // Go should export capitalized identifiers
       expect(allExports).toEqual(
@@ -410,9 +410,9 @@ Third paragraph`;
 
     it('should handle re-exports and mixed export styles', () => {
       const filePath = path.resolve(__dirname, 'fixtures/exports_edge_cases.ts');
-      const chunks = parser.parseFile(filePath, 'main', 'tests/fixtures/exports_edge_cases.ts');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/exports_edge_cases.ts');
       
-      const allExports = chunks.flatMap(chunk => chunk.exports || []);
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
       
       // Should capture re-exports with aliasing (captures the alias)
       expect(allExports).toEqual(

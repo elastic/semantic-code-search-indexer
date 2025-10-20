@@ -89,6 +89,22 @@ exporters:
     metrics_dynamic_index:
       enabled: false
     
+    # Mapping mode for metrics
+    # NOTE: For Elasticsearch 9.x, must use 'otel' mode
+    # - 'otel' mode (ES 8.12+): Required for metrics support
+    # - 'ecs' mode (ES 7.17-8.11): For older Elasticsearch versions
+    # - 'raw' mode: Does NOT support metrics (logs/traces only)
+    mapping:
+      mode: otel
+      # Deduplication settings for histograms
+      dedup: true
+      dedot: false
+    
+    # Flush settings to ensure data is sent
+    flush:
+      interval: 5s
+      bytes: 5242880
+    
     # Retry configuration
     retry_on_failure:
       enabled: true
@@ -118,6 +134,13 @@ service:
   # Uncomment if using basic auth:
   # extensions: [basicauth/elasticsearch, health_check]
   
+  # Telemetry configuration for the collector itself
+  telemetry:
+    logs:
+      level: info
+      # Use 'debug' for detailed troubleshooting
+      # level: debug
+  
   pipelines:
     # Logs pipeline
     logs:
@@ -132,7 +155,7 @@ service:
       receivers: [otlp]
       processors: [resourcedetection, attributes, batch]
       exporters: [elasticsearch/metrics]
-      # Add debug exporter for troubleshooting:
+      # Add debug exporter for troubleshooting histograms:
       # exporters: [elasticsearch/metrics, debug]
 
 # Environment variable examples:
@@ -146,6 +169,54 @@ service:
 #
 # Or for Elastic Cloud:
 # export ELASTICSEARCH_CLOUD_ID="deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvJDEyMzQ1Njc4OTBhYmNkZWYxMjM0NTY3ODkwYWJjZGVmJDEyMzQ1Njc4OTBhYmNkZWYxMjM0NTY3ODkwYWJjZGVm"
+#
+# IMPORTANT: HISTOGRAM TEMPORALITY AND MAPPING MODE
+#
+# The Elasticsearch exporter ONLY supports Delta temporality for histograms.
+# The application code configures the OTLP exporter with:
+#   temporalityPreference: AggregationTemporality.DELTA
+#
+# TROUBLESHOOTING HISTOGRAMS:
+#
+# If histograms (parser.chunks.size, indexer.batch.duration, indexer.batch.size) 
+# are not appearing in Elasticsearch 9.x:
+#
+# 1. Verify Delta temporality is configured in the application:
+#    - Check src/utils/otel_provider.ts for temporalityPreference: DELTA
+#    - Without this, histograms will be silently dropped by the ES exporter
+#    - Enable debug exporter to verify: exporters: [elasticsearch/metrics, debug]
+#    - Look for "AggregationTemporality: Delta" in collector logs
+#
+# 2. Try different mapping modes (current: raw):
+#    - 'raw' mode: Stores histograms as nested JSON objects (most compatible)
+#    - 'otel' mode: Native OTel types (may have histogram indexing issues in ES 9.x)
+#    - 'ecs' mode: ECS schema (limited histogram support)
+#
+# 3. Check if histogram documents are being indexed:
+#    GET metrics-semanticcode.otel-default/_search
+#    {
+#      "query": { "term": { "name": "indexer.batch.size" } },
+#      "size": 1
+#    }
+#
+# 4. Check the actual document structure:
+#    GET metrics-semanticcode.otel-default/_search
+#    {
+#      "query": { "wildcard": { "name": "*size*" } },
+#      "size": 1,
+#      "_source": true
+#    }
+#
+# 5. Check for indexing errors in Elasticsearch logs:
+#    - Look for mapping conflicts or rejected documents
+#    - Check: GET metrics-semanticcode.otel-default/_mapping
+#
+# 6. Known Limitation - Histogram Visibility:
+#    - OpenTelemetry histograms are stored as complex nested structures
+#    - They may not appear in Kibana's field list
+#    - ES|QL has limited support for querying histogram data structures
+#    - Histograms ARE indexed and can be accessed via direct ES queries
+#    - Use Kibana Lens or TSVB for histogram visualizations
 
 # Running the collector:
 #

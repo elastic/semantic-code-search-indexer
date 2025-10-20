@@ -1,7 +1,7 @@
 // src/utils/otel_provider.ts
 import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
-import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { MeterProvider, PeriodicExportingMetricReader, AggregationTemporality } from '@opentelemetry/sdk-metrics';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { Resource } from '@opentelemetry/resources';
 import {
@@ -154,6 +154,9 @@ export function getMeterProvider(): MeterProvider | null {
       ? otelConfig.metricsEndpoint
       : `${otelConfig.metricsEndpoint}/v1/metrics`,
     headers: parseHeaders(otelConfig.headers),
+    // Configure Delta temporality for Elasticsearch compatibility
+    // Elasticsearch exporter only supports Delta temporality for histograms
+    temporalityPreference: AggregationTemporality.DELTA,
   });
 
   const metricReader = new PeriodicExportingMetricReader({

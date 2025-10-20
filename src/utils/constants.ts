@@ -67,3 +67,20 @@ export const PARSER_TYPE_MARKDOWN = 'markdown';
 export const PARSER_TYPE_YAML = 'yaml';
 export const PARSER_TYPE_JSON = 'json';
 export const PARSER_TYPE_TEXT = 'text';
+
+/**
+ * Worker message status values.
+ */
+export const MESSAGE_STATUS_SUCCESS = 'success';
+export const MESSAGE_STATUS_FAILURE = 'failure';
+
+/**
+ * Metric status values.
+ */
+export const METRIC_STATUS_SUCCESS = 'success';
+export const METRIC_STATUS_FAILURE = 'failure';
+
+/**
+ * Default/fallback values.
+ */
+export const LANGUAGE_UNKNOWN = 'unknown';

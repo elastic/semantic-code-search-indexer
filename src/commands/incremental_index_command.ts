@@ -14,6 +14,14 @@ import { createLogger } from '../utils/logger';
 import { IQueue } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 import simpleGit from 'simple-git';
+import { createMetrics, createAttributes } from '../utils/metrics';
+import {
+  MESSAGE_STATUS_SUCCESS,
+  MESSAGE_STATUS_FAILURE,
+  METRIC_STATUS_SUCCESS,
+  METRIC_STATUS_FAILURE,
+  LANGUAGE_UNKNOWN,
+} from '../utils/constants';
 
 
 
@@ -44,6 +52,7 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
   const gitBranch = options?.branch ?? await git.revparse(['--abbrev-ref', 'HEAD']);
 
   const logger = createLogger({ name: repoName, branch: gitBranch });
+  const metrics = createMetrics({ name: repoName, branch: gitBranch });
 
   logger.info('Starting incremental indexing process (Producer)', { directory, ...options });
   await setupElser();
@@ -157,13 +166,53 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
         });
         const absolutePath = path.resolve(gitRoot, file);
         worker.on('message', async (message) => {
-          if (message.status === 'success') {
+          if (message.status === MESSAGE_STATUS_SUCCESS) {
             successCount++;
+            
+            // Record parser metrics from worker
+            if (message.metrics && metrics.parser) {
+              const attrs = createAttributes(metrics, {
+                language: message.metrics.language,
+                parser_type: message.metrics.parserType,
+              });
+              
+              if (message.metrics.filesProcessed > 0) {
+                metrics.parser.filesProcessed.add(message.metrics.filesProcessed, {
+                  ...attrs,
+                  status: METRIC_STATUS_SUCCESS,
+                });
+              }
+              
+              if (message.metrics.chunksCreated > 0) {
+                metrics.parser.chunksCreated.add(message.metrics.chunksCreated, attrs);
+              }
+              
+              if (message.metrics.chunksSkipped > 0) {
+                metrics.parser.chunksSkipped?.add(message.metrics.chunksSkipped, {
+                  ...attrs,
+                  size: 'oversized',
+                });
+              }
+              
+              message.metrics.chunkSizes.forEach((size: number) => {
+                metrics.parser?.chunkSize.record(size, attrs);
+              });
+            }
+            
             if (message.data.length > 0) {
               await workQueue.enqueue(message.data);
             }
-          } else if (message.status === 'failure') {
+          } else if (message.status === MESSAGE_STATUS_FAILURE) {
             failureCount++;
+            
+            // Record failure metric
+            if (message.metrics && metrics.parser && message.metrics.filesFailed > 0) {
+              metrics.parser.filesFailed.add(message.metrics.filesFailed, createAttributes(metrics, {
+                language: message.metrics.language || LANGUAGE_UNKNOWN,
+                status: METRIC_STATUS_FAILURE,
+              }));
+            }
+            
             logger.warn('Failed to parse file', { file: message.filePath, error: message.error });
           }
           worker.terminate();
