@@ -47,8 +47,15 @@ export function parseLanguageNames(languagesEnv?: string): LanguageName[] {
   const defaultLanguages: LanguageName[] = Object.keys(languageConfigurations) as LanguageName[];
   const languageString = languagesEnv || defaultLanguages.join(',');
 
-  return languageString
+  const parsed = languageString
     .split(',')
     .map(name => name.trim())
-    .filter((name): name is LanguageName => name in languageConfigurations);
+    .filter(name => name.length > 0);
+
+  const invalid = parsed.filter(name => !(name in languageConfigurations));
+  if (invalid.length > 0) {
+    console.warn(`Invalid language names ignored: ${invalid.join(', ')}`);
+  }
+
+  return parsed.filter((name): name is LanguageName => name in languageConfigurations);
 }
