@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { execSync } from 'child_process';
-import { languageConfigurations } from '../languages';
+import { languageConfigurations, parseLanguageNames } from '../languages';
 import { CodeChunk, SymbolInfo, ExportInfo } from './elasticsearch';
 import { indexingConfig } from '../config';
 import { logger } from './logger';
@@ -25,18 +25,6 @@ import {
 
 const { Query } = Parser;
 
-/**
- * Base structure for parser metric data
- */
-const BASE_PARSER_METRIC_DATA = {
-  filesProcessed: 0,
-  filesFailed: 0,
-  chunksCreated: 0,
-  chunksSkipped: 0,
-  chunkSizes: [] as number[],
-  language: '',
-  parserType: '',
-};
 
 /**
  * Extracts directory information from a file path.
@@ -89,6 +77,19 @@ export interface ParseResult {
   };
 }
 
+/**
+ * Base structure for parser metric data
+ */
+const BASE_PARSER_METRIC_DATA: ParseResult['metrics'] = {
+  filesProcessed: 0,
+  filesFailed: 0,
+  chunksCreated: 0,
+  chunksSkipped: 0,
+  chunkSizes: [],
+  language: '',
+  parserType: '',
+};
+
 export class LanguageParser {
   private languages: Map<string, LanguageConfiguration>;
   public fileSuffixMap: Map<string, LanguageConfiguration>;
@@ -96,14 +97,12 @@ export class LanguageParser {
   constructor() {
     this.languages = new Map();
     this.fileSuffixMap = new Map();
-    const languageNames = (process.env.SEMANTIC_CODE_INDEXER_LANGUAGES || 'typescript,javascript,markdown,yaml,java,go,python,json').split(',');
+    const languageNames = parseLanguageNames(process.env.SEMANTIC_CODE_INDEXER_LANGUAGES);
     for (const name of languageNames) {
-      const config = (languageConfigurations as { [key: string]: LanguageConfiguration })[name.trim()];
-      if (config) {
-        this.languages.set(config.name, config);
-        for (const suffix of config.fileSuffixes) {
-          this.fileSuffixMap.set(suffix, config);
-        }
+      const config = languageConfigurations[name];
+      this.languages.set(config.name, config);
+      for (const suffix of config.fileSuffixes) {
+        this.fileSuffixMap.set(suffix, config);
       }
     }
   }
@@ -130,7 +129,7 @@ export class LanguageParser {
 
     try {
       let chunks: CodeChunk[];
-      
+
       if (langConfig.parser === null) {
         if (langConfig.name === LANG_MARKDOWN) {
           const result = this.parseMarkdown(filePath, gitBranch, relativePath);
@@ -202,7 +201,7 @@ export class LanguageParser {
         }
         return /[a-zA-Z0-9]/.test(chunk); // Filter out chunks with no alphanumeric characters
       })
-      .map(chunk => {
+      .map((chunk): CodeChunk => {
         // Calculate line numbers by tracking position in original content
         let chunkStartIndex = content.indexOf(chunk, searchIndex);
         if (chunkStartIndex === -1) {
@@ -229,11 +228,11 @@ export class LanguageParser {
             created_at: now,
             updated_at: now,
         };
-        
+
         return {
           ...baseChunk,
           semantic_text: this.prepareSemanticText(baseChunk),
-        } as CodeChunk;
+        };
     });
 
     return { chunks, chunksSkipped };
@@ -316,11 +315,11 @@ export class LanguageParser {
               created_at: now,
               updated_at: now,
             };
-            
+
             allChunks.push({
               ...baseChunk,
               semantic_text: this.prepareSemanticText(baseChunk),
-            } as CodeChunk);
+            });
           }
         });
         // Update global line number for next document
@@ -349,7 +348,7 @@ export class LanguageParser {
     let chunksSkipped = 0;
     const json = JSON.parse(content);
     let searchIndex = 0;
-    
+
     for (const key in json) {
       const value = JSON.stringify(json[key], null, 2);
       const chunkContent = `"${key}": ${value}`;
@@ -364,16 +363,16 @@ export class LanguageParser {
       // Search for the key with quotes and colon to get accurate position
       const keyPattern = `"${key}"`;
       const keyPosition = content.indexOf(keyPattern, searchIndex);
-      
+
       if (keyPosition !== -1) {
         // Calculate line number based on position
         const startLine = (content.substring(0, keyPosition).match(/\n/g) || []).length + 1;
-        
+
         // Find the end of this key's value in the original content
         // This is an approximation - we'll use the number of newlines in the formatted value
         const valueLines = value.split('\n').length;
         const endLine = startLine + valueLines - 1;
-        
+
         // Update search index to after this key
         searchIndex = keyPosition + keyPattern.length;
 
@@ -394,11 +393,11 @@ export class LanguageParser {
           created_at: now,
           updated_at: now,
         };
-        
+
         allChunks.push({
           ...baseChunk,
           semantic_text: this.prepareSemanticText(baseChunk),
-        } as CodeChunk);
+        });
       }
     }
     return { chunks: allChunks, chunksSkipped };
@@ -549,7 +548,7 @@ export class LanguageParser {
     })).values());
 
     let chunksSkipped = 0;
-    const chunks = uniqueMatches.map(({ captures }) => {
+    const chunks = uniqueMatches.map(({ captures }): CodeChunk | null => {
       const node = captures[0].node;
       const content = node.text;
       const contentSize = Buffer.byteLength(content, 'utf8');
@@ -611,7 +610,7 @@ export class LanguageParser {
       return {
         ...baseChunk,
         semantic_text: this.prepareSemanticText(baseChunk),
-      } as CodeChunk;
+      };
     }).filter((chunk): chunk is CodeChunk => chunk !== null);
 
     return { chunks, chunksSkipped };
