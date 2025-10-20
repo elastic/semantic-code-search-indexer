@@ -95,9 +95,18 @@ ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
 ELASTICSEARCH_API_KEY="YourEncodedApiKey"
 
 # OpenTelemetry Configuration (optional)
-# OTEL_LOGGING_ENABLED="true"
-# OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+# Enable logs and metrics export to OpenTelemetry Collector
+OTEL_LOGGING_ENABLED="true"
+OTEL_METRICS_ENABLED="true"
+OTEL_SERVICE_NAME="semantic-code-search-indexer"
+OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+# Optional: separate endpoints for logs and metrics
+# OTEL_EXPORTER_OTLP_LOGS_ENDPOINT="http://otel-collector:4318/v1/logs"
+# OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://otel-collector:4318/v1/metrics"
+# Optional: authentication headers
 # OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
+# Optional: metric export interval (default: 60000ms = 60s)
+# OTEL_METRIC_EXPORT_INTERVAL_MILLIS="60000"
 
 # Application Configuration
 # Base directory where all queue databases will be stored.
@@ -153,4 +162,116 @@ We will use `cron`, a standard time-based job scheduler, to run the indexer peri
     ```bash
     tail -f /opt/semantic-code-search-indexer/bulk_incremental_index.log
     ```
+
+## 4. Monitoring and Observability
+
+### OpenTelemetry Collector Deployment
+
+For production monitoring, deploy an OpenTelemetry Collector to receive logs and metrics from the indexer. The collector buffers telemetry data, adds resource attributes, and exports to Elasticsearch.
+
+1.  **Download and Install OpenTelemetry Collector:**
+
+    ```bash
+    # Download the latest collector-contrib release
+    wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.91.0/otelcol-contrib_0.91.0_linux_amd64.tar.gz
+    tar -xzf otelcol-contrib_0.91.0_linux_amd64.tar.gz
+    sudo mv otelcol-contrib /usr/local/bin/
+    ```
+
+2.  **Create Collector Configuration:**
+
+    Copy the example collector configuration from the repository:
+
+    ```bash
+    sudo mkdir -p /etc/otelcol
+    sudo cp /opt/semantic-code-search-indexer/docs/otel-collector-config.yaml /etc/otelcol/config.yaml
+    ```
+
+    Edit the configuration to add your Elasticsearch credentials:
+
+    ```bash
+    sudo nano /etc/otelcol/config.yaml
+    ```
+
+3.  **Create systemd Service for Collector:**
+
+    Create `/etc/systemd/system/otelcol.service`:
+
+    ```ini
+    [Unit]
+    Description=OpenTelemetry Collector
+    After=network.target
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/local/bin/otelcol-contrib --config=/etc/otelcol/config.yaml
+    Restart=on-failure
+    RestartSec=30
+    Environment="ELASTICSEARCH_ENDPOINT=https://your-es-endpoint.elastic-cloud.com:9243"
+    Environment="ELASTICSEARCH_API_KEY=YourEncodedApiKey"
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+4.  **Start the Collector:**
+
+    ```bash
+    sudo systemctl daemon-reload
+    sudo systemctl enable otelcol
+    sudo systemctl start otelcol
+    sudo systemctl status otelcol
+    ```
+
+### Elasticsearch Data Streams
+
+The indexer exports telemetry to the following Elasticsearch data streams:
+- **Logs**: `logs-semanticcode.otel-default`
+- **Metrics**: `metrics-semanticcode.otel-default`
+
+These follow Elasticsearch's data stream naming conventions:
+- `logs-*` / `metrics-*`: Type prefix
+- `semanticcode.otel`: Dataset identifier
+- `default`: Namespace
+
+### Creating Repository-Specific Dashboards
+
+All logs and metrics include `repo.name` and `repo.branch` attributes, enabling repository-specific monitoring:
+
+1.  **Access Kibana Discover:**
+    Navigate to Kibana → Discover
+
+2.  **Filter by Repository:**
+    ```
+    repo.name: "kibana" AND repo.branch: "main"
+    ```
+
+3.  **Create Visualizations:**
+    Use Kibana's visualization tools to create charts for:
+    - **Files processed over time**: `parser.files.processed` metric
+    - **Queue depth**: `queue.size.pending` gauge
+    - **Batch processing duration**: `indexer.batch.duration` histogram
+    - **Indexing failures**: `indexer.batch.failed` counter
+
+4.  **Build Dashboards:**
+    Combine visualizations into repository-specific dashboards:
+    - Overview dashboard: All repositories
+    - Per-repository dashboards: Filter by `repo.name`
+    - Per-branch dashboards: Filter by `repo.name` and `repo.branch`
+
+### Alerting
+
+Set up alerts in Kibana for:
+- **High failure rate**: `indexer.batch.failed` / `indexer.batch.processed` > 0.1
+- **Queue backlog**: `queue.size.pending` > 10000
+- **Stale processing**: No `parser.files.processed` metrics in last hour
+
+### Key Metrics to Monitor
+
+| Metric | What to Watch | Alert Threshold |
+|--------|---------------|-----------------|
+| `parser.files.processed` | Files indexed per minute | < 10/min may indicate issues |
+| `queue.size.pending` | Documents waiting to be indexed | > 10000 indicates backlog |
+| `indexer.batch.failed` | Failed batch operations | > 5% failure rate |
+| `indexer.batch.duration` | Indexing performance | P95 > 30s may indicate ES issues |
 

@@ -38,7 +38,14 @@ describe('IndexerWorker', () => {
     queue = new InMemoryQueue();
     // Use a very short polling interval for tests
     // Note: The worker's internal polling interval is hardcoded, so this test will rely on advancing timers.
-    worker = new IndexerWorker(queue, 10, 1, false, logger, testIndex);
+    worker = new IndexerWorker({
+      queue,
+      batchSize: 10,
+      concurrency: 1,
+      watch: false,
+      logger,
+      elasticsearchIndex: testIndex,
+    });
     (elasticsearch.indexCodeChunks as jest.Mock).mockClear();
   });
 

@@ -11,6 +11,15 @@ jest.mock('../src/config', () => ({
   appConfig: {
     queueBaseDir: './.test-queues',
   },
+  otelConfig: {
+    enabled: false,
+    serviceName: 'test-service',
+    endpoint: 'http://localhost:4318',
+    headers: '',
+    metricsEnabled: false,
+    metricsEndpoint: 'http://localhost:4318',
+    metricExportIntervalMs: 60000,
+  },
 }));
 
 // Mock the logger to prevent console output during tests

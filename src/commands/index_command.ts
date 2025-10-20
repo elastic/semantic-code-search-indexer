@@ -46,7 +46,7 @@ export async function index(directory: string, clean: boolean, options?: IndexOp
 
   const logger = createLogger({ name: repoName, branch: gitBranch });
 
-  const languageParser = new LanguageParser();
+  const languageParser = new LanguageParser({ name: repoName, branch: gitBranch });
   const supportedFileExtensions = Array.from(languageParser.fileSuffixMap.keys());
   logger.info('Starting full indexing process (Producer)', { directory, clean, supportedFileExtensions });
   if (clean) {

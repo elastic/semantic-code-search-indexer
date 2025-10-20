@@ -13,7 +13,9 @@ interface WorkerOptions {
 }
 
 export async function worker(concurrency: number = 1, watch: boolean = false, options?: WorkerOptions) {
-  const logger = createLogger(options?.repoName && options?.branch ? { name: options.repoName, branch: options.branch } : undefined);
+  const repoInfo = options?.repoName && options?.branch ? { name: options.repoName, branch: options.branch } : undefined;
+  const logger = createLogger(repoInfo);
+
   logger.info('Starting indexer worker process', { concurrency, ...options });
 
   const queuePath = options?.queueDir ? path.join(options.queueDir, 'queue.db') : path.join(appConfig.queueDir, 'queue.db');
@@ -24,7 +26,15 @@ export async function worker(concurrency: number = 1, watch: boolean = false, op
   });
   await queue.initialize();
 
-  const indexerWorker = new IndexerWorker(queue, indexingConfig.batchSize, concurrency, watch, logger, options?.elasticsearchIndex);
+  const indexerWorker = new IndexerWorker({
+    queue,
+    batchSize: indexingConfig.batchSize,
+    concurrency,
+    watch,
+    logger,
+    elasticsearchIndex: options?.elasticsearchIndex,
+    repoInfo,
+  });
 
   await indexerWorker.start();
 }

@@ -1,6 +1,8 @@
 // src/utils/otel_provider.ts
 import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { Resource } from '@opentelemetry/resources';
 import {
   ATTR_SERVICE_NAME,
@@ -22,8 +24,7 @@ const {
 } = require('@opentelemetry/semantic-conventions/incubating');
 
 let loggerProvider: LoggerProvider | null = null;
-
-
+let meterProvider: MeterProvider | null = null;
 
 /**
  * Retrieves the service version from package.json.
@@ -116,16 +117,78 @@ export function getLoggerProvider(): LoggerProvider | null {
 }
 
 /**
- * Gracefully shuts down the OpenTelemetry LoggerProvider.
+ * Gets or creates the singleton OpenTelemetry MeterProvider instance.
  * 
- * Ensures all buffered log records are flushed to the collector before the application exits.
+ * Creates a MeterProvider configured with:
+ * - Resource attributes (service info, host info)
+ * - OTLP HTTP exporter for sending metrics to a collector
+ * - Periodic metric reader for scheduled metric export
+ * 
+ * @returns The MeterProvider instance if OTEL_METRICS_ENABLED is true, otherwise null.
+ */
+export function getMeterProvider(): MeterProvider | null {
+  if (!otelConfig.metricsEnabled) {
+    return null;
+  }
+
+  if (meterProvider) {
+    return meterProvider;
+  }
+
+  const serviceVersion = getServiceVersion();
+
+  const resourceAttributes: Record<string, string | number> = {
+    [ATTR_SERVICE_NAME]: otelConfig.serviceName,
+    [ATTR_SERVICE_VERSION]: serviceVersion,
+    [ATTR_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'production',
+    [ATTR_HOST_NAME]: os.hostname(),
+    [ATTR_HOST_ARCH]: os.arch(),
+    [ATTR_HOST_TYPE]: os.type(),
+    [ATTR_OS_TYPE]: os.platform(),
+  };
+
+  const resource = new Resource(resourceAttributes);
+
+  const exporter = new OTLPMetricExporter({
+    url: otelConfig.metricsEndpoint.endsWith('/v1/metrics')
+      ? otelConfig.metricsEndpoint
+      : `${otelConfig.metricsEndpoint}/v1/metrics`,
+    headers: parseHeaders(otelConfig.headers),
+  });
+
+  const metricReader = new PeriodicExportingMetricReader({
+    exporter,
+    exportIntervalMillis: otelConfig.metricExportIntervalMs,
+  });
+
+  meterProvider = new MeterProvider({
+    resource,
+    readers: [metricReader],
+  });
+
+  return meterProvider;
+}
+
+/**
+ * Gracefully shuts down the OpenTelemetry LoggerProvider and MeterProvider.
+ * 
+ * Ensures all buffered log records and metrics are flushed to the collector before the application exits.
  * Should be called during application shutdown (e.g., on SIGTERM/SIGINT).
  * 
  * @returns A promise that resolves when shutdown is complete.
  */
 export async function shutdown(): Promise<void> {
+  const promises: Promise<void>[] = [];
+  
   if (loggerProvider) {
-    await loggerProvider.shutdown();
+    promises.push(loggerProvider.shutdown());
     loggerProvider = null;
   }
+  
+  if (meterProvider) {
+    promises.push(meterProvider.shutdown());
+    meterProvider = null;
+  }
+  
+  await Promise.all(promises);
 }

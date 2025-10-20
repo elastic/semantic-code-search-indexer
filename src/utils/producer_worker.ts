@@ -12,7 +12,7 @@ import { createLogger } from './logger';
 const { repoName, gitBranch: repoBranch } = workerData;
 const logger = createLogger({ name: repoName, branch: repoBranch });
 
-const languageParser = new LanguageParser();
+const languageParser = new LanguageParser({ name: repoName, branch: repoBranch });
 
 parentPort?.on('message', ({ filePath, gitBranch, relativePath }: { filePath: string | null, gitBranch: string, relativePath: string }) => {
   if (filePath === null) {

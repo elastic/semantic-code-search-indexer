@@ -1,6 +1,7 @@
 // src/utils/logger.ts
 import { getLoggerProvider } from './otel_provider';
 import { SeverityNumber } from '@opentelemetry/api-logs';
+import { ATTR_REPO_NAME, ATTR_REPO_BRANCH } from './constants';
 
 enum LogLevel {
   INFO = 'INFO',
@@ -51,8 +52,8 @@ function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?:
     };
 
     if (repoInfo) {
-      attributes['repo.name'] = repoInfo.name;
-      attributes['repo.branch'] = repoInfo.branch;
+      attributes[ATTR_REPO_NAME] = repoInfo.name;
+      attributes[ATTR_REPO_BRANCH] = repoInfo.branch;
     }
 
     logger.emit({

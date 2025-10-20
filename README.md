@@ -268,10 +268,13 @@ Configuration is managed via environment variables in a `.env` file.
 | `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts. | `code-chunks` |
 | `ELASTICSEARCH_MODEL` | The name of the ELSER model to use. | `.elser_model_2` |
 | `OTEL_LOGGING_ENABLED` | Enable OpenTelemetry logging. | `false` |
-| `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs. | `semantic-code-search-indexer` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint. | `http://localhost:4318` |
+| `OTEL_METRICS_ENABLED` | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`). | Same as `OTEL_LOGGING_ENABLED` |
+| `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs and metrics. | `semantic-code-search-indexer` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint for both logs and metrics. | `http://localhost:4318` |
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | Logs-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT). | |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | Metrics-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT). | |
 | `OTEL_EXPORTER_OTLP_HEADERS` | Headers for OTLP exporter (e.g., `authorization=Bearer token`). | |
+| `OTEL_METRIC_EXPORT_INTERVAL_MILLIS` | Interval in milliseconds between metric exports. | `60000` (60 seconds) |
 | `QUEUE_DIR` | The directory for the queue database. Used by the `index-worker` and `clear-queue` commands. | `.queue` |
 | `QUEUE_BASE_DIR` | The base directory for all multi-repo queue databases. | `.queues` |
 | `BATCH_SIZE` | The number of chunks to index in a single bulk request. | `500` |
@@ -287,7 +290,7 @@ Configuration is managed via environment variables in a `.env` file.
 
 ## OpenTelemetry Integration
 
-This indexer supports OpenTelemetry for structured logging, enabling integration with modern observability platforms. Logs are sent via OTLP/HTTP protocol to an OpenTelemetry Collector, which can then route them to various backends (Elasticsearch, Loki, etc.).
+This indexer supports comprehensive OpenTelemetry integration for both **logs** and **metrics**, enabling deep observability into indexing operations. Telemetry data is sent via OTLP/HTTP protocol to an OpenTelemetry Collector, which routes it to various backends (Elasticsearch, Prometheus, etc.).
 
 ### Console Logging
 
@@ -300,10 +303,11 @@ By default, the indexer outputs text-format logs to the console (except when `NO
 
 ### Enabling OpenTelemetry Export
 
-To enable OpenTelemetry log export, set the following environment variables:
+To enable OpenTelemetry log and metrics export:
 
 ```bash
 OTEL_LOGGING_ENABLED=true
+OTEL_METRICS_ENABLED=true  # Optional, defaults to same as OTEL_LOGGING_ENABLED
 OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 ```
@@ -314,70 +318,100 @@ For authentication to the collector:
 OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
 ```
 
+You can also configure separate endpoints for logs and metrics:
+
+```bash
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
+```
+
 ### Resource Attributes
 
-The following resource attributes are automatically attached to all logs:
+The following resource attributes are automatically attached to all logs and metrics:
 - `service.name`: Service name (from `OTEL_SERVICE_NAME`)
 - `service.version`: Version from package.json
 - `deployment.environment`: From `NODE_ENV`
 - `host.name`, `host.arch`, `host.type`, `os.type`: Host information
 
-### Log Attributes
+### Log and Metric Attributes
 
-Each log entry includes attributes based on context:
-- `repo.name`: Repository being indexed (when repository context is available)
-- `repo.branch`: Branch being indexed (when repository context is available)
-- Custom metadata passed to logging calls
+Each log entry and metric includes attributes based on context:
+- `repo.name`: Repository being indexed (e.g., "kibana", "elasticsearch")
+- `repo.branch`: Branch being indexed (e.g., "main", "feature/metrics")
+- Custom metadata passed to logging calls or metric recordings
 
-### Example OpenTelemetry Collector Configuration
+### Available Metrics
 
-Create a `collector-config.yaml` file:
+The indexer exports the following metrics for monitoring indexing operations:
 
-```yaml
-receivers:
-  otlp:
-    protocols:
-      http:
-        endpoint: 0.0.0.0:4318
+#### Parser Metrics
 
-exporters:
-  elasticsearch:
-    endpoints: [https://elasticsearch:9200]
-    logs_index: logs-semantic.codesearch
-    auth:
-      authenticator: basicauth
-  
-  debug:
-    verbosity: detailed
+| Metric | Type | Description | Attributes |
+|--------|------|-------------|-----------|
+| `parser.files.processed` | Counter | Total files processed | `language`, `status`, `repo.name`, `repo.branch` |
+| `parser.files.failed` | Counter | Files that failed to parse | `language`, `status`, `repo.name`, `repo.branch` |
+| `parser.chunks.created` | Counter | Total chunks created | `language`, `parser_type`, `repo.name`, `repo.branch` |
+| `parser.chunks.skipped` | Counter | Chunks skipped due to exceeding maxChunkSizeBytes | `language`, `parser_type`, `size`, `repo.name`, `repo.branch` |
+| `parser.chunks.size` | Histogram | Distribution of chunk sizes (bytes) | `language`, `parser_type`, `repo.name`, `repo.branch` |
 
-processors:
-  batch:
-    timeout: 10s
-    send_batch_size: 1024
+#### Queue Metrics
 
-extensions:
-  basicauth:
-    client_auth:
-      username: elastic
-      password: changeme
+| Metric | Type | Description | Attributes |
+|--------|------|-------------|-----------|
+| `queue.documents.enqueued` | Counter | Documents added to queue | `repo.name`, `repo.branch` |
+| `queue.documents.dequeued` | Counter | Documents removed from queue | `repo.name`, `repo.branch` |
+| `queue.documents.committed` | Counter | Successfully indexed documents | `repo.name`, `repo.branch` |
+| `queue.documents.requeued` | Counter | Documents requeued after failure | `repo.name`, `repo.branch` |
+| `queue.documents.failed` | Counter | Documents marked as failed | `repo.name`, `repo.branch` |
+| `queue.documents.deleted` | Counter | Documents deleted from queue | `repo.name`, `repo.branch` |
+| `queue.size.pending` | Gauge | Current pending documents | `repo.name`, `repo.branch`, `status` |
+| `queue.size.processing` | Gauge | Current processing documents | `repo.name`, `repo.branch`, `status` |
+| `queue.size.failed` | Gauge | Current failed documents | `repo.name`, `repo.branch`, `status` |
 
-service:
-  extensions: [basicauth]
-  pipelines:
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [elasticsearch, debug]
+#### Indexer Metrics
+
+| Metric | Type | Description | Attributes |
+|--------|------|-------------|-----------|
+| `indexer.batch.processed` | Counter | Successful batches indexed | `repo.name`, `repo.branch`, `concurrency` |
+| `indexer.batch.failed` | Counter | Failed batches | `repo.name`, `repo.branch`, `concurrency` |
+| `indexer.batch.duration` | Histogram | Batch processing time (ms) | `repo.name`, `repo.branch`, `concurrency` |
+| `indexer.batch.size` | Histogram | Distribution of batch sizes | `repo.name`, `repo.branch`, `concurrency` |
+
+### Repository-Specific Dashboards
+
+All metrics and logs include `repo.name` and `repo.branch` attributes, enabling you to:
+- Filter telemetry data by repository and branch
+- Create repository-specific dashboards in Kibana
+- Set up alerts for specific repositories
+- Compare indexing performance across repositories
+
+Example Kibana query to filter by repository:
+```
+repo.name: "kibana" AND repo.branch: "main"
 ```
 
-Run the collector:
+### OpenTelemetry Collector Configuration
+
+A complete example collector configuration is provided in [`docs/otel-collector-config.yaml`](./docs/otel-collector-config.yaml). This configuration:
+- Receives logs and metrics via OTLP/HTTP
+- Batches telemetry data for efficiency
+- Adds host resource attributes
+- Exports logs to `logs-semanticcode.otel-default` index
+- Exports metrics to `metrics-semanticcode.otel-default` index
+- Supports authentication to Elasticsearch
+
+To use the example configuration:
 
 ```bash
-docker run -p 4318:4318 -v $(pwd)/collector-config.yaml:/etc/otelcol/config.yaml \
+export ELASTICSEARCH_ENDPOINT=https://elasticsearch:9200
+export ELASTICSEARCH_API_KEY=your-api-key
+
+docker run -p 4318:4318 -p 4317:4317 -p 13133:13133 \
+  -e ELASTICSEARCH_ENDPOINT \
+  -e ELASTICSEARCH_API_KEY \
+  -v $(pwd)/docs/otel-collector-config.yaml:/etc/otelcol/config.yaml \
   otel/opentelemetry-collector-contrib:latest
 ```
-
-This setup routes logs from the indexer through the OpenTelemetry Collector to Elasticsearch, maintaining compatibility with the existing Elasticsearch-based log management while adding flexibility for future observability improvements.
 
 ---
 

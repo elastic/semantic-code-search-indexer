@@ -129,3 +129,98 @@ describe('OTel Provider', () => {
     expect(attributes['host.arch']).toBeDefined();
   });
 });
+
+describe('MeterProvider', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...originalEnv };
+    delete process.env.NODE_ENV;
+  });
+
+  afterEach(async () => {
+    process.env = originalEnv;
+    const { shutdown } = await import('../src/utils/otel_provider');
+    await shutdown();
+  });
+
+  it('should return null when OTEL_METRICS_ENABLED is false', async () => {
+    process.env.OTEL_METRICS_ENABLED = 'false';
+    const { getMeterProvider } = await import('../src/utils/otel_provider');
+    const provider = getMeterProvider();
+    expect(provider).toBeNull();
+  });
+
+  it('should return null when OTEL_METRICS_ENABLED is not set and OTEL_LOGGING_ENABLED is false', async () => {
+    process.env.OTEL_LOGGING_ENABLED = 'false';
+    delete process.env.OTEL_METRICS_ENABLED;
+    const { getMeterProvider } = await import('../src/utils/otel_provider');
+    const provider = getMeterProvider();
+    expect(provider).toBeNull();
+  });
+
+  it('should return a MeterProvider when OTEL_METRICS_ENABLED is true', async () => {
+    process.env.OTEL_METRICS_ENABLED = 'true';
+    const { getMeterProvider } = await import('../src/utils/otel_provider');
+    const provider = getMeterProvider();
+    expect(provider).not.toBeNull();
+    expect(provider).toBeDefined();
+  });
+
+  it('should default to OTEL_LOGGING_ENABLED when OTEL_METRICS_ENABLED is not set', async () => {
+    process.env.OTEL_LOGGING_ENABLED = 'true';
+    delete process.env.OTEL_METRICS_ENABLED;
+    const { getMeterProvider } = await import('../src/utils/otel_provider');
+    const provider = getMeterProvider();
+    expect(provider).not.toBeNull();
+  });
+
+  it('should return the same instance on subsequent calls (singleton)', async () => {
+    process.env.OTEL_METRICS_ENABLED = 'true';
+    const { getMeterProvider } = await import('../src/utils/otel_provider');
+    const provider1 = getMeterProvider();
+    const provider2 = getMeterProvider();
+    expect(provider1).toBe(provider2);
+  });
+
+  it('should allow getting a meter from the provider', async () => {
+    process.env.OTEL_METRICS_ENABLED = 'true';
+    const { getMeterProvider } = await import('../src/utils/otel_provider');
+    const provider = getMeterProvider();
+    expect(provider).not.toBeNull();
+    
+    const meter = provider!.getMeter('test-meter');
+    expect(meter).toBeDefined();
+  });
+
+  it('should handle shutdown gracefully', async () => {
+    process.env.OTEL_METRICS_ENABLED = 'true';
+    const { getMeterProvider, shutdown } = await import('../src/utils/otel_provider');
+    const provider = getMeterProvider();
+    expect(provider).not.toBeNull();
+    
+    await expect(shutdown()).resolves.not.toThrow();
+  });
+
+  it('should handle shutdown when provider is not initialized', async () => {
+    process.env.OTEL_METRICS_ENABLED = 'false';
+    const { shutdown } = await import('../src/utils/otel_provider');
+    await expect(shutdown()).resolves.not.toThrow();
+  });
+
+  it('should shutdown both logger and meter providers', async () => {
+    process.env.OTEL_LOGGING_ENABLED = 'true';
+    process.env.OTEL_METRICS_ENABLED = 'true';
+    const { getLoggerProvider, getMeterProvider, shutdown } = await import('../src/utils/otel_provider');
+    
+    const loggerProvider = getLoggerProvider();
+    const meterProvider = getMeterProvider();
+    
+    expect(loggerProvider).not.toBeNull();
+    expect(meterProvider).not.toBeNull();
+    
+    await expect(shutdown()).resolves.not.toThrow();
+  });
+});
+
