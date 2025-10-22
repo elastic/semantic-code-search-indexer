@@ -1,0 +1,76 @@
+{{! This is a comprehensive Handlebars test fixture }}
+
+{{! Original user example - YAML with Handlebars }}
+metricsets: ["broker"]
+hosts:
+{{#each hosts}}
+  - {{this}}
+{{/each}}
+path: {{path}}
+period: {{period}}
+username: {{username}}
+password: {{password}}
+tags:
+{{#each tags as |tag|}}
+  - {{tag}}
+{{/each}}
+{{#if ssl}}
+{{ssl}}
+{{/if}}
+{{#if processors}}
+processors:
+{{processors}}
+{{/if}}
+
+{{! Simple mustache expressions }}
+<div class="user">
+  <h1>{{title}}</h1>
+  <p>Welcome, {{userName}}!</p>
+  <p>Email: {{email}}</p>
+</div>
+
+{{! Block helpers - if/else }}
+{{#if isActive}}
+  <span class="active">Active User</span>
+{{else}}
+  <span class="inactive">Inactive User</span>
+{{/if}}
+
+{{! Block helpers - unless }}
+{{#unless isGuest}}
+  <button>Edit Profile</button>
+{{/unless}}
+
+{{! Block helpers - with }}
+{{#with user}}
+  <p>Name: {{firstName}} {{lastName}}</p>
+  <p>Age: {{age}}</p>
+{{/with}}
+
+{{! Nested blocks }}
+{{#if hasPermissions}}
+  {{#each permissions as |permission|}}
+    <li>{{permission.name}}: {{permission.level}}</li>
+  {{/each}}
+{{/if}}
+
+{{! Block parameters }}
+{{#each items as |item index|}}
+  <div data-index="{{index}}">
+    {{item.name}} - {{item.price}}
+  </div>
+{{/each}}
+
+{{! Partials }}
+{{> header}}
+{{> userProfile user=currentUser}}
+{{> footer}}
+
+{{! Path expressions }}
+<p>{{user.profile.address.city}}</p>
+<p>{{../parentContext}}</p>
+
+{{! Helper with arguments }}
+{{formatDate createdAt "YYYY-MM-DD"}}
+{{capitalize userName}}
+

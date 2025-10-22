@@ -86,5 +86,16 @@ describe('parseLanguageNames', () => {
     expect(result).toEqual(Object.keys(languageConfigurations));
     expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
+
+  it('should parse handlebars language', () => {
+    const result = parseLanguageNames('handlebars');
+    expect(result).toEqual(['handlebars']);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should include handlebars in supported languages', () => {
+    const allLanguages = Object.keys(languageConfigurations);
+    expect(allLanguages).toContain('handlebars');
+  });
 });
 

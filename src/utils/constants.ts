@@ -58,6 +58,7 @@ export const LANG_GRADLE = 'gradle';
 export const LANG_PYTHON = 'python';
 export const LANG_JAVA = 'java';
 export const LANG_GO = 'go';
+export const LANG_HANDLEBARS = 'handlebars';
 
 /**
  * Parser type identifiers for metrics and logging.

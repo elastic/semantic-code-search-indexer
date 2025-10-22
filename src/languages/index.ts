@@ -10,6 +10,7 @@ import { jsonConfig } from './json';
 import { gradleConfig } from './gradle';
 import { propertiesConfig } from './properties';
 import { textConfig } from './text';
+import { handlebarsConfig } from './handlebars';
 import { LanguageConfiguration } from '../utils/parser';
 
 export const languageConfigurations = {
@@ -24,6 +25,7 @@ export const languageConfigurations = {
   gradle: gradleConfig,
   properties: propertiesConfig,
   text: textConfig,
+  handlebars: handlebarsConfig,
 } as const;
 
 /**
