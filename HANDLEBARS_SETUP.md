@@ -1,57 +1,24 @@
 # Handlebars Language Parser Setup Notes
 
 ## Overview
-This document describes the setup and configuration for the Handlebars language parser using tree-sitter-glimmer.
+This document describes the setup and configuration for the Handlebars language parser.
 
-## Known Issue with tree-sitter-glimmer
+## Parser Implementation
 
-The `tree-sitter-glimmer` package (v1.4.0) has a bug in its `binding.gyp` file where the external scanner (`src/scanner.c`) is not included in the build sources. This causes a runtime error:
+The Handlebars parser uses a **custom parser** approach (similar to Markdown, YAML, and JSON) rather than tree-sitter. This decision was made because:
 
-```
-Error: dlopen(...): symbol not found in flat namespace '_tree_sitter_glimmer_external_scanner_create'
-```
+1. The `tree-sitter-glimmer` package has a bug in its `binding.gyp` that prevents it from building correctly
+2. Maintaining a fork of the package is not desirable
+3. Template files benefit from whole-file indexing rather than granular AST-based chunking
 
-### Workaround
+## Parser Behavior
 
-If you encounter this error after installing the package, you need to manually fix the `binding.gyp` file:
+The Handlebars parser treats each template file as a single chunk:
 
-1. Edit `node_modules/tree-sitter-glimmer/binding.gyp`
-2. Add `"src/scanner.c"` to the sources array:
-
-```gyp
-"sources": [
-  "bindings/node/binding.cc",
-  "src/parser.c",
-  "src/scanner.c",  // Add this line
-  # NOTE: if your language has an external scanner, add it here.
-],
-```
-
-3. Rebuild the package:
-```bash
-cd node_modules/tree-sitter-glimmer && npx node-gyp rebuild
-```
-
-### Future Resolution
-
-This issue has been reported to the tree-sitter-glimmer maintainers. Once fixed in a future version, this workaround will no longer be necessary. Monitor the package releases and update when a fix is available.
-
-## Parser Configuration
-
-The Handlebars parser uses the following tree-sitter-glimmer node types:
-
-- `block_statement` - Block helpers like `{{#if}}`, `{{#each}}`
-- `mustache_statement` - Variable interpolation like `{{variable}}`
-- `text_node` - Static text content
-- `comment_statement` - Handlebars comments `{{! comment }}`
-- `element_node` - HTML elements
-- `helper_invocation` - Helper function calls
-
-### Symbol Extraction
-
-The parser extracts the following symbols:
-- Variable references from `identifier` and `path_expression` nodes
-- Helper/function calls from `helper_invocation` and `block_statement_start` nodes
+- **One chunk per file** - The entire template is indexed as a single unit
+- **Preserves full context** - All static content and Handlebars expressions are kept together
+- **Simple and reliable** - No external dependencies or native compilation required
+- **Consistent with other document types** - Follows the same pattern as Markdown and YAML
 
 ## Testing
 

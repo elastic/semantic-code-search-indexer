@@ -68,6 +68,7 @@ export const PARSER_TYPE_MARKDOWN = 'markdown';
 export const PARSER_TYPE_YAML = 'yaml';
 export const PARSER_TYPE_JSON = 'json';
 export const PARSER_TYPE_TEXT = 'text';
+export const PARSER_TYPE_HANDLEBARS = 'handlebars';
 
 /**
  * Worker message status values.

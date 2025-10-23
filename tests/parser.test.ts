@@ -120,29 +120,29 @@ describe('LanguageParser', () => {
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
-  it('should extract symbols from Handlebars fixtures correctly', () => {
+  it('should extract content from Handlebars fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/handlebars.hbs');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/handlebars.hbs');
     
-    // Verify chunks were created
-    expect(result.chunks.length).toBeGreaterThan(0);
+    // Verify exactly one chunk was created (whole file approach)
+    expect(result.chunks.length).toBe(1);
     
     // Verify language is set correctly
     expect(result.chunks[0].language).toBe('handlebars');
     
+    // Verify parser type
+    expect(result.metrics.parserType).toBe('handlebars');
+    
     // Verify both static content and Handlebars expressions are captured
-    const allContent = result.chunks.map(c => c.content).join(' ');
-    expect(allContent).toContain('metricsets');
-    expect(allContent).toContain('{{');
+    const content = result.chunks[0].content;
+    expect(content).toContain('metricsets');
+    expect(content).toContain('{{');
+    expect(content).toContain('{{#each hosts}}');
+    expect(content).toContain('{{path}}');
     
-    // Verify symbols are extracted
-    const allSymbols = result.chunks.flatMap(chunk => chunk.symbols || []);
-    expect(allSymbols.length).toBeGreaterThan(0);
-    
-    // Verify some expected symbols
-    const symbolNames = allSymbols.map(s => s.name);
-    expect(symbolNames).toContain('hosts');
-    expect(symbolNames).toContain('path');
+    // Verify line numbers span the entire file
+    expect(result.chunks[0].startLine).toBe(1);
+    expect(result.chunks[0].endLine).toBeGreaterThan(1);
   });
 
   it('should recognize .hbs file extension', () => {

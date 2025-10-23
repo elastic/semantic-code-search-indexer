@@ -16,10 +16,12 @@ import {
   LANG_JSON,
   LANG_TEXT,
   LANG_GRADLE,
+  LANG_HANDLEBARS,
   PARSER_TYPE_MARKDOWN,
   PARSER_TYPE_YAML,
   PARSER_TYPE_JSON,
   PARSER_TYPE_TEXT,
+  PARSER_TYPE_HANDLEBARS,
   PARSER_TYPE_TREE_SITTER,
 } from './constants';
 
@@ -146,6 +148,11 @@ export class LanguageParser {
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
           metricData.parserType = PARSER_TYPE_JSON;
+        } else if (langConfig.name === LANG_HANDLEBARS) {
+          const result = this.parseHandlebars(filePath, gitBranch, relativePath);
+          chunks = result.chunks;
+          metricData.chunksSkipped += result.chunksSkipped;
+          metricData.parserType = PARSER_TYPE_HANDLEBARS;
         } else if (langConfig.name === LANG_TEXT || langConfig.name === LANG_GRADLE) {
           const result = this.parseText(filePath, gitBranch, relativePath);
           chunks = result.chunks;
@@ -262,6 +269,57 @@ export class LanguageParser {
    */
   private parseMarkdown(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
     return this.parseParagraphs(filePath, gitBranch, relativePath, LANG_MARKDOWN);
+  }
+
+  /**
+   * Parses Handlebars files by treating the entire file as a single chunk.
+   * This preserves the full template context for better semantic search.
+   *
+   * @param filePath - Absolute path to the file
+   * @param gitBranch - Git branch name
+   * @param relativePath - Relative path from repository root
+   * @returns Object with chunks array and chunksSkipped count
+   */
+  private parseHandlebars(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
+    const now = new Date().toISOString();
+    const content = fs.readFileSync(filePath, 'utf8');
+    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    
+    const contentSize = Buffer.byteLength(content, 'utf8');
+    if (contentSize > indexingConfig.maxChunkSizeBytes) {
+      logger.warn(`Skipping Handlebars file ${filePath} because it is larger than maxChunkSizeBytes`);
+      return { chunks: [], chunksSkipped: 1 };
+    }
+
+    const chunkHash = createHash('sha256').update(content).digest('hex');
+    const directoryInfo = extractDirectoryInfo(relativePath);
+    
+    // Count lines in the file
+    const lines = content.split('\n');
+    const endLine = lines.length;
+
+    const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
+      type: CHUNK_TYPE_DOC,
+      language: LANG_HANDLEBARS,
+      filePath: relativePath,
+      ...directoryInfo,
+      git_file_hash: gitFileHash,
+      git_branch: gitBranch,
+      chunk_hash: chunkHash,
+      content,
+      startLine: 1,
+      endLine,
+      created_at: now,
+      updated_at: now,
+    };
+
+    return {
+      chunks: [{
+        ...baseChunk,
+        semantic_text: this.prepareSemanticText(baseChunk),
+      }],
+      chunksSkipped: 0,
+    };
   }
 
   /**
