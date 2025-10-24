@@ -283,6 +283,7 @@ Configuration is managed via environment variables in a `.env` file.
 | `MAX_CHUNK_SIZE_BYTES` | The maximum size of a code chunk in bytes. | `1000000` |
 | `DEFAULT_CHUNK_LINES` | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs). | `15` |
 | `CHUNK_OVERLAP_LINES` | Number of overlapping lines between chunks in line-based parsing. | `3` |
+| `MARKDOWN_CHUNK_DELIMITER` | Regular expression pattern for splitting markdown files into chunks. | `\n\s*\n` |
 | `ENABLE_DENSE_VECTORS` | Whether to enable dense vectors for code similarity search. | `false` |
 | `GIT_PATH` | The path to the `git` executable. | `git` |
 | `NODE_ENV` | The node environment. | `development` |
@@ -295,8 +296,29 @@ The indexer uses different chunking strategies depending on file type to optimiz
 - **JSON**: Always uses line-based chunking with configurable chunk size (`DEFAULT_CHUNK_LINES`) and overlap (`CHUNK_OVERLAP_LINES`). This prevents large JSON values from creating oversized chunks.
 - **YAML**: Always uses line-based chunking with the same configuration. This provides more context than single-line chunks while maintaining manageable sizes.
 - **Text files**: Uses paragraph-based chunking (splitting on double newlines) when paragraphs are detected. Falls back to line-based chunking for continuous text without paragraph breaks.
-- **Markdown**: Always uses paragraph-based chunking to preserve logical document structure.
+- **Markdown**: Uses configurable delimiter-based chunking to preserve logical document structure. See `MARKDOWN_CHUNK_DELIMITER` below for customization options.
 - **Code files** (TypeScript, JavaScript, Python, Java, Go, etc.): Uses tree-sitter based parsing to extract functions, classes, and other semantic units.
+
+### Markdown Chunking
+
+The markdown chunking behavior can be customized via the `MARKDOWN_CHUNK_DELIMITER` environment variable:
+
+- **`MARKDOWN_CHUNK_DELIMITER`**: Regular expression pattern for splitting markdown files into chunks
+  - **Default**: `\n\s*\n` (splits by paragraphs - double newlines)
+  - **Example for section separators**: `\n---\n`
+  - **Example for custom delimiter**: `\n===\n`
+  - The delimiter is converted to a RegExp, so escape special characters appropriately
+  
+  **Use Cases**:
+  - Default (paragraphs): Best for general markdown documents
+  - Section separators (`\n---\n`): Best for markdown with explicit section dividers
+  - Custom delimiters: Use any pattern that makes sense for your document structure
+  
+  **Example**:
+  ```bash
+  export MARKDOWN_CHUNK_DELIMITER='\n---\n'
+  npm run index
+  ```
 
 ---
 
