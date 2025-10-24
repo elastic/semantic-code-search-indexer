@@ -227,6 +227,61 @@ export class LanguageParser {
     return { chunks: [chunk], chunksSkipped: 0 };
   }
 
+  /**
+   * Parses files by splitting content into fixed-size line-based chunks with overlap.
+   * Uses a sliding window approach to create predictable, manageable chunks.
+   *
+   * @param filePath - Absolute path to the file
+   * @param gitBranch - Git branch name
+   * @param relativePath - Relative path from repository root
+   * @param language - Language name for the chunks
+   * @returns Object with chunks array and chunksSkipped count
+   */
+  private parseByLines(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string,
+    language: string
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
+    const { content, gitFileHash, timestamp } = this.readFileWithMetadata(filePath);
+
+    const lines = content.split('\n');
+    const CHUNK_SIZE = indexingConfig.defaultChunkLines;
+    const OVERLAP = indexingConfig.chunkOverlapLines;
+    const STEP = Math.max(1, CHUNK_SIZE - OVERLAP); // Prevent negative or zero steps
+
+    const chunks: CodeChunk[] = [];
+    let chunksSkipped = 0;
+
+    for (let i = 0; i < lines.length; i += STEP) {
+      const chunkLines = lines.slice(i, i + CHUNK_SIZE);
+      const chunkContent = chunkLines.join('\n');
+
+      if (!this.validateChunkSize(chunkContent, filePath)) {
+        chunksSkipped++;
+        continue;
+      }
+
+      const startLine = i + 1;
+      const endLine = i + chunkLines.length;
+
+      chunks.push(
+        this.createChunk({
+          content: chunkContent,
+          language,
+          relativePath,
+          gitFileHash,
+          gitBranch,
+          startLine,
+          endLine,
+          timestamp,
+        })
+      );
+    }
+
+    return { chunks, chunksSkipped };
+  }
+
   public parseFile(filePath: string, gitBranch: string, relativePath: string): ParseResult {
     const langConfig = this.getLanguageConfigForFile(filePath);
     if (!langConfig) {
@@ -345,7 +400,7 @@ export class LanguageParser {
 
   /**
    * Parses text files by splitting content into paragraph-based chunks.
-   * Each chunk represents a logical section separated by double newlines.
+   * Falls back to line-based chunking if no paragraphs are found.
    *
    * @param filePath - Absolute path to the file
    * @param gitBranch - Git branch name
@@ -353,7 +408,21 @@ export class LanguageParser {
    * @returns Object with chunks array and chunksSkipped count
    */
   private parseText(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
-    return this.parseParagraphs(filePath, gitBranch, relativePath, LANG_TEXT);
+    const { content } = this.readFileWithMetadata(filePath);
+    
+    // Check if file has paragraph structure
+    const hasParagraphs = /\n\s*\n/.test(content);
+    
+    if (hasParagraphs) {
+      const result = this.parseParagraphs(filePath, gitBranch, relativePath, LANG_TEXT);
+      // If paragraphs produced valid chunks, use them
+      if (result.chunks.length > 0) {
+        return result;
+      }
+    }
+    
+    // Fallback to line-based
+    return this.parseByLines(filePath, gitBranch, relativePath, LANG_TEXT);
   }
 
   /**
@@ -383,8 +452,8 @@ export class LanguageParser {
   }
 
   /**
-   * Parses YAML files by splitting on document separators (---) and then
-   * creating individual chunks for each non-empty line within each document.
+   * Parses YAML files by creating fixed-size line-based chunks with overlap.
+   * This provides more context than single-line chunks while maintaining manageable size.
    *
    * @param filePath - Absolute path to the file
    * @param gitBranch - Git branch name
@@ -392,49 +461,12 @@ export class LanguageParser {
    * @returns Object with chunks array and chunksSkipped count
    */
   private parseYaml(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
-    const { content, gitFileHash, timestamp } = this.readFileWithMetadata(filePath);
-
-    const documents = content.split(/^---/m); // Split by document separator
-    const allChunks: CodeChunk[] = [];
-    let globalLineNumber = 1;
-    let chunksSkipped = 0;
-
-    documents.forEach(doc => {
-      if (/[a-zA-Z0-9]/.test(doc)) {
-        const lines = doc.trim().split('\n');
-        lines.forEach((line, localIndex) => {
-          if (line.trim().length > 0) {
-            if (!this.validateChunkSize(line, filePath)) {
-              chunksSkipped++;
-              return;
-            }
-
-            // Calculate absolute line number in the original file
-            const absoluteLineNumber = globalLineNumber + localIndex;
-
-            allChunks.push(this.createChunk({
-              content: line,
-              language: LANG_YAML,
-              relativePath,
-              gitFileHash,
-              gitBranch,
-              startLine: absoluteLineNumber,
-              endLine: absoluteLineNumber,
-              timestamp,
-            }));
-          }
-        });
-        // Update global line number for next document
-        globalLineNumber += lines.length + 1; // +1 for the document separator line
-      }
-    });
-    return { chunks: allChunks, chunksSkipped };
+    return this.parseByLines(filePath, gitBranch, relativePath, LANG_YAML);
   }
 
   /**
-   * Parses JSON files by creating individual chunks for each key-value pair.
-   * Each chunk contains a single property with its value formatted as JSON.
-   * Line numbers indicate where each key appears in the original file.
+   * Parses JSON files by creating fixed-size line-based chunks with overlap.
+   * This prevents large JSON values from creating oversized chunks.
    *
    * @param filePath - Absolute path to the file
    * @param gitBranch - Git branch name
@@ -442,52 +474,7 @@ export class LanguageParser {
    * @returns Object with chunks array and chunksSkipped count
    */
   private parseJson(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
-    const { content, gitFileHash, timestamp } = this.readFileWithMetadata(filePath);
-
-    const allChunks: CodeChunk[] = [];
-    let chunksSkipped = 0;
-    const json = JSON.parse(content);
-    let searchIndex = 0;
-
-    for (const key in json) {
-      const value = JSON.stringify(json[key], null, 2);
-      const chunkContent = `"${key}": ${value}`;
-      
-      if (!this.validateChunkSize(chunkContent, filePath)) {
-        chunksSkipped++;
-        continue;
-      }
-
-      // Find the position of this key in the original content
-      // Search for the key with quotes and colon to get accurate position
-      const keyPattern = `"${key}"`;
-      const keyPosition = content.indexOf(keyPattern, searchIndex);
-
-      if (keyPosition !== -1) {
-        // Calculate line number based on position
-        const startLine = (content.substring(0, keyPosition).match(/\n/g) || []).length + 1;
-
-        // Find the end of this key's value in the original content
-        // This is an approximation - we'll use the number of newlines in the formatted value
-        const valueLines = value.split('\n').length;
-        const endLine = startLine + valueLines - 1;
-
-        // Update search index to after this key
-        searchIndex = keyPosition + keyPattern.length;
-
-        allChunks.push(this.createChunk({
-          content: chunkContent,
-          language: LANG_JSON,
-          relativePath,
-          gitFileHash,
-          gitBranch,
-          startLine,
-          endLine,
-          timestamp,
-        }));
-      }
-    }
-    return { chunks: allChunks, chunksSkipped };
+    return this.parseByLines(filePath, gitBranch, relativePath, LANG_JSON);
   }
 
   private parseWithTreeSitter(filePath: string, gitBranch: string, relativePath: string, langConfig: LanguageConfiguration): { chunks: CodeChunk[]; chunksSkipped: number } {

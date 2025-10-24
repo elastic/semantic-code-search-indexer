@@ -46,6 +46,8 @@ export const indexingConfig = {
   cpuCores: parseInt(process.env.CPU_CORES || `${Math.max(1, Math.floor(os.cpus().length / 2))}`, 10),
   maxChunkSizeBytes: parseInt(process.env.MAX_CHUNK_SIZE_BYTES || '1000000', 10),
   enableDenseVectors: process.env.ENABLE_DENSE_VECTORS === 'true',
+  defaultChunkLines: parseInt(process.env.DEFAULT_CHUNK_LINES || '15', 10),
+  chunkOverlapLines: parseInt(process.env.CHUNK_OVERLAP_LINES || '3', 10),
 };
 
 export const appConfig = {

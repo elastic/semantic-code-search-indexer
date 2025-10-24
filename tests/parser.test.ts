@@ -159,10 +159,11 @@ describe('LanguageParser', () => {
 
     try {
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
-      // With the new chunking approach, JSON is split by properties
-      // The small_chunk should pass, but large_chunk should be filtered out
-      expect(result.chunks.length).toBe(1);
-      expect(result.chunks[0].content).toContain('small_chunk');
+      // With the new line-based chunking approach, all chunks smaller than the limit should pass
+      // The file has 5 lines. With 15-line default chunks, the entire file fits in one chunk
+      // Since the entire file content is less than 50 bytes when chunked by lines, it should be filtered
+      expect(result.chunks.length).toBe(0);
+      expect(result.metrics.chunksSkipped).toBe(1);
     } finally {
       indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
     }
@@ -210,6 +211,155 @@ describe('LanguageParser', () => {
     });
   });
 
+  describe('Configurable Line-Based Chunking', () => {
+    it('parses JSON with configurable chunk size', () => {
+      const originalChunkLines = indexingConfig.defaultChunkLines;
+      const originalOverlapLines = indexingConfig.chunkOverlapLines;
+      
+      indexingConfig.defaultChunkLines = 10;
+      indexingConfig.chunkOverlapLines = 2;
+      
+      try {
+        const filePath = path.resolve(__dirname, 'fixtures/json.json');
+        const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
+        
+        // json.json has 32 lines. With 10-line chunks and 2-line overlap (step=8):
+        // Chunk 1: 1-10, Chunk 2: 9-18, Chunk 3: 17-26, Chunk 4: 25-32
+        expect(result.chunks.length).toBeGreaterThan(1);
+        
+        // First chunk should be 10 lines
+        expect(result.chunks[0].startLine).toBe(1);
+        expect(result.chunks[0].endLine).toBe(10);
+        
+        // Second chunk should overlap by 2 lines (start at line 9)
+        if (result.chunks.length > 1) {
+          expect(result.chunks[1].startLine).toBe(9); // 10 - 2 + 1 = 9
+        }
+      } finally {
+        indexingConfig.defaultChunkLines = originalChunkLines;
+        indexingConfig.chunkOverlapLines = originalOverlapLines;
+      }
+    });
+
+    it('parses YAML with configurable chunk size', () => {
+      const originalChunkLines = indexingConfig.defaultChunkLines;
+      const originalOverlapLines = indexingConfig.chunkOverlapLines;
+      
+      indexingConfig.defaultChunkLines = 5;
+      indexingConfig.chunkOverlapLines = 1;
+      
+      try {
+        const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
+        const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
+        
+        // yaml.yml has 8 lines. With 5-line chunks and 1-line overlap (step=4):
+        // Chunk 1: 1-5, Chunk 2: 5-8
+        expect(result.chunks.length).toBe(2);
+        
+        expect(result.chunks[0].startLine).toBe(1);
+        expect(result.chunks[0].endLine).toBe(5);
+        
+        expect(result.chunks[1].startLine).toBe(5); // 1 + 4 = 5
+        expect(result.chunks[1].endLine).toBe(8);
+        
+        // Verify document separator is included naturally
+        expect(result.chunks[0].content).toContain('---');
+      } finally {
+        indexingConfig.defaultChunkLines = originalChunkLines;
+        indexingConfig.chunkOverlapLines = originalOverlapLines;
+      }
+    });
+
+    it('skips oversized JSON chunks', () => {
+      const originalMaxChunkSize = indexingConfig.maxChunkSizeBytes;
+      const originalChunkLines = indexingConfig.defaultChunkLines;
+      
+      // Set very small chunk size to force skipping
+      indexingConfig.maxChunkSizeBytes = 10;
+      indexingConfig.defaultChunkLines = 15;
+      
+      try {
+        const filePath = path.resolve(__dirname, 'fixtures/json.json');
+        const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
+        
+        // All chunks should be skipped due to size limit
+        expect(result.chunks.length).toBe(0);
+        expect(result.metrics.chunksSkipped).toBeGreaterThan(0);
+      } finally {
+        indexingConfig.maxChunkSizeBytes = originalMaxChunkSize;
+        indexingConfig.defaultChunkLines = originalChunkLines;
+      }
+    });
+
+    it('parses text files with paragraphs using paragraph strategy', () => {
+      // Create a fixture with paragraphs
+      const testContent = `First paragraph.
+This is part of the first paragraph.
+
+Second paragraph starts here.
+
+Third paragraph.`;
+      
+      const tempFile = path.join(__dirname, 'fixtures', 'temp_paragraphs.txt');
+      fs.writeFileSync(tempFile, testContent);
+      
+      try {
+        const result = parser.parseFile(tempFile, 'main', 'temp_paragraphs.txt');
+        
+        // Should use paragraph-based chunking and create 3 chunks
+        expect(result.chunks.length).toBe(3);
+        expect(result.chunks[0].content).toContain('First paragraph');
+        expect(result.chunks[1].content).toContain('Second paragraph');
+        expect(result.chunks[2].content).toContain('Third paragraph');
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
+    it('falls back to line-based chunking for text without paragraphs', () => {
+      // Create a fixture without paragraphs (no double newlines)
+      const testContent = `Line 1
+Line 2
+Line 3
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+Line 11
+Line 12
+Line 13
+Line 14
+Line 15
+Line 16
+Line 17
+Line 18`;
+      
+      const tempFile = path.join(__dirname, 'fixtures', 'temp_no_paragraphs.txt');
+      fs.writeFileSync(tempFile, testContent);
+      
+      try {
+        const result = parser.parseFile(tempFile, 'main', 'temp_no_paragraphs.txt');
+        
+        // Should fall back to line-based chunking
+        // With default 15 lines per chunk and 3-line overlap (step=12):
+        // Chunk 1: 1-15, Chunk 2: 13-18
+        expect(result.chunks.length).toBe(2);
+        expect(result.chunks[0].startLine).toBe(1);
+        expect(result.chunks[0].endLine).toBe(15);
+        expect(result.chunks[1].startLine).toBe(13); // 1 + 12 = 13
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+  });
+
   describe('Line Number Calculation', () => {
     it('should calculate correct line numbers for Markdown files', () => {
       const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
@@ -236,21 +386,14 @@ describe('LanguageParser', () => {
       const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
       
-      // First document chunks
-      expect(result.chunks[0].startLine).toBe(1); // "document: one"
-      expect(result.chunks[0].endLine).toBe(1);
-      expect(result.chunks[1].startLine).toBe(2); // "pair:"
-      expect(result.chunks[1].endLine).toBe(2);
-      expect(result.chunks[2].startLine).toBe(3); // "  key: value"
-      expect(result.chunks[2].endLine).toBe(3);
-      
-      // Second document chunks (after --- separator)
-      expect(result.chunks[3].startLine).toBe(5); // "document: two"
-      expect(result.chunks[3].endLine).toBe(5);
-      expect(result.chunks[4].startLine).toBe(6); // "another_pair:"
-      expect(result.chunks[4].endLine).toBe(6);
-      expect(result.chunks[5].startLine).toBe(7); // "  nested_key: nested_value"
-      expect(result.chunks[5].endLine).toBe(7);
+      // With line-based chunking, the entire YAML file (8 lines) fits in one chunk (default 15 lines)
+      expect(result.chunks.length).toBe(1);
+      expect(result.chunks[0].startLine).toBe(1);
+      expect(result.chunks[0].endLine).toBe(8);
+      // Verify it contains content from both documents
+      expect(result.chunks[0].content).toContain('document: one');
+      expect(result.chunks[0].content).toContain('document: two');
+      expect(result.chunks[0].content).toContain('---'); // document separator
     });
 
     it('should handle duplicate content correctly in line number calculation', () => {
@@ -299,24 +442,16 @@ Third paragraph`;
       const filePath = path.resolve(__dirname, 'fixtures/json.json');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
       
-      // Verify that JSON chunks have correct line numbers matching their position in the file
-      expect(result.chunks.length).toBe(10);
+      // With line-based chunking (default 15 lines per chunk, 3 line overlap), json.json (32 lines) will be split into chunks
+      // Chunk 1: lines 1-15, Chunk 2: lines 13-27, Chunk 3: lines 25-32 (or similar based on step size)
+      expect(result.chunks.length).toBeGreaterThan(0);
       
-      // Check first few chunks to verify line numbers are correct
-      expect(result.chunks[0].content).toContain('"name"');
-      expect(result.chunks[0].startLine).toBe(2); // "name" is on line 2
+      // First chunk should start at line 1
+      expect(result.chunks[0].startLine).toBe(1);
+      expect(result.chunks[0].endLine).toBeLessThanOrEqual(15);
       
-      expect(result.chunks[1].content).toContain('"version"');
-      expect(result.chunks[1].startLine).toBe(3); // "version" is on line 3
-      
-      expect(result.chunks[2].content).toContain('"description"');
-      expect(result.chunks[2].startLine).toBe(4); // "description" is on line 4
-      
-      expect(result.chunks[3].content).toContain('"main"');
-      expect(result.chunks[3].startLine).toBe(5); // "main" is on line 5
-      
-      expect(result.chunks[4].content).toContain('"scripts"');
-      expect(result.chunks[4].startLine).toBe(6); // "scripts" is on line 6
+      // Verify chunks contain actual JSON content
+      expect(result.chunks[0].content).toContain('{');
     });
 
     it('should calculate correct line numbers for text files', () => {

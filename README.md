@@ -281,10 +281,22 @@ Configuration is managed via environment variables in a `.env` file.
 | `MAX_QUEUE_SIZE` | The maximum number of items to keep in the queue. | `1000` |
 | `CPU_CORES` | The number of CPU cores to use for file parsing. | Half of the available cores |
 | `MAX_CHUNK_SIZE_BYTES` | The maximum size of a code chunk in bytes. | `1000000` |
+| `DEFAULT_CHUNK_LINES` | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs). | `15` |
+| `CHUNK_OVERLAP_LINES` | Number of overlapping lines between chunks in line-based parsing. | `3` |
 | `ENABLE_DENSE_VECTORS` | Whether to enable dense vectors for code similarity search. | `false` |
 | `GIT_PATH` | The path to the `git` executable. | `git` |
 | `NODE_ENV` | The node environment. | `development` |
 | `SEMANTIC_CODE_INDEXER_LANGUAGES` | A comma-separated list of languages to index. | `typescript,javascript,markdown,yaml,java,go,python` |
+
+### Chunking Strategy by File Type
+
+The indexer uses different chunking strategies depending on file type to optimize for both semantic search quality and LLM context window limits:
+
+- **JSON**: Always uses line-based chunking with configurable chunk size (`DEFAULT_CHUNK_LINES`) and overlap (`CHUNK_OVERLAP_LINES`). This prevents large JSON values from creating oversized chunks.
+- **YAML**: Always uses line-based chunking with the same configuration. This provides more context than single-line chunks while maintaining manageable sizes.
+- **Text files**: Uses paragraph-based chunking (splitting on double newlines) when paragraphs are detected. Falls back to line-based chunking for continuous text without paragraph breaks.
+- **Markdown**: Always uses paragraph-based chunking to preserve logical document structure.
+- **Code files** (TypeScript, JavaScript, Python, Java, Go, etc.): Uses tree-sitter based parsing to extract functions, classes, and other semantic units.
 
 ---
 

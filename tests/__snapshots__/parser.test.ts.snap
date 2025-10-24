@@ -495,13 +495,27 @@ processors:
 exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "a86f70f8a826946587f1c6650aac5dc9e5fe3248b3fec4df63de542dae1ec101",
-    "content": ""name": "code-indexer"",
+    "chunk_hash": "b594d03aef54d63a6a43c1d54061091758fd16e6d8d4c26fb6c740ee8729f717",
+    "content": "{
+  "name": "code-indexer",
+  "version": "1.0.0",
+  "description": "A tool to index codebases for semantic search.",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": [
+    "code",
+    "indexer",
+    "semantic",
+    "search"",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 2,
+    "endLine": 15,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -509,19 +523,47 @@ exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
     "semantic_text": "filePath: tests/fixtures/json.json
 directoryPath: tests/fixtures
 
-"name": "code-indexer"",
-    "startLine": 2,
+{
+  "name": "code-indexer",
+  "version": "1.0.0",
+  "description": "A tool to index codebases for semantic search.",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": [
+    "code",
+    "indexer",
+    "semantic",
+    "search"",
+    "startLine": 1,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a5d89d8886c7752e87130d054c334f5b7d2093bf87d79b97fdae698f93b68572",
-    "content": ""version": "1.0.0"",
+    "chunk_hash": "9b4196e8baade3c8b606ac3e0e994e3f95fb9551b0c00f55aaaf6a11010849cd",
+    "content": "    "indexer",
+    "semantic",
+    "search"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "elasticsearch": "^16.7.2",
+    "glob": "^7.2.0",
+    "tree-sitter-javascript": "^0.19.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.3",
+    "jest": "^27.4.5",
+    "ts-jest": "^27.1.2",",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 3,
+    "endLine": 27,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -529,19 +571,40 @@ directoryPath: tests/fixtures
     "semantic_text": "filePath: tests/fixtures/json.json
 directoryPath: tests/fixtures
 
-"version": "1.0.0"",
-    "startLine": 3,
+    "indexer",
+    "semantic",
+    "search"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "elasticsearch": "^16.7.2",
+    "glob": "^7.2.0",
+    "tree-sitter-javascript": "^0.19.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.3",
+    "jest": "^27.4.5",
+    "ts-jest": "^27.1.2",",
+    "startLine": 13,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "d2aac5c613ce259bff6c5cfa37951709d0fd2d26abc250fb78dd88f361453404",
-    "content": ""description": "A tool to index codebases for semantic search."",
+    "chunk_hash": "1f2abb6bd6df174eef8f7435551dd750078185559f4c3b5f9c8478021beb188b",
+    "content": "    "@types/jest": "^27.0.3",
+    "jest": "^27.4.5",
+    "ts-jest": "^27.1.2",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  }
+}
+",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 4,
+    "endLine": 32,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
     "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
@@ -549,186 +612,15 @@ directoryPath: tests/fixtures
     "semantic_text": "filePath: tests/fixtures/json.json
 directoryPath: tests/fixtures
 
-"description": "A tool to index codebases for semantic search."",
-    "startLine": 4,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "8f19ff9937b442231ad51d9e1a6f4aa99d6a06e64b32981f5ed38765ccf78bd1",
-    "content": ""main": "dist/index.js"",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 5,
-    "filePath": "tests/fixtures/json.json",
-    "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
-    "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
-
-"main": "dist/index.js"",
-    "startLine": 5,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "dd17b62e5de1d9ac864a9919dae14af2b7fe4304977bf8342b8585d1faa47c83",
-    "content": ""scripts": {
-  "start": "ts-node src/index.ts",
-  "build": "tsc",
-  "test": "jest"
-}",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 10,
-    "filePath": "tests/fixtures/json.json",
-    "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
-    "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
-
-"scripts": {
-  "start": "ts-node src/index.ts",
-  "build": "tsc",
-  "test": "jest"
-}",
-    "startLine": 6,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "8f3b64fbccd4de2b7584b9cdc9dbb968cc0dd634aef7aa638c9a004e2f98101a",
-    "content": ""keywords": [
-  "code",
-  "indexer",
-  "semantic",
-  "search"
-]",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 16,
-    "filePath": "tests/fixtures/json.json",
-    "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
-    "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
-
-"keywords": [
-  "code",
-  "indexer",
-  "semantic",
-  "search"
-]",
-    "startLine": 11,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "cc51b18bd5fb4bae902f4c54f4d05f2eefcf3b6484f014da5828bc1674db846c",
-    "content": ""author": "Your Name"",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 17,
-    "filePath": "tests/fixtures/json.json",
-    "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
-    "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
-
-"author": "Your Name"",
-    "startLine": 17,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "d1ee8fdbe276cdb9fde2b64acd3524f3d452b9bfdcf33b5bf87e1779ebb5468b",
-    "content": ""license": "ISC"",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 18,
-    "filePath": "tests/fixtures/json.json",
-    "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
-    "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
-
-"license": "ISC"",
-    "startLine": 18,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "3937689e831ff1838e2f22a9b1a2fd47ef2a9047219f35a639a1f60987e70108",
-    "content": ""dependencies": {
-  "elasticsearch": "^16.7.2",
-  "glob": "^7.2.0",
-  "tree-sitter-javascript": "^0.19.0"
-}",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 23,
-    "filePath": "tests/fixtures/json.json",
-    "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
-    "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
-
-"dependencies": {
-  "elasticsearch": "^16.7.2",
-  "glob": "^7.2.0",
-  "tree-sitter-javascript": "^0.19.0"
-}",
-    "startLine": 19,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "90365c9c9b8134f4ff570e3636d349bfc38f060b19217fd2ed1a9a022fa6c443",
-    "content": ""devDependencies": {
-  "@types/jest": "^27.0.3",
-  "jest": "^27.4.5",
-  "ts-jest": "^27.1.2",
-  "ts-node": "^10.4.0",
-  "typescript": "^4.5.4"
-}",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 30,
-    "filePath": "tests/fixtures/json.json",
-    "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
-    "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
-
-"devDependencies": {
-  "@types/jest": "^27.0.3",
-  "jest": "^27.4.5",
-  "ts-jest": "^27.1.2",
-  "ts-node": "^10.4.0",
-  "typescript": "^4.5.4"
-}",
-    "startLine": 24,
+    "@types/jest": "^27.0.3",
+    "jest": "^27.4.5",
+    "ts-jest": "^27.1.2",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  }
+}
+",
+    "startLine": 25,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
@@ -1983,13 +1875,20 @@ This is a text file.",
 exports[`LanguageParser should parse YAML fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "7faf28cc86373c82f34b2d4885392ed863a17a33a23fa5ef55caf75a9b798085",
-    "content": "document: one",
+    "chunk_hash": "6fc1577d54d9234a3de72ea7fd5d56fb5670435ea20e2fa1aaf71646814d1138",
+    "content": "document: one
+pair:
+  key: value
+---
+document: two
+another_pair:
+  nested_key: nested_value
+",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 1,
+    "endLine": 8,
     "filePath": "tests/fixtures/yaml.yml",
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
@@ -1997,108 +1896,15 @@ exports[`LanguageParser should parse YAML fixtures correctly 1`] = `
     "semantic_text": "filePath: tests/fixtures/yaml.yml
 directoryPath: tests/fixtures
 
-document: one",
+document: one
+pair:
+  key: value
+---
+document: two
+another_pair:
+  nested_key: nested_value
+",
     "startLine": 1,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "42b8143ee2f453a99da7d620fa6e4098ce5b58a81e47ee92787784673290acc1",
-    "content": "pair:",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 2,
-    "filePath": "tests/fixtures/yaml.yml",
-    "git_branch": "main",
-    "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
-    "language": "yaml",
-    "semantic_text": "filePath: tests/fixtures/yaml.yml
-directoryPath: tests/fixtures
-
-pair:",
-    "startLine": 2,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "f61f046945e572e3c609093a9bb46677315f28cb523f1d4df55f2a96e8e00a10",
-    "content": "  key: value",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 3,
-    "filePath": "tests/fixtures/yaml.yml",
-    "git_branch": "main",
-    "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
-    "language": "yaml",
-    "semantic_text": "filePath: tests/fixtures/yaml.yml
-directoryPath: tests/fixtures
-
-  key: value",
-    "startLine": 3,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "546d6629778413283752817130f850389ab7f46b2a45ed5e9cd45a5e32ae18b0",
-    "content": "document: two",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 5,
-    "filePath": "tests/fixtures/yaml.yml",
-    "git_branch": "main",
-    "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
-    "language": "yaml",
-    "semantic_text": "filePath: tests/fixtures/yaml.yml
-directoryPath: tests/fixtures
-
-document: two",
-    "startLine": 5,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "ac0cddc5cbd16b18271a122ebc7fd418edd369c3bb11e941a823acd63ea91b9c",
-    "content": "another_pair:",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 6,
-    "filePath": "tests/fixtures/yaml.yml",
-    "git_branch": "main",
-    "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
-    "language": "yaml",
-    "semantic_text": "filePath: tests/fixtures/yaml.yml
-directoryPath: tests/fixtures
-
-another_pair:",
-    "startLine": 6,
-    "type": "doc",
-    "updated_at": "[TIMESTAMP]",
-  },
-  {
-    "chunk_hash": "3255b416a16255d96420a3c3fbed1c6c8e36bb9929283c23d741904a51770ace",
-    "content": "  nested_key: nested_value",
-    "created_at": "[TIMESTAMP]",
-    "directoryDepth": 2,
-    "directoryName": "fixtures",
-    "directoryPath": "tests/fixtures",
-    "endLine": 7,
-    "filePath": "tests/fixtures/yaml.yml",
-    "git_branch": "main",
-    "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
-    "language": "yaml",
-    "semantic_text": "filePath: tests/fixtures/yaml.yml
-directoryPath: tests/fixtures
-
-  nested_key: nested_value",
-    "startLine": 7,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
