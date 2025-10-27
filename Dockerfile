@@ -12,10 +12,15 @@ RUN npm ci --only=production && npm cache clean --force
 
 FROM node:22-alpine AS production
 
-RUN apk add --no-cache git
+RUN apk add --no-cache git github-cli
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S indexer -u 1001 -G nodejs
 WORKDIR /app
+
+ENV GIT_AUTHOR_NAME=obltmachine
+ENV GIT_AUTHOR_EMAIL=infra-root+obltmachine@elastic.co
+ENV GIT_COMMITTER_NAME=obltmachine
+ENV GIT_COMMITTER_EMAIL=infra-root+obltmachine@elastic.co
 
 COPY --from=builder --chown=indexer:nodejs /app/dist ./dist
 COPY --from=builder --chown=indexer:nodejs /app/node_modules ./node_modules
