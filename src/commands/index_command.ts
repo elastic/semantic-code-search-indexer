@@ -3,7 +3,6 @@ import { glob } from 'glob';
 import {
   createIndex,
   deleteIndex,
-  setupElser,
   createSettingsIndex,
   updateLastIndexedCommit,
 } from '../utils/elasticsearch';
@@ -63,7 +62,6 @@ export async function index(directory: string, clean: boolean, options?: IndexOp
     await deleteIndex(options?.elasticsearchIndex);
   }
 
-  await setupElser();
   await createIndex(options?.elasticsearchIndex);
   await createSettingsIndex(options?.elasticsearchIndex);
 

@@ -266,7 +266,7 @@ Configuration is managed via environment variables in a `.env` file.
 | `ELASTICSEARCH_PASSWORD` | The password for Elasticsearch authentication. | |
 | `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication. | |
 | `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts. | `code-chunks` |
-| `ELASTICSEARCH_MODEL` | The name of the ELSER model to use. | `.elser_model_2` |
+| `ELASTICSEARCH_MODEL` | The name of the ELSER model to use. | `.elser-2-elastic` |
 | `OTEL_LOGGING_ENABLED` | Enable OpenTelemetry logging. | `false` |
 | `OTEL_METRICS_ENABLED` | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`). | Same as `OTEL_LOGGING_ENABLED` |
 | `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs and metrics. | `semantic-code-search-indexer` |

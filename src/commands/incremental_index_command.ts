@@ -3,7 +3,6 @@ import {
   getLastIndexedCommit,
   updateLastIndexedCommit,
   deleteDocumentsByFilePath,
-  setupElser,
 } from '../utils/elasticsearch';
 import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
 import { indexingConfig, appConfig } from '../config';
@@ -55,7 +54,6 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
   const metrics = createMetrics({ name: repoName, branch: gitBranch });
 
   logger.info('Starting incremental indexing process (Producer)', { directory, ...options });
-  await setupElser();
 
   const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
 

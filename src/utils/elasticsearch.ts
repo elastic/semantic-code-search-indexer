@@ -56,27 +56,6 @@ const defaultIndexName = elasticsearchConfig.index;
 const elserModelId = elasticsearchConfig.model;
 const codeSimilarityPipeline = 'code-similarity-pipeline';
 
-/**
- * Sets up the ELSER model for semantic search.
- *
- * This function checks if the ELSER model is deployed and started in the
- * Elasticsearch cluster. If it's not, it attempts to start the deployment.
- */
-export async function setupElser(): Promise<void> {
-  logger.info('Checking for ELSER model deployment...');
-  try {
-    const stats = await client.ml.getTrainedModelsStats({ model_id: elserModelId });
-    if (stats.trained_model_stats[0]?.deployment_stats?.state !== 'started') {
-      logger.info('Starting ELSER model deployment...');
-      await client.ml.startTrainedModelDeployment({ model_id: elserModelId, wait_for: 'started' });
-    }
-    logger.info('ELSER model is deployed and ready.');
-  } catch (error) {
-    logger.error(`ELSER model '${elserModelId}' not found or failed to deploy.`, { error });
-    logger.error('Please deploy it via the Kibana UI (Machine Learning > Trained Models) before running the indexer.');
-    throw new Error('ELSER model setup failed.');
-  }
-}
 
 /**
  * Creates the Elasticsearch index for storing code chunks.
@@ -133,6 +112,7 @@ export async function createIndex(index?: string): Promise<void> {
           content: { type: 'text' },
           semantic_text: {
             type: 'semantic_text',
+            inference_id: elserModelId,
           },
           code_vector: {
             type: 'dense_vector',

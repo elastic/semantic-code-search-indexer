@@ -26,7 +26,7 @@ export const elasticsearchConfig = {
   username: process.env.ELASTICSEARCH_USER || process.env.ELASTICSEARCH_USERNAME,
   password: process.env.ELASTICSEARCH_PASSWORD,
   apiKey: process.env.ELASTICSEARCH_API_KEY,
-  model: process.env.ELASTICSEARCH_MODEL || '.elser_model_2',
+  model: process.env.ELASTICSEARCH_MODEL || '.elser-2-elastic',
   index: process.env.ELASTICSEARCH_INDEX || 'code-chunks',
 };
 
