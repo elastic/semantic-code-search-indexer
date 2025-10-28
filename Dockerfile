@@ -27,6 +27,7 @@ COPY --from=builder --chown=indexer:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=indexer:nodejs /app/package*.json ./
 RUN chown -R indexer:nodejs .
 USER indexer
+RUN gh auth setup-git --hostname github.com --force
 
 ENV NODE_ENV=production
 # Configure OpenTelemetry via OTEL_* environment variables
