@@ -61,7 +61,10 @@ async function handleShutdown(signal: string) {
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 
-main().catch(async error => {
+main().then(async () => {
+  await shutdown();
+  process.exit(0);
+}).catch(async error => {
   console.error('An error occurred:', error);
   await shutdown();
   process.exit(1);
