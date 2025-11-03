@@ -71,6 +71,14 @@ export async function index(directory: string, clean: boolean, options?: IndexOp
   if (fs.existsSync(gitignorePath)) {
     ig.add(fs.readFileSync(gitignorePath, 'utf8'));
   }
+
+  // Load .indexerignore if it exists
+  const indexerignorePath = path.join(gitRoot, '.indexerignore');
+  if (fs.existsSync(indexerignorePath)) {
+    ig.add(fs.readFileSync(indexerignorePath, 'utf8'));
+    logger.info(`Loaded .indexerignore with custom exclusions`);
+  }
+
   ig.add(['**/*_lexer.ts', '**/*_parser.ts']);
 
   const relativeSearchDir = path.relative(gitRoot, directory);

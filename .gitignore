@@ -10,3 +10,4 @@ COMMIT_MESSAGE.md
 matches.json
 .queue/
 .queues/
+.idea

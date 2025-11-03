@@ -1,0 +1,52 @@
+# Example .indexerignore file for Kibana repository
+# Copy this to the repository you want to index as .indexerignore
+
+# Build artifacts
+x-pack/build/
+target/
+dist/
+build/
+.output/
+
+# Test files (these create too many chunks)
+**/*.test.js
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.js
+**/*.spec.ts
+**/*.spec.tsx
+
+# Test fixtures and snapshots
+**/__fixtures__/
+**/fixtures/
+**/*.fixture.ts
+**/*.fixture.js
+**/*.snap
+**/__snapshots__/
+
+# Large/generated files
+**/*.bundle.js
+**/*.chunk.js
+**/*.min.js
+**/translations/*.json
+
+# Chromium binaries
+**/chromium/
+
+# API documentation
+api_docs/
+
+# Coverage and output
+coverage/
+.nyc_output/
+
+# Example and mock data
+**/examples/
+**/mocks/
+**/*.mock.ts
+**/*.mock.js
+
+# Generated parsers (from tree-sitter grammars)
+**/*_lexer.ts
+**/*_parser.ts
+

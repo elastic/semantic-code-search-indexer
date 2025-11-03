@@ -14,35 +14,47 @@ This project is a high-performance code indexer designed to provide deep, contex
 
 ## Setup and Installation
 
-### 1. Prerequisites
+### Prerequisites
 
--   Node.js (v20 or later)
--   npm
--   An running Elasticsearch instance (v8.0 or later) with the **ELSER model downloaded and deployed**.
+-   Node.js v20+ (check with `node -v`)
+-   Elasticsearch 8.0+ with **ELSER model deployed** (critical - indexing will fail without this)
+-   Elasticsearch credentials (username/password or API key)
 
-### 2. Clone the Repository and Install Dependencies
+### Quick Start
 
 ```bash
-git clone <repository-url>
-cd code-indexer
+# 1. Install dependencies
 npm install
-```
 
-### 3. Configure Environment Variables
-
-Copy the `.env.example` file and update it with your Elasticsearch credentials.
-
-```bash
+# 2. Configure Elasticsearch connection
 cp .env.example .env
+# Edit .env with your Elasticsearch URL, username, and password
+
+# 3. Deploy ELSER in Kibana (if not already done)
+# Go to Stack Management → Machine Learning → Trained Models
+# Find .elser_model_2 and click "Deploy"
+
+# 4. (Optional) Add .indexerignore to your repository
+# Copy .indexerignore.example to your repo as .indexerignore to exclude files
+# This reduces indexing time and improves relevance by excluding tests, build artifacts, etc.
+
+# 5. Index your repository
+npm run index -- /path/to/your/repo --clean
+
+# 6. Start the worker to process the queue
+npm run index-worker -- --watch --concurrency 8
 ```
 
-### 4. Compile the Code
+### Excluding Files with `.indexerignore`
 
-The multi-threaded worker requires the project to be compiled to JavaScript.
+The indexer respects both `.gitignore` and `.indexerignore` files in your repository. Create a `.indexerignore` file in the root of the repository you're indexing to exclude additional files beyond what's in `.gitignore`.
 
-```bash
-npm run build
-```
+**Example use cases:**
+- Exclude test files (`**/*.test.ts`, `**/*.spec.js`)
+- Skip build artifacts (`target/`, `dist/`, `build/`)
+- Ignore large generated files or documentation
+
+See `.indexerignore.example` in this repository for a complete example tailored for large repositories like Kibana.
 
 ---
 
@@ -53,10 +65,10 @@ npm run build
 Clones a target repository into the `./.repos/` directory to prepare it for indexing.
 
 **Arguments:**
-- `<repo_url>`: The URL of the git repository to clone.
-- `--token <token>`: (Optional) A GitHub Personal Access Token for cloning private repositories.
+- `<repo_url>` - The URL of the git repository to clone
+- `--token <token>` - GitHub Personal Access Token for private repositories
 
-**Example:**
+**Examples:**
 ```bash
 npm run setup -- https://github.com/elastic/kibana.git
 
@@ -64,49 +76,51 @@ npm run setup -- https://github.com/elastic/kibana.git
 npm run setup -- https://github.com/my-org/my-private-repo.git --token ghp_YourTokenHere
 ```
 
-### `npm run index`
+### `npm run index` (Producer)
 
-Performs a full index of a codebase. This command scans a directory and populates the Elasticsearch index from scratch. It is recommended to run this with a high memory limit.
+Scans your codebase and **enqueues** code chunks into a SQLite queue. This does NOT directly index to Elasticsearch.
+
+**Important:** After running this, you must run `npm run index-worker` to actually send documents to Elasticsearch.
 
 **Arguments:**
-- `<directory>`: The path to the codebase to index.
-- `--clean`: (Optional) Deletes the existing index before starting.
+- `<directory>` - Path to the codebase to index
+- `--clean` - Delete existing Elasticsearch index before starting
 
-**Example:**
 ```bash
-# Index the Kibana repo located in the .repos directory
-npm run index -- .repos/kibana --clean
+# Basic usage
+npm run index -- /path/to/repo
+
+# Clean index (delete existing ES index first)
+npm run index -- /path/to/repo --clean
+```
+
+### `npm run index-worker` (Consumer)
+
+Processes the queue and sends documents to Elasticsearch. You **must** run this after `npm run index`.
+
+**Arguments:**
+- `--concurrency <number>` - Number of parallel tasks (default: 1, recommended: CPU core count)
+- `--watch` - Keep running and process new items as they're enqueued
+- `--repoName <name>` - Repository queue to process (for multi-repo setups)
+- `--branch <branch>` - Branch name for logging context
+
+```bash
+# Process the queue once
+npm run index-worker
+
+# Keep running and watch for new items (recommended)
+npm run index-worker -- --watch --concurrency 8
 ```
 
 ### `npm run incremental-index`
 
-After an initial full index, use this command to efficiently update the index. It pulls the latest changes from the repository, processes only the files that have changed since the last run, and updates the Elasticsearch index.
+Updates an existing index with only changed files (after pulling latest git changes).
 
 **Arguments:**
-- `<directory>`: The path to the codebase to index.
+- `<directory>` - Path to the codebase to index
 
-**Example:**
 ```bash
-npm run incremental-index -- .repos/kibana
-```
-
-### `npm run index-worker`
-
-Starts a single worker process to index documents from a queue.
-
-**Arguments:**
-- `--concurrency <number>`: (Optional) The number of parallel tasks the worker should run. Defaults to 1.
-- `--watch`: (Optional) Keeps the worker running to process new items as they are enqueued.
-- `--repoName <name>`: (Optional) The name of the repository queue to process.
-- `--branch <branch>`: (Optional) The name of the branch being indexed, used for logging context.
-
-**Example:**
-```bash
-# Run a single worker in watch mode
-npm run index-worker -- --watch
-
-# Run a worker for a specific repository queue
-npm run index-worker -- --repoName=kibana --watch
+npm run incremental-index -- /path/to/repo
 ```
 
 ### `npm run bulk:incremental-index`
@@ -187,31 +201,21 @@ The `--repoName` argument should be the **simple name** of the repository's dire
 
 ### `npm run queue:monitor`
 
-Displays statistics about a document queue, such as the number of pending, processing, and failed documents.
+Check queue status - how many documents are pending, processing, or failed.
 
-**Arguments:**
-- `--repoName=<repo>`: (Optional) The name of the repository queue to monitor. If omitted, it monitors the default single-user queue defined by `QUEUE_DIR`.
-
-**Example:**
 ```bash
-# Monitor the default queue
 npm run queue:monitor
-
-# Monitor the queue for the 'kibana' repository
-npm run queue:monitor -- --repoName=kibana
 ```
 
 ### `npm run queue:clear`
 
-Deletes all documents from a queue database.
+Delete all documents from the queue (useful for starting fresh).
 
-**Arguments:**
-- `--repoName=<repo>`: (Optional) The name of the repository queue to clear. If omitted, it clears the default single-user queue.
-
-**Example:**
 ```bash
-npm run queue:clear -- --repoName=kibana
+npm run queue:clear
 ```
+
+**Pro tip:** Run `watch -n 5 'npm run queue:monitor'` to continuously monitor the queue.
 
 ### `npm run queue:retry-failed`
 
