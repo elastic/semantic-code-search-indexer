@@ -7,11 +7,29 @@ import fs from 'fs';
 
 const MOCK_TIMESTAMP = '[TIMESTAMP]';
 
+// Supported languages for testing
+const TEST_LANGUAGES = [
+  'typescript',
+  'javascript',
+  'markdown',
+  'yaml',
+  'java',
+  'go',
+  'python',
+  'json',
+  'gradle',
+  'properties',
+  'text',
+  'handlebars',
+  'c',
+  'cpp',
+].join(',');
+
 describe('LanguageParser', () => {
   let parser: LanguageParser;
 
   beforeAll(() => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,javascript,markdown,yaml,java,go,python,json,gradle,properties,text,handlebars,c,cpp';
+    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = TEST_LANGUAGES;
     parser = new LanguageParser();
   });
 
