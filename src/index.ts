@@ -12,6 +12,7 @@ import { referencesCommand } from './commands/references_command';
 import { retryFailedCommand } from './commands/retry_failed_command';
 import { setupCommand } from './commands/setup_command';
 import { workerCommand } from './commands/worker_command';
+import { scaffoldLanguageCommand } from './commands/scaffold_language_command';
 import { shutdown } from './utils/otel_provider';
 
 async function main() {
@@ -34,6 +35,7 @@ async function main() {
   program.addCommand(retryFailedCommand);
   program.addCommand(setupCommand);
   program.addCommand(workerCommand);
+  program.addCommand(scaffoldLanguageCommand);
 
   await program.parseAsync(process.argv);
 }

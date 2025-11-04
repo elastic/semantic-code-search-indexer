@@ -121,6 +121,14 @@ export class LanguageParser {
       const config = languageConfigurations[name];
       this.languages.set(config.name, config);
       for (const suffix of config.fileSuffixes) {
+        // Check for duplicate file suffix during map creation
+        const existing = this.fileSuffixMap.get(suffix);
+        if (existing) {
+          logger.warn(
+            `File extension "${suffix}" is registered to both "${existing.name}" and "${config.name}". ` +
+            `Using "${config.name}".`
+          );
+        }
         this.fileSuffixMap.set(suffix, config);
       }
     }

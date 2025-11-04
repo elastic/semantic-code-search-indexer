@@ -12,3 +12,4 @@ export * from './list_failed_command';
 export * from './bulk_incremental_index_command';
 export * from './bulk_reindex_command';
 export * from './dump_tree_command';
+export * from './scaffold_language_command';

@@ -1,0 +1,52 @@
+// src/languages/templates/tree-sitter-template.ts
+// This template is used for languages that use tree-sitter parsers
+// Replace {{LANGUAGE_NAME}} with your language name (lowercase)
+// Replace {{TREE_SITTER_PACKAGE}} with the tree-sitter package name (e.g., tree-sitter-rust)
+
+import {{TREE_SITTER_PACKAGE_VAR}} from '{{TREE_SITTER_PACKAGE}}';
+import { LanguageConfiguration } from '../utils/parser';
+
+/**
+ * Configuration for {{LANGUAGE_NAME}} language parsing
+ * 
+ * This configuration uses tree-sitter for parsing and extracting code structure.
+ * For more information, see: https://tree-sitter.github.io/tree-sitter/
+ */
+export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
+  name: '{{LANGUAGE_NAME}}',
+  fileSuffixes: [{{FILE_EXTENSIONS}}],
+  parser: {{TREE_SITTER_PACKAGE_VAR}},
+  
+  // General queries for code structure
+  // See existing language configs (typescript.ts, python.ts) for examples
+  queries: [
+    // Common patterns (customize for your language):
+    // '(import_statement) @import',
+    // '(function_definition) @function',
+    // '(class_definition) @class',
+    // '(comment) @comment',
+    // '(variable_declaration) @variable',
+  ],
+  
+  // Optional: Import statement queries
+  // Used to track dependencies between files
+  importQueries: [
+    // Example:
+    // '(import_statement source: (string) @import.path)',
+  ],
+  
+  // Optional: Symbol definition queries
+  // Used to identify where symbols are defined
+  symbolQueries: [
+    // Example:
+    // '(function_definition name: (identifier) @function.name)',
+    // '(class_definition name: (identifier) @class.name)',
+  ],
+  
+  // Optional: Export statement queries
+  // Used to track what symbols are exported from files
+  exportQueries: [
+    // Example:
+    // '(export_statement (function_definition name: (identifier) @export.name))',
+  ],
+};
