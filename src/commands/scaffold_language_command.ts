@@ -88,28 +88,40 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
 
     if (isCustomParser) {
       // Use custom parser template
-      const template = fs.readFileSync(
-        path.join(languagesDir, 'templates', 'custom-parser-template.txt'),
-        'utf-8'
-      );
-      content = template
-        .replace(/\{\{LANGUAGE_NAME\}\}/g, languageName)
-        .replace(/\{\{FILE_EXTENSIONS\}\}/g, extensionsString);
+      try {
+        const template = fs.readFileSync(
+          path.join(languagesDir, 'templates', 'custom-parser-template.txt'),
+          'utf-8'
+        );
+        content = template
+          .replace(/\{\{LANGUAGE_NAME\}\}/g, languageName)
+          .replace(/\{\{FILE_EXTENSIONS\}\}/g, extensionsString);
+      } catch (error) {
+        console.error('Error: Could not read custom parser template file');
+        console.error('Make sure src/languages/templates/custom-parser-template.txt exists');
+        throw error;
+      }
     } else {
       // Use tree-sitter template
-      const template = fs.readFileSync(
-        path.join(languagesDir, 'templates', 'tree-sitter-template.txt'),
-        'utf-8'
-      );
-      
-      // Determine package variable name (e.g., tree-sitter-rust -> rust)
-      const packageVarName = options.parser!.replace('tree-sitter-', '');
-      
-      content = template
-        .replace(/\{\{LANGUAGE_NAME\}\}/g, languageName)
-        .replace(/\{\{FILE_EXTENSIONS\}\}/g, extensionsString)
-        .replace(/\{\{TREE_SITTER_PACKAGE\}\}/g, options.parser!)
-        .replace(/\{\{TREE_SITTER_PACKAGE_VAR\}\}/g, packageVarName);
+      try {
+        const template = fs.readFileSync(
+          path.join(languagesDir, 'templates', 'tree-sitter-template.txt'),
+          'utf-8'
+        );
+        
+        // Determine package variable name (e.g., tree-sitter-rust -> rust)
+        const packageVarName = options.parser!.replace('tree-sitter-', '');
+        
+        content = template
+          .replace(/\{\{LANGUAGE_NAME\}\}/g, languageName)
+          .replace(/\{\{FILE_EXTENSIONS\}\}/g, extensionsString)
+          .replace(/\{\{TREE_SITTER_PACKAGE\}\}/g, options.parser!)
+          .replace(/\{\{TREE_SITTER_PACKAGE_VAR\}\}/g, packageVarName);
+      } catch (error) {
+        console.error('Error: Could not read tree-sitter template file');
+        console.error('Make sure src/languages/templates/tree-sitter-template.txt exists');
+        throw error;
+      }
     }
 
     // Write the configuration file
@@ -152,7 +164,7 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
       }
 
       if (lastImportIndex === -1) {
-        console.error('Warning: Could not find import statements in index.ts');
+        console.warn('Warning: Could not find import statements in index.ts');
       } else {
         // Insert import after last import
         lines.splice(lastImportIndex + 1, 0, importStatement);
@@ -163,7 +175,7 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
         );
         
         if (configsStartIndex === -1) {
-          console.error('Warning: Could not find languageConfigurations export in index.ts');
+          console.warn('Warning: Could not find languageConfigurations export in index.ts');
         } else {
           // Find the closing brace of languageConfigurations
           let braceCount = 0;
@@ -181,7 +193,7 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
           }
 
           if (configsEndIndex === -1) {
-            console.error('Warning: Could not find end of languageConfigurations in index.ts');
+            console.warn('Warning: Could not find end of languageConfigurations in index.ts');
           } else {
             // Insert before the closing brace
             const registrationLine = `  ${languageName}: ${configVarName},`;

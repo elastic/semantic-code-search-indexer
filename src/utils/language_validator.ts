@@ -81,16 +81,18 @@ export function validateLanguageConfiguration(
   // Validate queries format if tree-sitter parser is used
   if (config.parser !== null && config.queries) {
     config.queries.forEach((query, index) => {
-      try {
-        // Test if query can be created (basic syntax validation)
-        // This will throw if the query syntax is invalid
-        new Parser.Query(config.parser, query);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        errors.push({ 
-          field: `queries[${index}]`, 
-          message: `Invalid query syntax: ${errorMessage}` 
-        });
+      if (config.parser !== null) {
+        try {
+          // Test if query can be created (basic syntax validation)
+          // This will throw if the query syntax is invalid
+          new Parser.Query(config.parser, query);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          errors.push({ 
+            field: `queries[${index}]`, 
+            message: `Invalid query syntax: ${errorMessage}` 
+          });
+        }
       }
     });
   }

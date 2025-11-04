@@ -91,7 +91,12 @@ export function registerLanguage(
  * @returns Object mapping language names to their validation errors
  */
 export function validateAllLanguageConfigurations(): Record<string, ValidationError[]> {
-  const results = validateLanguageConfigurations(languageConfigurations as Record<string, LanguageConfiguration>);
+  const configs: Record<string, LanguageConfiguration> = {};
+  for (const [key, value] of Object.entries(languageConfigurations)) {
+    configs[key] = value;
+  }
+  
+  const results = validateLanguageConfigurations(configs);
   
   if (Object.keys(results).length > 0) {
     console.warn('Language configuration validation warnings:');
