@@ -108,5 +108,16 @@ describe('parseLanguageNames', () => {
     const allLanguages = Object.keys(languageConfigurations);
     expect(allLanguages).toContain('c');
   });
+
+  it('should parse cpp language', () => {
+    const result = parseLanguageNames('cpp');
+    expect(result).toEqual(['cpp']);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should include cpp in supported languages', () => {
+    const allLanguages = Object.keys(languageConfigurations);
+    expect(allLanguages).toContain('cpp');
+  });
 });
 

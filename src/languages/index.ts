@@ -12,6 +12,7 @@ import { propertiesConfig } from './properties';
 import { textConfig } from './text';
 import { handlebarsConfig } from './handlebars';
 import { cConfig } from './c';
+import { cppConfig } from './cpp';
 import { LanguageConfiguration } from '../utils/parser';
 import { validateLanguageConfiguration, validateLanguageConfigurations, ValidationError } from '../utils/language_validator';
 
@@ -29,6 +30,7 @@ export const languageConfigurations = {
   text: textConfig,
   handlebars: handlebarsConfig,
   c: cConfig,
+  cpp: cppConfig,
 } as const;
 
 /**
