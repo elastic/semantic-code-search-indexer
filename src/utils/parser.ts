@@ -576,7 +576,7 @@ export class LanguageParser {
     }
 
     // For Python, check if __all__ is defined and use it as the authoritative export list
-    let pythonAllList: string[] | null = null;
+    let pythonAllSet: Set<string> | null = null;
     if (langConfig.name === 'python') {
       try {
         const allQuery = new Query(
@@ -590,24 +590,32 @@ export class LanguageParser {
           const lastMatch = allMatches[allMatches.length - 1];
           const listNode = lastMatch.captures.find(c => c.name === 'all_list')?.node;
           if (listNode) {
-            pythonAllList = [];
+            const pythonAllList: string[] = [];
             // Extract string literals from the list
+            // This handles standard Python strings (single/double quoted)
+            // Note: f-strings, raw strings, and other special formats may not be extracted correctly
             for (let i = 0; i < listNode.namedChildCount; i++) {
               const child = listNode.namedChild(i);
               if (child && child.type === 'string') {
-                // String has 3 children: string_start, string_content, string_end
+                // Standard Python strings have structure: string_start, string_content, string_end
+                // For simple strings without prefixes, the content is at index 1
                 const stringContent = child.child(1);
                 if (stringContent && stringContent.type === 'string_content') {
                   pythonAllList.push(stringContent.text);
+                } else {
+                  // If the expected structure is not found, log a warning and skip
+                  logger.warn(`Unexpected string structure in __all__ at index ${i}: ${child.toString()}`);
                 }
               }
             }
+            // Use a Set for O(1) lookup performance
+            pythonAllSet = new Set(pythonAllList);
           }
         }
       } catch (error) {
         logger.warn(`Failed to parse Python __all__: ${error instanceof Error ? error.message : String(error)}`);
         // Fall back to pattern-based detection
-        pythonAllList = null;
+        pythonAllSet = null;
       }
     }
 
@@ -656,8 +664,8 @@ export class LanguageParser {
         if (exportName || exportType === 'namespace') {
           // For Python, filter exports based on __all__ if it exists
           // Skip filtering for namespace exports (not applicable to Python anyway)
-          if (langConfig.name === 'python' && pythonAllList !== null && exportType !== 'namespace') {
-            if (!pythonAllList.includes(exportName)) {
+          if (langConfig.name === 'python' && pythonAllSet !== null && exportType !== 'namespace') {
+            if (!pythonAllSet.has(exportName)) {
               continue; // Skip this export - not in __all__
             }
           }
