@@ -1,5 +1,1037 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`LanguageParser should parse C fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "d3139b187138b0a2b1fd9b889746cb293f2dfc1ec526153bb345b1617eca9ef4",
+    "containerPath": "",
+    "content": "#include <stdio.h>
+",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 2,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [
+      {
+        "path": "<stdio.h>",
+        "symbols": [],
+        "type": "module",
+      },
+    ],
+    "kind": "preproc_include",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: preproc_include
+
+#include <stdio.h>
+",
+    "startLine": 1,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "0255684c4d6c1527072949458c753df8cd146612251d4ba3fe3b22a7e063cec1",
+    "containerPath": "",
+    "content": "#include <stdlib.h>
+",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 3,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [
+      {
+        "path": "<stdlib.h>",
+        "symbols": [],
+        "type": "module",
+      },
+    ],
+    "kind": "preproc_include",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: preproc_include
+
+#include <stdlib.h>
+",
+    "startLine": 2,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "3115917369112cd0b7e3e12f7342203c28651f9404c2d267e04221c68f7f634a",
+    "containerPath": "",
+    "content": "#include "header.h"
+",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 4,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [
+      {
+        "path": "header.h",
+        "symbols": [],
+        "type": "module",
+      },
+    ],
+    "kind": "preproc_include",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: preproc_include
+
+#include "header.h"
+",
+    "startLine": 3,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "6391967cec4446059ae4be79dd990c353df3600c801693aeae62d8fd75cd8414",
+    "containerPath": "",
+    "content": "/* Function comment */",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 5,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "comment",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: comment
+
+/* Function comment */",
+    "startLine": 5,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a5de93fa2c1b5dc347958d3cbba7522092b1889eac3a357b3aa8c231b28ab611",
+    "containerPath": "",
+    "content": "int add(int a, int b) {
+    return a + b;
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 8,
+    "exports": [
+      {
+        "name": "add",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: function_definition
+
+int add(int a, int b) {
+    return a + b;
+}",
+    "startLine": 6,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 6,
+        "name": "add",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 6,
+        "name": "a",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 6,
+        "name": "b",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "800b20fd97b1508b0b22078816a57ea174dc54356f23d8f1ee126c58623efa26",
+    "containerPath": "",
+    "content": "return a + b;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 7,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "return_statement",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: return_statement
+
+return a + b;",
+    "startLine": 7,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "cd67cf751677832c63b8a1673f9614b84c41ab1380cd9dab1ca47f85027307f9",
+    "containerPath": "",
+    "content": "// Variable comment",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 10,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "comment",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: comment
+
+// Variable comment",
+    "startLine": 10,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b6a5307438c05e5187b5cf483af541cf761033cacf01041fe296f286837df7fb",
+    "containerPath": "",
+    "content": "int global_var = 10;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 11,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "declaration",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: declaration
+
+int global_var = 10;",
+    "startLine": 11,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 11,
+        "name": "global_var",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "71ebfbf29d510c5d078fb62eaab6b19b037c3096fe38e819393b5f2bb61365bc",
+    "containerPath": "",
+    "content": "struct Point {
+    int x;
+    int y;
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 16,
+    "exports": [
+      {
+        "name": "Point",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "struct_specifier",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: struct_specifier
+
+struct Point {
+    int x;
+    int y;
+}",
+    "startLine": 13,
+    "symbols": [
+      {
+        "kind": "struct.name",
+        "line": 13,
+        "name": "Point",
+      },
+      {
+        "kind": "field.name",
+        "line": 14,
+        "name": "x",
+      },
+      {
+        "kind": "field.name",
+        "line": 15,
+        "name": "y",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "20ac4138ead844d262720cedb8c067af80e60d8914ceb4d70fc88196a97c49e6",
+    "containerPath": "",
+    "content": "union Data {
+    int i;
+    float f;
+    char c;
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 22,
+    "exports": [
+      {
+        "name": "Data",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "union_specifier",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: union_specifier
+
+union Data {
+    int i;
+    float f;
+    char c;
+}",
+    "startLine": 18,
+    "symbols": [
+      {
+        "kind": "union.name",
+        "line": 18,
+        "name": "Data",
+      },
+      {
+        "kind": "field.name",
+        "line": 19,
+        "name": "i",
+      },
+      {
+        "kind": "field.name",
+        "line": 20,
+        "name": "f",
+      },
+      {
+        "kind": "field.name",
+        "line": 21,
+        "name": "c",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2cfbf1a4fd02f26c5eceb63f6c7291ef5a2d956eac8cabcc1f6295a8a7a7522b",
+    "containerPath": "",
+    "content": "enum Color {
+    RED,
+    GREEN,
+    BLUE
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 28,
+    "exports": [
+      {
+        "name": "Color",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "enum_specifier",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: enum_specifier
+
+enum Color {
+    RED,
+    GREEN,
+    BLUE
+}",
+    "startLine": 24,
+    "symbols": [
+      {
+        "kind": "enum.name",
+        "line": 24,
+        "name": "Color",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "54eff1362b3f3e8df41e735470743dcfbfaf8ac270fbec7e6c5e135a4701a70b",
+    "containerPath": "",
+    "content": "typedef struct Point Point_t;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 30,
+    "exports": [
+      {
+        "name": "Point",
+        "type": "named",
+      },
+      {
+        "name": "Point_t",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "type_definition",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: type_definition
+
+typedef struct Point Point_t;",
+    "startLine": 30,
+    "symbols": [
+      {
+        "kind": "struct.name",
+        "line": 30,
+        "name": "Point",
+      },
+      {
+        "kind": "type.name",
+        "line": 30,
+        "name": "Point_t",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "e368b95d8219535f8cdac40d314348f3545ee9779bdd4e39e539160b2c5d08ce",
+    "containerPath": "",
+    "content": "struct Point",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 30,
+    "exports": [
+      {
+        "name": "Point",
+        "type": "named",
+      },
+      {
+        "name": "Point_t",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "struct_specifier",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: struct_specifier
+
+struct Point",
+    "startLine": 30,
+    "symbols": [
+      {
+        "kind": "struct.name",
+        "line": 30,
+        "name": "Point",
+      },
+      {
+        "kind": "type.name",
+        "line": 30,
+        "name": "Point_t",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "91718fd1a7eac854dd3d8a1597fa0f35d66abe172af9f4352636cd2af65c5983",
+    "containerPath": "",
+    "content": "/* Documented function */",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 32,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "comment",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: comment
+
+/* Documented function */",
+    "startLine": 32,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "3596ee31a7138e3971a471c3f6164e0efc22e7a829284808e50a94114f14b6fb",
+    "containerPath": "",
+    "content": "void test_function() {
+    int result = add(1, 2);
+    printf("Result: %d\\n", result);
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 36,
+    "exports": [
+      {
+        "name": "test_function",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: function_definition
+
+void test_function() {
+    int result = add(1, 2);
+    printf("Result: %d\\n", result);
+}",
+    "startLine": 33,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 33,
+        "name": "test_function",
+      },
+      {
+        "kind": "variable.name",
+        "line": 34,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 34,
+        "name": "add",
+      },
+      {
+        "kind": "function.call",
+        "line": 35,
+        "name": "printf",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "adb31437b363f6a9807e9a26becac4a885e94f4f6282ef37403c58ca571f0c19",
+    "containerPath": "",
+    "content": "int result = add(1, 2);",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 34,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "declaration",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: declaration
+
+int result = add(1, 2);",
+    "startLine": 34,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 34,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 34,
+        "name": "add",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a56efe1f333bca523861d4b5a5b63a99fb46ede74bc7816ac68debf5bc107a84",
+    "containerPath": "",
+    "content": "add(1, 2)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 34,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "call_expression",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: call_expression
+
+add(1, 2)",
+    "startLine": 34,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 34,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 34,
+        "name": "add",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "abe75c3adb6c9a7fa1b6643a22c77027e69c5412e99b4b06131e093fd203f45a",
+    "containerPath": "",
+    "content": "printf("Result: %d\\n", result);",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 35,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "expression_statement",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: expression_statement
+
+printf("Result: %d\\n", result);",
+    "startLine": 35,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 35,
+        "name": "printf",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "c4c9715f19ead1252f2f6244da180086a967971acb020334c511590845e628c1",
+    "containerPath": "",
+    "content": "printf("Result: %d\\n", result)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 35,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "call_expression",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: call_expression
+
+printf("Result: %d\\n", result)",
+    "startLine": 35,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 35,
+        "name": "printf",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "60e0608f3c9d3f5bc71e0d7cc05fb6a9e605f8a651aed592d330136af13f8752",
+    "containerPath": "",
+    "content": "static void private_function() {
+    printf("Private\\n");
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 40,
+    "exports": [
+      {
+        "name": "private_function",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: function_definition
+
+static void private_function() {
+    printf("Private\\n");
+}",
+    "startLine": 38,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 38,
+        "name": "private_function",
+      },
+      {
+        "kind": "function.call",
+        "line": 39,
+        "name": "printf",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "6f2fb0ca22c4e3ada754e910875de93ad508bc2231cd727a226194dcbf9f6cc6",
+    "containerPath": "",
+    "content": "printf("Private\\n");",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 39,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "expression_statement",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: expression_statement
+
+printf("Private\\n");",
+    "startLine": 39,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 39,
+        "name": "printf",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "375f51f559da9030a5eecab6fcb05439d71ad440c02b45920151f84198cd1fbe",
+    "containerPath": "",
+    "content": "printf("Private\\n")",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 39,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "call_expression",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: call_expression
+
+printf("Private\\n")",
+    "startLine": 39,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 39,
+        "name": "printf",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b59c05467ff70488c92fb7a1ac40de3cac911656ac08f683980e617fe3027d0b",
+    "containerPath": "",
+    "content": "int main(int argc, char *argv[]) {
+    Point_t point = { .x = 10, .y = 20 };
+    test_function();
+    return 0;
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 46,
+    "exports": [
+      {
+        "name": "main",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: function_definition
+
+int main(int argc, char *argv[]) {
+    Point_t point = { .x = 10, .y = 20 };
+    test_function();
+    return 0;
+}",
+    "startLine": 42,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 42,
+        "name": "main",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 42,
+        "name": "argc",
+      },
+      {
+        "kind": "variable.name",
+        "line": 43,
+        "name": "point",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "test_function",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "089b9349dbdffe6db26fac83a13ca9dd897ba2b7248436a7b8c66ebeae72dbc9",
+    "containerPath": "",
+    "content": "Point_t point = { .x = 10, .y = 20 };",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 43,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "declaration",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: declaration
+
+Point_t point = { .x = 10, .y = 20 };",
+    "startLine": 43,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 43,
+        "name": "point",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "642f39792a77c0acb727ad01ff92c7b3779cd02d4372f156610632ffa63baa74",
+    "containerPath": "",
+    "content": "test_function();",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 44,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "expression_statement",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: expression_statement
+
+test_function();",
+    "startLine": 44,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "test_function",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2151bd4b921222ae3b9010a32eb971621dfc07a3897e7b36fc03f0364fcbf807",
+    "containerPath": "",
+    "content": "test_function()",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 44,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "call_expression",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: call_expression
+
+test_function()",
+    "startLine": 44,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "test_function",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "6be2e46a3d0765fd4d08def164c35b75afcc481db6fd11cc5118c4e2c20b634d",
+    "containerPath": "",
+    "content": "return 0;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 45,
+    "exports": [],
+    "filePath": "tests/fixtures/c.c",
+    "git_branch": "main",
+    "git_file_hash": "840725a147bc9860b019f519a6d5b3cb5c0a5c37",
+    "imports": [],
+    "kind": "return_statement",
+    "language": "c",
+    "semantic_text": "filePath: tests/fixtures/c.c
+directoryPath: tests/fixtures
+kind: return_statement
+
+return 0;",
+    "startLine": 45,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
 exports[`LanguageParser should parse Go fixtures correctly 1`] = `
 [
   {
