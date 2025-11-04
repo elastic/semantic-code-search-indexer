@@ -667,6 +667,136 @@ Third paragraph`;
       );
     });
 
+    it('should respect Python __all__ when present', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/python_with_all.py');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_with_all.py');
+      
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
+      
+      // Should only export items in __all__
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'public_function', type: 'named' }),
+          expect.objectContaining({ name: 'PublicClass', type: 'named' }),
+        ])
+      );
+      
+      // Should NOT export items not in __all__
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: '_private_helper' }),
+        ])
+      );
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'SECRET_CONSTANT' }),
+        ])
+      );
+      
+      // Verify we have exactly 2 exports
+      expect(allExports.length).toBe(2);
+    });
+
+    it('should handle Python __all__ with trailing commas and multiline', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/python_all_edge_cases.py');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_all_edge_cases.py');
+      
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
+      
+      // Should handle trailing commas and multiline __all__
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'function_one', type: 'named' }),
+          expect.objectContaining({ name: 'ClassTwo', type: 'named' }),
+        ])
+      );
+      
+      // Should not export items not in __all__
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'not_exported' }),
+        ])
+      );
+      
+      expect(allExports.length).toBe(2);
+    });
+
+    it('should handle Python empty __all__', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/python_empty_all.py');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_empty_all.py');
+      
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
+      
+      // Empty __all__ should export nothing
+      expect(allExports.length).toBe(0);
+      
+      // Verify functions and classes exist but are not exported
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'my_function' }),
+        ])
+      );
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'MyClass' }),
+        ])
+      );
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'MY_CONSTANT' }),
+        ])
+      );
+    });
+
+    it('should handle Python multiple __all__ assignments', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/python_multiple_all.py');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_multiple_all.py');
+      
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
+      
+      // Should use the last __all__ assignment
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'bar', type: 'named' }),
+        ])
+      );
+      
+      // Should NOT export items from the first __all__
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'foo' }),
+        ])
+      );
+      
+      expect(allExports.length).toBe(1);
+    });
+
+    it('should handle Python __all__ with mixed valid and invalid items', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/python_all_mixed_valid.py');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_all_mixed_valid.py');
+      
+      const allExports = result.chunks.flatMap(chunk => chunk.exports || []);
+      
+      // Should export the existing function that's in __all__
+      expect(allExports).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'existing_function', type: 'named' }),
+        ])
+      );
+      
+      // Should NOT export functions not in __all__
+      expect(allExports).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'not_in_all' }),
+        ])
+      );
+      
+      // Note: nonexistent_function won't appear because there's no definition for it
+      // The filtering logic only filters out items that have definitions but aren't in __all__
+      // Items in __all__ that don't have definitions simply won't be found by the export queries
+      expect(allExports.length).toBe(1);
+    });
+
     it('should extract Java public exports correctly', () => {
       const filePath = path.resolve(__dirname, 'fixtures/java.java');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
