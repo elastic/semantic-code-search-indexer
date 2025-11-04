@@ -655,7 +655,8 @@ export class LanguageParser {
 
         if (exportName || exportType === 'namespace') {
           // For Python, filter exports based on __all__ if it exists
-          if (langConfig.name === 'python' && pythonAllList !== null) {
+          // Skip filtering for namespace exports (not applicable to Python anyway)
+          if (langConfig.name === 'python' && pythonAllList !== null && exportType !== 'namespace') {
             if (!pythonAllList.includes(exportName)) {
               continue; // Skip this export - not in __all__
             }
