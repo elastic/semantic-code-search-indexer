@@ -54,6 +54,137 @@ describe('LanguageParser', () => {
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
+  describe('Configurable Markdown Delimiter', () => {
+    it('should parse Markdown with default paragraph delimiter', () => {
+      const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
+      const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
+      
+      // Should create 4 chunks with paragraph-based splitting
+      expect(result.chunks.length).toBe(4);
+      expect(result.metrics.parserType).toBe('markdown');
+    });
+
+    it('should parse Markdown with section delimiter (---)', () => {
+      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
+      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
+      
+      try {
+        const filePath = path.resolve(__dirname, 'fixtures/markdown_sections.md');
+        const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown_sections.md');
+        
+        // Should create 3 chunks (split by ---)
+        expect(result.chunks.length).toBe(3);
+        
+        // First chunk should contain Section 1
+        expect(result.chunks[0].content).toContain('Section 1');
+        expect(result.chunks[0].content).toContain('first section');
+        
+        // Second chunk should contain Section 2
+        expect(result.chunks[1].content).toContain('Section 2');
+        expect(result.chunks[1].content).toContain('second section');
+        
+        // Third chunk should contain Section 3
+        expect(result.chunks[2].content).toContain('Section 3');
+        expect(result.chunks[2].content).toContain('final section');
+        
+        // Verify line numbers are calculated correctly
+        expect(result.chunks[0].startLine).toBe(1);
+        expect(result.chunks[1].startLine).toBeGreaterThan(result.chunks[0].endLine);
+        expect(result.chunks[2].startLine).toBeGreaterThan(result.chunks[1].endLine);
+      } finally {
+        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+      }
+    });
+
+    it('should parse Markdown with custom delimiter (===)', () => {
+      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
+      indexingConfig.markdownChunkDelimiter = '\\n===\\n';
+      
+      try {
+        // Create temporary test file
+        const testContent = `Part 1
+Content here
+
+===
+
+Part 2
+More content
+
+===
+
+Part 3
+Final content`;
+        
+        const tempFile = path.join(__dirname, 'fixtures', 'temp_custom_delimiter.md');
+        fs.writeFileSync(tempFile, testContent);
+        
+        const result = parser.parseFile(tempFile, 'main', 'temp_custom_delimiter.md');
+        
+        // Should create 3 chunks
+        expect(result.chunks.length).toBe(3);
+        expect(result.chunks[0].content).toContain('Part 1');
+        expect(result.chunks[1].content).toContain('Part 2');
+        expect(result.chunks[2].content).toContain('Part 3');
+        
+        // Clean up
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      } finally {
+        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+      }
+    });
+
+    it('should handle markdown with no delimiter matches', () => {
+      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
+      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
+      
+      try {
+        // Use a file without --- delimiters
+        const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
+        const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
+        
+        // Should create 1 chunk (entire file)
+        expect(result.chunks.length).toBe(1);
+        expect(result.chunks[0].content).toContain('Markdown Fixture');
+      } finally {
+        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+      }
+    });
+
+    it('should filter empty chunks when using custom delimiter', () => {
+      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
+      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
+      
+      try {
+        const testContent = `Content 1
+
+---
+
+---
+
+Content 2`;
+        
+        const tempFile = path.join(__dirname, 'fixtures', 'temp_empty_chunks.md');
+        fs.writeFileSync(tempFile, testContent);
+        
+        const result = parser.parseFile(tempFile, 'main', 'temp_empty_chunks.md');
+        
+        // Should only create 2 chunks (empty chunk between --- should be filtered)
+        expect(result.chunks.length).toBe(2);
+        expect(result.chunks[0].content).toContain('Content 1');
+        expect(result.chunks[1].content).toContain('Content 2');
+        
+        // Clean up
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      } finally {
+        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+      }
+    });
+  });
+
   it('should parse YAML fixtures correctly', () => {
     const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');

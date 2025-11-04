@@ -349,19 +349,28 @@ export class LanguageParser {
   }
 
   /**
-   * Parses files by splitting content into paragraph-based chunks.
-   * Each chunk represents a logical section separated by double newlines.
+   * Parses files by splitting content into chunks based on a delimiter pattern.
+   * Each chunk represents a logical section separated by the delimiter.
    *
    * @param filePath - Absolute path to the file
    * @param gitBranch - Git branch name
    * @param relativePath - Relative path from repository root
    * @param language - Language name for the chunks
+   * @param delimiter - Regular expression pattern to split content (default: paragraph delimiter)
    * @returns Object with chunks array and chunksSkipped count
    */
-  private parseParagraphs(filePath: string, gitBranch: string, relativePath: string, language: string): { chunks: CodeChunk[]; chunksSkipped: number } {
+  private parseParagraphs(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string,
+    language: string,
+    delimiter: string = '\\n\\s*\\n'
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
     const { content, gitFileHash, timestamp } = this.readFileWithMetadata(filePath);
 
-    const paragraphs = content.split(/\n\s*\n/); // Split by paragraphs
+    // Convert delimiter string to RegExp
+    const delimiterRegex = new RegExp(delimiter);
+    const paragraphs = content.split(delimiterRegex);
     let searchIndex = 0;
     let chunksSkipped = 0;
 
@@ -426,8 +435,9 @@ export class LanguageParser {
   }
 
   /**
-   * Parses Markdown files by splitting content into paragraph-based chunks.
-   * Each chunk represents a logical section separated by double newlines.
+   * Parses Markdown files by splitting content into chunks based on configured delimiter.
+   * Each chunk represents a logical section separated by the delimiter.
+   * The delimiter can be configured via MARKDOWN_CHUNK_DELIMITER environment variable.
    *
    * @param filePath - Absolute path to the file
    * @param gitBranch - Git branch name
@@ -435,7 +445,13 @@ export class LanguageParser {
    * @returns Object with chunks array and chunksSkipped count
    */
   private parseMarkdown(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
-    return this.parseParagraphs(filePath, gitBranch, relativePath, LANG_MARKDOWN);
+    return this.parseParagraphs(
+      filePath,
+      gitBranch,
+      relativePath,
+      LANG_MARKDOWN,
+      indexingConfig.markdownChunkDelimiter
+    );
   }
 
   /**
