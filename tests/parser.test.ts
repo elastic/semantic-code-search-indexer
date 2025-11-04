@@ -11,7 +11,7 @@ describe('LanguageParser', () => {
   let parser: LanguageParser;
 
   beforeAll(() => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,javascript,markdown,yaml,java,go,python,json,gradle,properties,text,handlebars,bash';
+    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,javascript,markdown,yaml,java,go,python,json,gradle,properties,text,handlebars,cpp,bash';
     parser = new LanguageParser();
   });
 
@@ -281,6 +281,36 @@ Content 2`;
     const result = parser.parseFile(hbsFile, 'main', 'tests/fixtures/handlebars.hbs');
     expect(result.chunks.length).toBeGreaterThan(0);
     expect(result.chunks[0].language).toBe('handlebars');
+  });
+
+  it('should parse C++ fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/cpp.cpp');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/cpp.cpp');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
+  });
+
+  it('should extract symbols from C++ fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/cpp.cpp');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/cpp.cpp');
+    const allSymbols = result.chunks.flatMap(chunk => chunk.symbols);
+    
+    // Basic checks - verify key symbols are extracted
+    expect(allSymbols).toEqual(
+      expect.arrayContaining([
+        // Classes and structs
+        expect.objectContaining({ name: 'MyClass', kind: 'class.name' }),
+        expect.objectContaining({ name: 'Point', kind: 'struct.name' }),
+        
+        // Namespace
+        expect.objectContaining({ name: 'MyNamespace', kind: 'namespace.name' }),
+        
+        // Template method inside class
+        expect.objectContaining({ name: 'templateMethod', kind: 'function.name' }),
+      ])
+    );
+    
+    // Verify we have a reasonable number of symbols
+    expect(allSymbols.length).toBeGreaterThan(10);
   });
 
   it('should parse Bash fixtures correctly', () => {

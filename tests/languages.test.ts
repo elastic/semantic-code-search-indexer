@@ -98,6 +98,17 @@ describe('parseLanguageNames', () => {
     expect(allLanguages).toContain('handlebars');
   });
 
+  it('should parse cpp language', () => {
+    const result = parseLanguageNames('cpp');
+    expect(result).toEqual(['cpp']);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should include cpp in supported languages', () => {
+    const allLanguages = Object.keys(languageConfigurations);
+    expect(allLanguages).toContain('cpp');
+  });
+
   it('should parse bash language', () => {
     const result = parseLanguageNames('bash');
     expect(result).toEqual(['bash']);
