@@ -1,5 +1,4605 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`LanguageParser should parse Bash fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "3667bb6922c0f881f5357826a9130fcce94a7144915ea65dfa472e65ae3b2049",
+    "containerPath": "",
+    "content": "#!/bin/bash",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 1,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+#!/bin/bash",
+    "startLine": 1,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "84f34e2cd2497b7abe9c8e3b5139bd2254e7f2f45510cde9ccfc0754302805d9",
+    "containerPath": "",
+    "content": "# Test fixture for Bash language support",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 2,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Test fixture for Bash language support",
+    "startLine": 2,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "e5e504421b4b63f24b7cc24e4a02ac0cc6d45d8ce85297c885fafddf651b1492",
+    "containerPath": "",
+    "content": "# Source external scripts",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 4,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Source external scripts",
+    "startLine": 4,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "10a37aa1a8b56a9f37496451d0890e0320fe68a96fc3eee77109709d2eb60673",
+    "containerPath": "",
+    "content": "source ./lib/utils.sh",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 5,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [
+      {
+        "path": "tests/fixtures/lib/utils.sh",
+        "symbols": [],
+        "type": "file",
+      },
+    ],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+source ./lib/utils.sh",
+    "startLine": 5,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 5,
+        "name": "source",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "5b60da9dfea653dbdce7345aa27aa6452f9fa04527eb99a6d6abc44056e3b957",
+    "containerPath": "",
+    "content": ". ./lib/helpers.sh",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 6,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [
+      {
+        "path": "tests/fixtures/lib/helpers.sh",
+        "symbols": [],
+        "type": "file",
+      },
+    ],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+. ./lib/helpers.sh",
+    "startLine": 6,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 6,
+        "name": ".",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "30fa2bfd9ac9a06ec81f676f613d734dee572d6def16d7be9ce966933ea43740",
+    "containerPath": "",
+    "content": "# Global constants",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 8,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Global constants",
+    "startLine": 8,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2f1b6bbbc466d05645c1895cded08d6567fe4773212539cb090ea096aa743779",
+    "containerPath": "",
+    "content": "SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [
+      {
+        "name": "SCRIPT_DIR",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
+    "startLine": 9,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "cd",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "dirname",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "pwd",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "c148214da3f21cee21e74c4d15be2dd7ffd7d9ba902cba5a6bfd876f9c1cb7c7",
+    "containerPath": "",
+    "content": "$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [
+      {
+        "name": "SCRIPT_DIR",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command_substitution",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command_substitution
+
+$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)",
+    "startLine": 9,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "cd",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "dirname",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "pwd",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "5646fbd023e7cacf1ebc614bfaa57bed6b0c33e7bce09da0abb5f31b47d9c72e",
+    "containerPath": "",
+    "content": "cd "$(dirname "\${BASH_SOURCE[0]}")"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [
+      {
+        "name": "SCRIPT_DIR",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+cd "$(dirname "\${BASH_SOURCE[0]}")"",
+    "startLine": 9,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "cd",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "dirname",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "pwd",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "bc1ed2924b9a5cfc1abf9bc357be873ad3f965fc0d6220d64fb4dbc75911116d",
+    "containerPath": "",
+    "content": "$(dirname "\${BASH_SOURCE[0]}")",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [
+      {
+        "name": "SCRIPT_DIR",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command_substitution",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command_substitution
+
+$(dirname "\${BASH_SOURCE[0]}")",
+    "startLine": 9,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "cd",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "dirname",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "pwd",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "de97c651ce384b3da1253fe6e6f8aea45b1dec68741333b1ae38ec468effaf80",
+    "containerPath": "",
+    "content": "dirname "\${BASH_SOURCE[0]}"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [
+      {
+        "name": "SCRIPT_DIR",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+dirname "\${BASH_SOURCE[0]}"",
+    "startLine": 9,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "cd",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "dirname",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "pwd",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a1159e9df3670d549d04524532629f5477ceb7deec9b45e47e8c009506ecb2c8",
+    "containerPath": "",
+    "content": "pwd",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [
+      {
+        "name": "SCRIPT_DIR",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+pwd",
+    "startLine": 9,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "variable.name",
+        "line": 9,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "cd",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "dirname",
+      },
+      {
+        "kind": "function.call",
+        "line": 9,
+        "name": "pwd",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2a5591de6d4384e16d964885b81081784c5403c8a0afdbc13d9980d7eabf8d67",
+    "containerPath": "",
+    "content": "VERSION="1.0.0"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 10,
+    "exports": [
+      {
+        "name": "VERSION",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+VERSION="1.0.0"",
+    "startLine": 10,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 10,
+        "name": "VERSION",
+      },
+      {
+        "kind": "variable.name",
+        "line": 10,
+        "name": "VERSION",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "72bf8865dc3dcb0093e1507dd70101d950a3da74287c460b164d3c462c82efe9",
+    "containerPath": "",
+    "content": "# Global variables",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 12,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Global variables",
+    "startLine": 12,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "958ee1aa4bf3f21ed5c6b62fda90ff34ca9f96c02abfcb1ad815bc5ebb62d4d1",
+    "containerPath": "",
+    "content": "VERBOSE=false",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 13,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+VERBOSE=false",
+    "startLine": 13,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 13,
+        "name": "VERBOSE",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "88e9f8cf477be24d101d518f8d038de9bbcdabce5fb011fab22cd44c4c5c83a3",
+    "containerPath": "",
+    "content": "DEBUG_MODE=false",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 14,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+DEBUG_MODE=false",
+    "startLine": 14,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 14,
+        "name": "DEBUG_MODE",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "fc8f58129f2808f1ac6ee963edf72b113e0f6b4f28fc4149195a369702243496",
+    "containerPath": "",
+    "content": "# Export environment variables",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 16,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Export environment variables",
+    "startLine": 16,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a31c8ab7fb40e32f8cdf9204de8963b4370514b3a38da88fd734dc8c74079fb7",
+    "containerPath": "",
+    "content": "PATH="/usr/local/bin:$PATH"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 17,
+    "exports": [
+      {
+        "name": "PATH",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+PATH="/usr/local/bin:$PATH"",
+    "startLine": 17,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 17,
+        "name": "PATH",
+      },
+      {
+        "kind": "variable.name",
+        "line": 17,
+        "name": "PATH",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 17,
+        "name": "PATH",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "425988f61ba3755a454be7336a3fcc167306a8e989639622a907fad637cc051b",
+    "containerPath": "",
+    "content": "LOG_LEVEL="info"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 18,
+    "exports": [
+      {
+        "name": "LOG_LEVEL",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+LOG_LEVEL="info"",
+    "startLine": 18,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 18,
+        "name": "LOG_LEVEL",
+      },
+      {
+        "kind": "variable.name",
+        "line": 18,
+        "name": "LOG_LEVEL",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "245d847de194a705a063cf55f2dcb34c8487d51336b18cc646d158dcfb5b14fa",
+    "containerPath": "",
+    "content": "# Function with documentation",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 20,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Function with documentation",
+    "startLine": 20,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "86020010fdbb0f477f87a57d2af617dde188ec162bb406eb0973a946e470d6d4",
+    "containerPath": "",
+    "content": "# Prints a greeting message",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 21,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Prints a greeting message",
+    "startLine": 21,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "7b0b7177285b89a8100dfa66a62d316fc5b4d34611b48fd9c38ffb03eb342311",
+    "containerPath": "",
+    "content": "# Arguments:",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 22,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Arguments:",
+    "startLine": 22,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "6a706b3d4b17d2caceb70580308abc138077a299f72caf089d9317055f4ffa47",
+    "containerPath": "",
+    "content": "#   $1 - Name to greet",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 23,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+#   $1 - Name to greet",
+    "startLine": 23,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "f459ca1d3f39d4ab7fd71b423734ed009879f38c1ace70c25172e66bab202665",
+    "containerPath": "",
+    "content": "# Returns:",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 24,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Returns:",
+    "startLine": 24,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "8e9c4f379c11617a495122c5098ff99e88c70417e238b930f31ef91daa1b9e8d",
+    "containerPath": "",
+    "content": "#   0 on success",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 25,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+#   0 on success",
+    "startLine": 25,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "25ff838c1504ba6a8ae15ab63a1585462eaba00fe91c468adbe287ffa784be02",
+    "containerPath": "",
+    "content": "function greet() {
+    local name="$1"
+    echo "Hello, $name!"
+    return 0
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 30,
+    "exports": [
+      {
+        "name": "greet",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+function greet() {
+    local name="$1"
+    echo "Hello, $name!"
+    return 0
+}",
+    "startLine": 26,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 26,
+        "name": "greet",
+      },
+      {
+        "kind": "variable.name",
+        "line": 27,
+        "name": "name",
+      },
+      {
+        "kind": "variable.name",
+        "line": 27,
+        "name": "name",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 27,
+        "name": "1",
+      },
+      {
+        "kind": "function.call",
+        "line": 28,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 28,
+        "name": "name",
+      },
+      {
+        "kind": "function.call",
+        "line": 29,
+        "name": "return",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "84266abce62040a7cf849db595a07d7fddffbd194b296782193ffce83121d499",
+    "containerPath": "",
+    "content": "name="$1"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 27,
+    "exports": [
+      {
+        "name": "name",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+name="$1"",
+    "startLine": 27,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 27,
+        "name": "name",
+      },
+      {
+        "kind": "variable.name",
+        "line": 27,
+        "name": "name",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 27,
+        "name": "1",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "cb357e398978a6582be16289c02c89139b3cd0c9436d7452f84a6fee37a66f50",
+    "containerPath": "",
+    "content": "echo "Hello, $name!"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 28,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Hello, $name!"",
+    "startLine": 28,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 28,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 28,
+        "name": "name",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "30945f342ad5ab6c0823be6d0a24400b85ecf17eecbe678f5780b426b1815170",
+    "containerPath": "",
+    "content": "return 0",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 29,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+return 0",
+    "startLine": 29,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 29,
+        "name": "return",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "d3de966fd3f097be6ba4cfc665b438327ab70411cdf221868026a3cc56290b09",
+    "containerPath": "",
+    "content": "# Another function style (without 'function' keyword)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 32,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Another function style (without 'function' keyword)",
+    "startLine": 32,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a3617f9b51b5cdf545595c5e977ff26b9bb4354fc86eef59a1a6afd6313b13fc",
+    "containerPath": "",
+    "content": "# Process files in a directory",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 33,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Process files in a directory",
+    "startLine": 33,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "1668187d2ba4e616f28262ce936a9e6301d8b6372a4b4f822d048dfa2698155d",
+    "containerPath": "",
+    "content": "process_files() {
+    local dir="$1"
+    
+    if [[ ! -d "$dir" ]]; then
+        echo "Error: Directory not found: $dir" >&2
+        return 1
+    fi
+    
+    for file in "$dir"/*; do
+        if [[ -f "$file" ]]; then
+            echo "Processing: $(basename "$file")"
+        fi
+    done
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 47,
+    "exports": [
+      {
+        "name": "process_files",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+process_files() {
+    local dir="$1"
+    
+    if [[ ! -d "$dir" ]]; then
+        echo "Error: Directory not found: $dir" >&2
+        return 1
+    fi
+    
+    for file in "$dir"/*; do
+        if [[ -f "$file" ]]; then
+            echo "Processing: $(basename "$file")"
+        fi
+    done
+}",
+    "startLine": 34,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 34,
+        "name": "process_files",
+      },
+      {
+        "kind": "variable.name",
+        "line": 35,
+        "name": "dir",
+      },
+      {
+        "kind": "variable.name",
+        "line": 35,
+        "name": "dir",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 35,
+        "name": "1",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 37,
+        "name": "dir",
+      },
+      {
+        "kind": "function.call",
+        "line": 38,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 38,
+        "name": "dir",
+      },
+      {
+        "kind": "function.call",
+        "line": 39,
+        "name": "return",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 42,
+        "name": "dir",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 43,
+        "name": "file",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "basename",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 44,
+        "name": "file",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "75e638976f2dd96b92adbd34818a0722525a3154d4ff918f257b7338eaafe05d",
+    "containerPath": "",
+    "content": "dir="$1"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 35,
+    "exports": [
+      {
+        "name": "dir",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+dir="$1"",
+    "startLine": 35,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 35,
+        "name": "dir",
+      },
+      {
+        "kind": "variable.name",
+        "line": 35,
+        "name": "dir",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 35,
+        "name": "1",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "716e0d712c34ada459a95ed06d133a9c94fcaa731a8ee7d01832fdbfc92c4af7",
+    "containerPath": "",
+    "content": "if [[ ! -d "$dir" ]]; then
+        echo "Error: Directory not found: $dir" >&2
+        return 1
+    fi",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 40,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "if_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: if_statement
+
+if [[ ! -d "$dir" ]]; then
+        echo "Error: Directory not found: $dir" >&2
+        return 1
+    fi",
+    "startLine": 37,
+    "symbols": [
+      {
+        "kind": "variable.usage",
+        "line": 37,
+        "name": "dir",
+      },
+      {
+        "kind": "function.call",
+        "line": 38,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 38,
+        "name": "dir",
+      },
+      {
+        "kind": "function.call",
+        "line": 39,
+        "name": "return",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "eb9a23e82f013b8d085c6d07faa9a38049765acde2df9a1cc5d854ce58d5f7ba",
+    "containerPath": "",
+    "content": "echo "Error: Directory not found: $dir"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 38,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Error: Directory not found: $dir"",
+    "startLine": 38,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 38,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 38,
+        "name": "dir",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "1f48cd0abf4194bbeb453c95d80ccf9179d7b66eba30faded52e8aa374db4a04",
+    "containerPath": "",
+    "content": ">&2",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 38,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "file_redirect",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: file_redirect
+
+>&2",
+    "startLine": 38,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 38,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 38,
+        "name": "dir",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "486d9affb60dbb0063b03d8e23a6ccf6364ce203dc3a9f56f20e750eb41ecade",
+    "containerPath": "",
+    "content": "return 1",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 39,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+return 1",
+    "startLine": 39,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 39,
+        "name": "return",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "cebee2df73afd3066d71ddb72701ad4ed39a835f4c0e327d173463958cc972ae",
+    "containerPath": "",
+    "content": "for file in "$dir"/*; do
+        if [[ -f "$file" ]]; then
+            echo "Processing: $(basename "$file")"
+        fi
+    done",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 46,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "for_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: for_statement
+
+for file in "$dir"/*; do
+        if [[ -f "$file" ]]; then
+            echo "Processing: $(basename "$file")"
+        fi
+    done",
+    "startLine": 42,
+    "symbols": [
+      {
+        "kind": "variable.usage",
+        "line": 42,
+        "name": "dir",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 43,
+        "name": "file",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "basename",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 44,
+        "name": "file",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "84b1743a6d289dbb6dc7e5f0390063e760108251d9187dbcfe7cc699ce428843",
+    "containerPath": "",
+    "content": "if [[ -f "$file" ]]; then
+            echo "Processing: $(basename "$file")"
+        fi",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 45,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "if_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: if_statement
+
+if [[ -f "$file" ]]; then
+            echo "Processing: $(basename "$file")"
+        fi",
+    "startLine": 43,
+    "symbols": [
+      {
+        "kind": "variable.usage",
+        "line": 43,
+        "name": "file",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "basename",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 44,
+        "name": "file",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "14e7774418ed4ce0d6b093311c596710c9cb55e73cb24d16f208b67617bbcf61",
+    "containerPath": "",
+    "content": "echo "Processing: $(basename "$file")"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 44,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Processing: $(basename "$file")"",
+    "startLine": 44,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "basename",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 44,
+        "name": "file",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "5ad1f4c22747b06c0b962a874ea8f5213510d34afa9d90292df645b32f5c94ca",
+    "containerPath": "",
+    "content": "$(basename "$file")",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 44,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command_substitution",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command_substitution
+
+$(basename "$file")",
+    "startLine": 44,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "basename",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 44,
+        "name": "file",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "8fb82b27b84539d0b03619370ef0fe5625dafec7e339d1cc7947a2973f68a6da",
+    "containerPath": "",
+    "content": "basename "$file"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 44,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+basename "$file"",
+    "startLine": 44,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 44,
+        "name": "basename",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 44,
+        "name": "file",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "cfe69e4cce8362b0a797b870860a9a55a88564a70fc5ce71aaf89b2a6a00e635",
+    "containerPath": "",
+    "content": "# Function with complex logic",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 49,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Function with complex logic",
+    "startLine": 49,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "ccf326227346a73adc7d6a7d9a6762872c708b18f173bac02e4bd11b2336f40c",
+    "containerPath": "",
+    "content": "calculate() {
+    local a="$1"
+    local b="$2"
+    local result
+    
+    case "$3" in
+        add)
+            result=$((a + b))
+            ;;
+        subtract)
+            result=$((a - b))
+            ;;
+        multiply)
+            result=$((a * b))
+            ;;
+        *)
+            echo "Unknown operation" >&2
+            return 1
+            ;;
+    esac
+    
+    echo "$result"
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 72,
+    "exports": [
+      {
+        "name": "calculate",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+calculate() {
+    local a="$1"
+    local b="$2"
+    local result
+    
+    case "$3" in
+        add)
+            result=$((a + b))
+            ;;
+        subtract)
+            result=$((a - b))
+            ;;
+        multiply)
+            result=$((a * b))
+            ;;
+        *)
+            echo "Unknown operation" >&2
+            return 1
+            ;;
+    esac
+    
+    echo "$result"
+}",
+    "startLine": 50,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 50,
+        "name": "calculate",
+      },
+      {
+        "kind": "variable.name",
+        "line": 51,
+        "name": "a",
+      },
+      {
+        "kind": "variable.name",
+        "line": 51,
+        "name": "a",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 51,
+        "name": "1",
+      },
+      {
+        "kind": "variable.name",
+        "line": 52,
+        "name": "b",
+      },
+      {
+        "kind": "variable.name",
+        "line": 52,
+        "name": "b",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 52,
+        "name": "2",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 55,
+        "name": "3",
+      },
+      {
+        "kind": "variable.name",
+        "line": 57,
+        "name": "result",
+      },
+      {
+        "kind": "variable.name",
+        "line": 60,
+        "name": "result",
+      },
+      {
+        "kind": "variable.name",
+        "line": 63,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 66,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 67,
+        "name": "return",
+      },
+      {
+        "kind": "function.call",
+        "line": 71,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 71,
+        "name": "result",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a7c2d4782bfd8b1f9827422cec8413c2e36b647f0d397e6afd22ca11d86ad354",
+    "containerPath": "",
+    "content": "a="$1"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 51,
+    "exports": [
+      {
+        "name": "a",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+a="$1"",
+    "startLine": 51,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 51,
+        "name": "a",
+      },
+      {
+        "kind": "variable.name",
+        "line": 51,
+        "name": "a",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 51,
+        "name": "1",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "0401563d31467e62805f06f0ff1945a33829387958a6f3d141b0d355a8344441",
+    "containerPath": "",
+    "content": "b="$2"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 52,
+    "exports": [
+      {
+        "name": "b",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+b="$2"",
+    "startLine": 52,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 52,
+        "name": "b",
+      },
+      {
+        "kind": "variable.name",
+        "line": 52,
+        "name": "b",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 52,
+        "name": "2",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "6e8ffc374a1503f5e3f0765c712769e89a1774e986aea77cb255db0bdef1ba34",
+    "containerPath": "",
+    "content": "case "$3" in
+        add)
+            result=$((a + b))
+            ;;
+        subtract)
+            result=$((a - b))
+            ;;
+        multiply)
+            result=$((a * b))
+            ;;
+        *)
+            echo "Unknown operation" >&2
+            return 1
+            ;;
+    esac",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 69,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "case_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: case_statement
+
+case "$3" in
+        add)
+            result=$((a + b))
+            ;;
+        subtract)
+            result=$((a - b))
+            ;;
+        multiply)
+            result=$((a * b))
+            ;;
+        *)
+            echo "Unknown operation" >&2
+            return 1
+            ;;
+    esac",
+    "startLine": 55,
+    "symbols": [
+      {
+        "kind": "variable.usage",
+        "line": 55,
+        "name": "3",
+      },
+      {
+        "kind": "variable.name",
+        "line": 57,
+        "name": "result",
+      },
+      {
+        "kind": "variable.name",
+        "line": 60,
+        "name": "result",
+      },
+      {
+        "kind": "variable.name",
+        "line": 63,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 66,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 67,
+        "name": "return",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "76d7482b06137228501bb4780e9e510963eca189f9dec62d9c5f5641f52dd53e",
+    "containerPath": "",
+    "content": "result=$((a + b))",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 57,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+result=$((a + b))",
+    "startLine": 57,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 57,
+        "name": "result",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "70733f64c41be771d4c99c7cb5b4e1d4e45777814860cbc55d168bb3010f138c",
+    "containerPath": "",
+    "content": "result=$((a - b))",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 60,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+result=$((a - b))",
+    "startLine": 60,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 60,
+        "name": "result",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "e8871ef954f4f4d161507656dfe84f8cfa4b0a48ffc0805fd6b141ce0b2ed2d3",
+    "containerPath": "",
+    "content": "result=$((a * b))",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 63,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+result=$((a * b))",
+    "startLine": 63,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 63,
+        "name": "result",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "4fc13328b92411c703f18246a614d00da4f569f2ba5f6289f425cc1f5f2237b0",
+    "containerPath": "",
+    "content": "echo "Unknown operation"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 66,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Unknown operation"",
+    "startLine": 66,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 66,
+        "name": "echo",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "1f48cd0abf4194bbeb453c95d80ccf9179d7b66eba30faded52e8aa374db4a04",
+    "containerPath": "",
+    "content": ">&2",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 66,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "file_redirect",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: file_redirect
+
+>&2",
+    "startLine": 66,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 66,
+        "name": "echo",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "486d9affb60dbb0063b03d8e23a6ccf6364ce203dc3a9f56f20e750eb41ecade",
+    "containerPath": "",
+    "content": "return 1",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 67,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+return 1",
+    "startLine": 67,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 67,
+        "name": "return",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "fc408f7ad64e28172ab75039255f3188a9a94bcc0e3f549b12997931d8767ef9",
+    "containerPath": "",
+    "content": "echo "$result"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 71,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "$result"",
+    "startLine": 71,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 71,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 71,
+        "name": "result",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "fb2b68d2fcc69ef8adfd1c520f55a21ffe8d084725c6aaa6cff6f882b63897a8",
+    "containerPath": "",
+    "content": "# Function using pipelines",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 74,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Function using pipelines",
+    "startLine": 74,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "ac596c5d438a8ceab0bb1b676e299c8f103892184ea26558cc30bbec860e58c8",
+    "containerPath": "",
+    "content": "filter_logs() {
+    local log_file="$1"
+    cat "$log_file" | grep ERROR | sort | uniq
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 78,
+    "exports": [
+      {
+        "name": "filter_logs",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+filter_logs() {
+    local log_file="$1"
+    cat "$log_file" | grep ERROR | sort | uniq
+}",
+    "startLine": 75,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 75,
+        "name": "filter_logs",
+      },
+      {
+        "kind": "variable.name",
+        "line": 76,
+        "name": "log_file",
+      },
+      {
+        "kind": "variable.name",
+        "line": 76,
+        "name": "log_file",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 76,
+        "name": "1",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "cat",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 77,
+        "name": "log_file",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "grep",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "sort",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "uniq",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "da6de95ddd098141b39b695dff0ef6b033a7bd79c0809be8f1816932aae5ca41",
+    "containerPath": "",
+    "content": "log_file="$1"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 76,
+    "exports": [
+      {
+        "name": "log_file",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+log_file="$1"",
+    "startLine": 76,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 76,
+        "name": "log_file",
+      },
+      {
+        "kind": "variable.name",
+        "line": 76,
+        "name": "log_file",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 76,
+        "name": "1",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "523e0ced0610040c5fb23743065f54656443ff7c6433c292589059df7ba3af69",
+    "containerPath": "",
+    "content": "cat "$log_file" | grep ERROR | sort | uniq",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 77,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "pipeline",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: pipeline
+
+cat "$log_file" | grep ERROR | sort | uniq",
+    "startLine": 77,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "cat",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 77,
+        "name": "log_file",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "grep",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "sort",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "uniq",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "271ebdff960c0f67c9d59432a54e883ce295e042c9fe249a58c60fc30c3cf1c1",
+    "containerPath": "",
+    "content": "cat "$log_file"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 77,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+cat "$log_file"",
+    "startLine": 77,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "cat",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 77,
+        "name": "log_file",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "grep",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "sort",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "uniq",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b10665d19c9174db70ffff9f9a6d1a7493038a2835127ca9295b2e59ca5a9d3d",
+    "containerPath": "",
+    "content": "grep ERROR",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 77,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+grep ERROR",
+    "startLine": 77,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "cat",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 77,
+        "name": "log_file",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "grep",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "sort",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "uniq",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "646964943fd2271187dbe29287f57e0238491c029cc6d8ce76f25ae240474294",
+    "containerPath": "",
+    "content": "sort",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 77,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+sort",
+    "startLine": 77,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "cat",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 77,
+        "name": "log_file",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "grep",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "sort",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "uniq",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "d81b294034bae18f4659d7e764e5ebf91de5a3fa6a63121e5c8de536ab7a8409",
+    "containerPath": "",
+    "content": "uniq",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 77,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+uniq",
+    "startLine": 77,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "cat",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 77,
+        "name": "log_file",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "grep",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "sort",
+      },
+      {
+        "kind": "function.call",
+        "line": 77,
+        "name": "uniq",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "8d0aa215585a4b9a66b383aef49cf46b07036828c59f3e3314d69fffa8447722",
+    "containerPath": "",
+    "content": "# Function with command substitution",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 80,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Function with command substitution",
+    "startLine": 80,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "1549d1a352faf651267a7fcbe256ca7d87e89299141d042928113f619242c126",
+    "containerPath": "",
+    "content": "get_timestamp() {
+    echo "$(date +%Y-%m-%d_%H:%M:%S)"
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 83,
+    "exports": [
+      {
+        "name": "get_timestamp",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+get_timestamp() {
+    echo "$(date +%Y-%m-%d_%H:%M:%S)"
+}",
+    "startLine": 81,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 81,
+        "name": "get_timestamp",
+      },
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "date",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "335580f5ab2c9852d7d2f35e010e5fb79776e8180601462f9f6ebb67290ae744",
+    "containerPath": "",
+    "content": "echo "$(date +%Y-%m-%d_%H:%M:%S)"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 82,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "$(date +%Y-%m-%d_%H:%M:%S)"",
+    "startLine": 82,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "date",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "13ba086e185b19b95689a192d85549a2287520f48fe5d22fb2869a7b7acfec06",
+    "containerPath": "",
+    "content": "$(date +%Y-%m-%d_%H:%M:%S)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 82,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command_substitution",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command_substitution
+
+$(date +%Y-%m-%d_%H:%M:%S)",
+    "startLine": 82,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "date",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "f4e2038710accbfe2eb29b07b392069a8bcfabf17890c084cd77d5e61b66075c",
+    "containerPath": "",
+    "content": "date +%Y-%m-%d_%H:%M:%S",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 82,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+date +%Y-%m-%d_%H:%M:%S",
+    "startLine": 82,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 82,
+        "name": "date",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "20ee4b51efe391cf58749dd7cec9fe74e5a87132b5f306ebfa78f65ed9bd38b5",
+    "containerPath": "",
+    "content": "# Parse command line arguments",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 85,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Parse command line arguments",
+    "startLine": 85,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "8111fa1e1c760caea126d050d54be5972db1406d8555326bf0a6ef9b5f18ff13",
+    "containerPath": "",
+    "content": "parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -d|--debug)
+                DEBUG_MODE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                exit 1
+                ;;
+        esac
+    done
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 107,
+    "exports": [
+      {
+        "name": "parse_args",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -d|--debug)
+                DEBUG_MODE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                exit 1
+                ;;
+        esac
+    done
+}",
+    "startLine": 86,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 86,
+        "name": "parse_args",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 88,
+        "name": "1",
+      },
+      {
+        "kind": "variable.name",
+        "line": 90,
+        "name": "VERBOSE",
+      },
+      {
+        "kind": "function.call",
+        "line": 91,
+        "name": "shift",
+      },
+      {
+        "kind": "variable.name",
+        "line": 94,
+        "name": "DEBUG_MODE",
+      },
+      {
+        "kind": "function.call",
+        "line": 95,
+        "name": "shift",
+      },
+      {
+        "kind": "function.call",
+        "line": 98,
+        "name": "show_help",
+      },
+      {
+        "kind": "function.call",
+        "line": 99,
+        "name": "exit",
+      },
+      {
+        "kind": "function.call",
+        "line": 102,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 102,
+        "name": "1",
+      },
+      {
+        "kind": "function.call",
+        "line": 103,
+        "name": "exit",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "51bf0de5693ec40a276e5c7678e36fc8f99d0abda5b3bb10ab95d049e4c9d59f",
+    "containerPath": "",
+    "content": "while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -d|--debug)
+                DEBUG_MODE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                exit 1
+                ;;
+        esac
+    done",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 106,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "while_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: while_statement
+
+while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -d|--debug)
+                DEBUG_MODE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                exit 1
+                ;;
+        esac
+    done",
+    "startLine": 87,
+    "symbols": [
+      {
+        "kind": "variable.usage",
+        "line": 88,
+        "name": "1",
+      },
+      {
+        "kind": "variable.name",
+        "line": 90,
+        "name": "VERBOSE",
+      },
+      {
+        "kind": "function.call",
+        "line": 91,
+        "name": "shift",
+      },
+      {
+        "kind": "variable.name",
+        "line": 94,
+        "name": "DEBUG_MODE",
+      },
+      {
+        "kind": "function.call",
+        "line": 95,
+        "name": "shift",
+      },
+      {
+        "kind": "function.call",
+        "line": 98,
+        "name": "show_help",
+      },
+      {
+        "kind": "function.call",
+        "line": 99,
+        "name": "exit",
+      },
+      {
+        "kind": "function.call",
+        "line": 102,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 102,
+        "name": "1",
+      },
+      {
+        "kind": "function.call",
+        "line": 103,
+        "name": "exit",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2da642292567ebbf8043f16f090d9e510b5617e8684a747fcc225ba3f7b0f6c3",
+    "containerPath": "",
+    "content": "case "$1" in
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -d|--debug)
+                DEBUG_MODE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                exit 1
+                ;;
+        esac",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 105,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "case_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: case_statement
+
+case "$1" in
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -d|--debug)
+                DEBUG_MODE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                exit 1
+                ;;
+        esac",
+    "startLine": 88,
+    "symbols": [
+      {
+        "kind": "variable.usage",
+        "line": 88,
+        "name": "1",
+      },
+      {
+        "kind": "variable.name",
+        "line": 90,
+        "name": "VERBOSE",
+      },
+      {
+        "kind": "function.call",
+        "line": 91,
+        "name": "shift",
+      },
+      {
+        "kind": "variable.name",
+        "line": 94,
+        "name": "DEBUG_MODE",
+      },
+      {
+        "kind": "function.call",
+        "line": 95,
+        "name": "shift",
+      },
+      {
+        "kind": "function.call",
+        "line": 98,
+        "name": "show_help",
+      },
+      {
+        "kind": "function.call",
+        "line": 99,
+        "name": "exit",
+      },
+      {
+        "kind": "function.call",
+        "line": 102,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 102,
+        "name": "1",
+      },
+      {
+        "kind": "function.call",
+        "line": 103,
+        "name": "exit",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "817ddaec9b9d018ce80129446f9fc8b89669c94d1def7fb5ef007c7fe20db6de",
+    "containerPath": "",
+    "content": "VERBOSE=true",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 90,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+VERBOSE=true",
+    "startLine": 90,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 90,
+        "name": "VERBOSE",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "ecd3fad7a4d35d7130c6748352d88f164f156375925f87464afe21b344af97dd",
+    "containerPath": "",
+    "content": "shift",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 91,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+shift",
+    "startLine": 91,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 91,
+        "name": "shift",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b9694a32bfc82b7da2d0c5f56a0737861bce79f941b657dcd7176402ee208746",
+    "containerPath": "",
+    "content": "DEBUG_MODE=true",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 94,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+DEBUG_MODE=true",
+    "startLine": 94,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 94,
+        "name": "DEBUG_MODE",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "ecd3fad7a4d35d7130c6748352d88f164f156375925f87464afe21b344af97dd",
+    "containerPath": "",
+    "content": "shift",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 95,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+shift",
+    "startLine": 95,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 95,
+        "name": "shift",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "eb22f1ceaf5b679fe1835928c2358db451ab905b4d353d0ccaeb2f594e352e14",
+    "containerPath": "",
+    "content": "show_help",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 98,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+show_help",
+    "startLine": 98,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 98,
+        "name": "show_help",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "c22995adc29757a99bc9242926a5d5b5a8007ecc78f30943161cf072af42d9d2",
+    "containerPath": "",
+    "content": "exit 0",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 99,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+exit 0",
+    "startLine": 99,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 99,
+        "name": "exit",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "450eac37f955c4f7c887ded6feb7eff6fdcfab84c78d4f02a403191a9f208b04",
+    "containerPath": "",
+    "content": "echo "Unknown option: $1"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 102,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Unknown option: $1"",
+    "startLine": 102,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 102,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 102,
+        "name": "1",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "1f48cd0abf4194bbeb453c95d80ccf9179d7b66eba30faded52e8aa374db4a04",
+    "containerPath": "",
+    "content": ">&2",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 102,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "file_redirect",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: file_redirect
+
+>&2",
+    "startLine": 102,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 102,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 102,
+        "name": "1",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "1a21be8bb1dc4721d30cc1850ead617faa55ae9aebf416da4369668bdeaf0824",
+    "containerPath": "",
+    "content": "exit 1",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 103,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+exit 1",
+    "startLine": 103,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 103,
+        "name": "exit",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "0a05c78d8a7041ec8d8f9d9b63b082f9c854a186da04f3665e1d313d3dd06403",
+    "containerPath": "",
+    "content": "# Show help message",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 109,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Show help message",
+    "startLine": 109,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "cef79d578521dd2e080759b3c15da843744adbc24658d38bd89d6735a6327086",
+    "containerPath": "",
+    "content": "show_help() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Options:
+    -v, --verbose    Enable verbose output
+    -d, --debug      Enable debug mode
+    -h, --help       Show this help message
+
+EOF
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 120,
+    "exports": [
+      {
+        "name": "show_help",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+show_help() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Options:
+    -v, --verbose    Enable verbose output
+    -d, --debug      Enable debug mode
+    -h, --help       Show this help message
+
+EOF
+}",
+    "startLine": 110,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 110,
+        "name": "show_help",
+      },
+      {
+        "kind": "function.call",
+        "line": 111,
+        "name": "cat",
+      },
+      {
+        "kind": "function.call",
+        "line": 112,
+        "name": "basename",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "77af778b51abd4a3c51c5ddd97204a9c3ae614ebccb75a606c3b6865aed6744e",
+    "containerPath": "",
+    "content": "cat",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 111,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+cat",
+    "startLine": 111,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 111,
+        "name": "cat",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "1dfc932d982a659ae9843fb142f60f4c7a4aa51f517d3f7e4f283155d3c30570",
+    "containerPath": "",
+    "content": "$(basename "$0")",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 112,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command_substitution",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command_substitution
+
+$(basename "$0")",
+    "startLine": 112,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 112,
+        "name": "basename",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "3344e9933b0acd89cf836ed598ab1351658ff49d20541226da09dad6b0aecb27",
+    "containerPath": "",
+    "content": "basename "$0"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 112,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+basename "$0"",
+    "startLine": 112,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 112,
+        "name": "basename",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "352a7cd0fccb25a35609802fee7c2f30d80d49126187d139a60c34cf0bd7aa7c",
+    "containerPath": "",
+    "content": "# Main function",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 122,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Main function",
+    "startLine": 122,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "21c77111ad5dd129e126d74bc801613ff28c0d6107fe3f82ce1de8e0f6d92323",
+    "containerPath": "",
+    "content": "main() {
+    parse_args "$@"
+    
+    if [[ "$VERBOSE" == true ]]; then
+        echo "Script version: $VERSION"
+        echo "Script directory: $SCRIPT_DIR"
+    fi
+    
+    greet "World"
+    process_files "/tmp"
+    
+    local result
+    result=$(calculate 10 5 add)
+    echo "Calculation result: $result"
+    
+    echo "Timestamp: $(get_timestamp)"
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 139,
+    "exports": [
+      {
+        "name": "main",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: function_definition
+
+main() {
+    parse_args "$@"
+    
+    if [[ "$VERBOSE" == true ]]; then
+        echo "Script version: $VERSION"
+        echo "Script directory: $SCRIPT_DIR"
+    fi
+    
+    greet "World"
+    process_files "/tmp"
+    
+    local result
+    result=$(calculate 10 5 add)
+    echo "Calculation result: $result"
+    
+    echo "Timestamp: $(get_timestamp)"
+}",
+    "startLine": 123,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 123,
+        "name": "main",
+      },
+      {
+        "kind": "function.call",
+        "line": 124,
+        "name": "parse_args",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 126,
+        "name": "VERBOSE",
+      },
+      {
+        "kind": "function.call",
+        "line": 127,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 127,
+        "name": "VERSION",
+      },
+      {
+        "kind": "function.call",
+        "line": 128,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 128,
+        "name": "SCRIPT_DIR",
+      },
+      {
+        "kind": "function.call",
+        "line": 131,
+        "name": "greet",
+      },
+      {
+        "kind": "function.call",
+        "line": 132,
+        "name": "process_files",
+      },
+      {
+        "kind": "variable.name",
+        "line": 135,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 135,
+        "name": "calculate",
+      },
+      {
+        "kind": "function.call",
+        "line": 136,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 136,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "get_timestamp",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2849c4ed7f07766b39a4e6e40861f37cfac733aca3a697256952264b4db52305",
+    "containerPath": "",
+    "content": "parse_args "$@"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 124,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+parse_args "$@"",
+    "startLine": 124,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 124,
+        "name": "parse_args",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "4582bec181db9a708906b1932e3fc32f12ab3659be70b505eb837d3cc418eb03",
+    "containerPath": "",
+    "content": "if [[ "$VERBOSE" == true ]]; then
+        echo "Script version: $VERSION"
+        echo "Script directory: $SCRIPT_DIR"
+    fi",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 129,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "if_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: if_statement
+
+if [[ "$VERBOSE" == true ]]; then
+        echo "Script version: $VERSION"
+        echo "Script directory: $SCRIPT_DIR"
+    fi",
+    "startLine": 126,
+    "symbols": [
+      {
+        "kind": "variable.usage",
+        "line": 126,
+        "name": "VERBOSE",
+      },
+      {
+        "kind": "function.call",
+        "line": 127,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 127,
+        "name": "VERSION",
+      },
+      {
+        "kind": "function.call",
+        "line": 128,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 128,
+        "name": "SCRIPT_DIR",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "25f0fe6271149c8b4aaac1ce5507564c71233c903542dd3cb5d3350b59bc9470",
+    "containerPath": "",
+    "content": "echo "Script version: $VERSION"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 127,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Script version: $VERSION"",
+    "startLine": 127,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 127,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 127,
+        "name": "VERSION",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a5c3cebf31493d799d7e58908c330e332d73b634624e357b43920bad3c27a839",
+    "containerPath": "",
+    "content": "echo "Script directory: $SCRIPT_DIR"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 128,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Script directory: $SCRIPT_DIR"",
+    "startLine": 128,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 128,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 128,
+        "name": "SCRIPT_DIR",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "3d1b79eab2f98298a4db616d123f66eb79b1996bc013af158844823c84eb0e20",
+    "containerPath": "",
+    "content": "greet "World"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 131,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+greet "World"",
+    "startLine": 131,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 131,
+        "name": "greet",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "d6040dd0ae5274b8d19679ef23a0130a005074d38323499aef82004a6bb1b867",
+    "containerPath": "",
+    "content": "process_files "/tmp"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 132,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+process_files "/tmp"",
+    "startLine": 132,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 132,
+        "name": "process_files",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b2245db697b2a85a8948e79b8c7f16d4332e4df17942d62d4fe5560a7399afbe",
+    "containerPath": "",
+    "content": "result=$(calculate 10 5 add)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 135,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "variable_assignment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: variable_assignment
+
+result=$(calculate 10 5 add)",
+    "startLine": 135,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 135,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 135,
+        "name": "calculate",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "cd7b4555692b0df0474c93302d5cc7e74e8c57e993b772ce771daa9e08a5bffd",
+    "containerPath": "",
+    "content": "$(calculate 10 5 add)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 135,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command_substitution",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command_substitution
+
+$(calculate 10 5 add)",
+    "startLine": 135,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 135,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 135,
+        "name": "calculate",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "ae825d089c883ce3a20106a6df05d4606a4e9e0a6fa23ef58fb0b8e3e06208b8",
+    "containerPath": "",
+    "content": "calculate 10 5 add",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 135,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+calculate 10 5 add",
+    "startLine": 135,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 135,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 135,
+        "name": "calculate",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "0df1e1c02fed81a630396cb7e1ccddbd91fb1e521457150ee17d18a9e10fdda5",
+    "containerPath": "",
+    "content": "echo "Calculation result: $result"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 136,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Calculation result: $result"",
+    "startLine": 136,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 136,
+        "name": "echo",
+      },
+      {
+        "kind": "variable.usage",
+        "line": 136,
+        "name": "result",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "74df59a9b515cf2d6465452ba52401fe81196493260c5754ecd5a9442ca1f63f",
+    "containerPath": "",
+    "content": "echo "Timestamp: $(get_timestamp)"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 138,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+echo "Timestamp: $(get_timestamp)"",
+    "startLine": 138,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "get_timestamp",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "24320c3220ce0ee8a2d3e49aea73ab787ff76143f22670742f8e4cc6821e9482",
+    "containerPath": "",
+    "content": "$(get_timestamp)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 138,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command_substitution",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command_substitution
+
+$(get_timestamp)",
+    "startLine": 138,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "get_timestamp",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "05720ff81f1ee25a01e24dbaa302ff9b45e467108dd2efa2a86b15de988a5f8b",
+    "containerPath": "",
+    "content": "get_timestamp",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 138,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+get_timestamp",
+    "startLine": 138,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "echo",
+      },
+      {
+        "kind": "function.call",
+        "line": 138,
+        "name": "get_timestamp",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "bd68b48383a60b4a7fbc2fb32d5d610254531b9e8542f82b0537fc1a095e4c75",
+    "containerPath": "",
+    "content": "# Trap signals",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 141,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Trap signals",
+    "startLine": 141,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "e1d96fb15cf0c969e30cbac7f7450dab7ef0813e317c4ebce5be959989316f05",
+    "containerPath": "",
+    "content": "trap 'echo "Script interrupted"; exit 130' INT TERM",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 142,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+trap 'echo "Script interrupted"; exit 130' INT TERM",
+    "startLine": 142,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 142,
+        "name": "trap",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "928f7e8d687aeec7c718a772700c6324c8e106b3be1ad84e9e786edb2d455ce8",
+    "containerPath": "",
+    "content": "# Run main function if script is executed directly",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 144,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "comment",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: comment
+
+# Run main function if script is executed directly",
+    "startLine": 144,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "9ca2935d6914d6db6e7e53f299fdaf0ec9a7b9967180c06fa06297cbf97a268d",
+    "containerPath": "",
+    "content": "if [[ "\${BASH_SOURCE[0]}" == "\${0}" ]]; then
+    main "$@"
+fi",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 147,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "if_statement",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: if_statement
+
+if [[ "\${BASH_SOURCE[0]}" == "\${0}" ]]; then
+    main "$@"
+fi",
+    "startLine": 145,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 146,
+        "name": "main",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "f08fe42a2330966a1e9ebe5f18e613b0b241bf44ad853a2dcc70dff3aff8a084",
+    "containerPath": "",
+    "content": "main "$@"",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 146,
+    "exports": [],
+    "filePath": "tests/fixtures/bash.sh",
+    "git_branch": "main",
+    "git_file_hash": "c94134f037b280e16b12f47467637e5fecc15851",
+    "imports": [],
+    "kind": "command",
+    "language": "bash",
+    "semantic_text": "filePath: tests/fixtures/bash.sh
+directoryPath: tests/fixtures
+kind: command
+
+main "$@"",
+    "startLine": 146,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 146,
+        "name": "main",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
 exports[`LanguageParser should parse Go fixtures correctly 1`] = `
 [
   {

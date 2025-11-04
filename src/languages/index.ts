@@ -11,6 +11,7 @@ import { gradleConfig } from './gradle';
 import { propertiesConfig } from './properties';
 import { textConfig } from './text';
 import { handlebarsConfig } from './handlebars';
+import { bashConfig } from './bash';
 import { LanguageConfiguration } from '../utils/parser';
 import { validateLanguageConfiguration, validateLanguageConfigurations, ValidationError } from '../utils/language_validator';
 
@@ -27,6 +28,7 @@ export const languageConfigurations = {
   properties: propertiesConfig,
   text: textConfig,
   handlebars: handlebarsConfig,
+  bash: bashConfig,
 } as const;
 
 /**

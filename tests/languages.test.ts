@@ -97,5 +97,16 @@ describe('parseLanguageNames', () => {
     const allLanguages = Object.keys(languageConfigurations);
     expect(allLanguages).toContain('handlebars');
   });
+
+  it('should parse bash language', () => {
+    const result = parseLanguageNames('bash');
+    expect(result).toEqual(['bash']);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should include bash in supported languages', () => {
+    const allLanguages = Object.keys(languageConfigurations);
+    expect(allLanguages).toContain('bash');
+  });
 });
 

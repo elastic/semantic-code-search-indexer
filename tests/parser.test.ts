@@ -11,7 +11,7 @@ describe('LanguageParser', () => {
   let parser: LanguageParser;
 
   beforeAll(() => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,javascript,markdown,yaml,java,go,python,json,gradle,properties,text,handlebars';
+    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,javascript,markdown,yaml,java,go,python,json,gradle,properties,text,handlebars,bash';
     parser = new LanguageParser();
   });
 
@@ -281,6 +281,51 @@ Content 2`;
     const result = parser.parseFile(hbsFile, 'main', 'tests/fixtures/handlebars.hbs');
     expect(result.chunks.length).toBeGreaterThan(0);
     expect(result.chunks[0].language).toBe('handlebars');
+  });
+
+  it('should parse Bash fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/bash.sh');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/bash.sh');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
+  });
+
+  it('should extract symbols from Bash fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/bash.sh');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/bash.sh');
+    const allSymbols = result.chunks.flatMap(chunk => chunk.symbols);
+    expect(allSymbols).toEqual(
+      expect.arrayContaining([
+        // Function names
+        expect.objectContaining({ name: 'greet', kind: 'function.name' }),
+        expect.objectContaining({ name: 'process_files', kind: 'function.name' }),
+        expect.objectContaining({ name: 'calculate', kind: 'function.name' }),
+        expect.objectContaining({ name: 'filter_logs', kind: 'function.name' }),
+        expect.objectContaining({ name: 'get_timestamp', kind: 'function.name' }),
+        expect.objectContaining({ name: 'parse_args', kind: 'function.name' }),
+        expect.objectContaining({ name: 'show_help', kind: 'function.name' }),
+        expect.objectContaining({ name: 'main', kind: 'function.name' }),
+        
+        // Variable names
+        expect.objectContaining({ name: 'SCRIPT_DIR', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'VERSION', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'VERBOSE', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'DEBUG_MODE', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'PATH', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'LOG_LEVEL', kind: 'variable.name' }),
+      ])
+    );
+  });
+
+  it('should extract imports from Bash fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, 'fixtures/bash.sh');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/bash.sh');
+    const allImports = result.chunks.flatMap(chunk => chunk.imports);
+    expect(allImports).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: expect.stringContaining('utils.sh') }),
+        expect.objectContaining({ path: expect.stringContaining('helpers.sh') }),
+      ])
+    );
   });
 
   it('should filter out chunks larger than maxChunkSizeBytes', () => {
