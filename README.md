@@ -149,6 +149,35 @@ Performs a full clean reindex of multiple repositories. This command combines `i
 npm run bulk:reindex -- .repos/kibana:kibana-index .repos/elasticsearch:es-index --concurrency 2
 ```
 
+### `npm run scaffold-language`
+
+Generates a new language configuration file from templates. This command simplifies adding new language support by automatically creating properly formatted configuration files and optionally registering them in the language index.
+
+**Arguments:**
+- `--name <name>` - Language name (lowercase, no spaces, alphanumeric with underscores)
+- `--extensions <extensions>` - File extensions (comma-separated, e.g., ".rs,.rlib")
+- `--parser <parser>` - Tree-sitter package name (e.g., tree-sitter-rust)
+- `--custom` - Use custom parser (no tree-sitter)
+- `--no-register` - Skip auto-registration in index.ts
+
+**Examples:**
+```bash
+# Create a new tree-sitter language
+npx ts-node src/index.ts scaffold-language --name rust --extensions ".rs,.rlib" --parser tree-sitter-rust
+
+# Create a custom parser language (for markup/template languages)
+npx ts-node src/index.ts scaffold-language --name toml --extensions ".toml" --custom
+
+# Skip auto-registration in index.ts
+npx ts-node src/index.ts scaffold-language --name proto --extensions ".proto" --parser tree-sitter-proto --no-register
+```
+
+The command will:
+1. Generate a language configuration file in `src/languages/`
+2. Validate the configuration for common errors
+3. Optionally register the language in `src/languages/index.ts`
+4. Provide clear next steps for completing the language setup
+
 ---
 ## Private Repository Support
 

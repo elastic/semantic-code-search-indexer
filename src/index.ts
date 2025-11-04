@@ -14,8 +14,12 @@ import { setupCommand } from './commands/setup_command';
 import { workerCommand } from './commands/worker_command';
 import { scaffoldLanguageCommand } from './commands/scaffold_language_command';
 import { shutdown } from './utils/otel_provider';
+import { validateAllLanguageConfigurations } from './languages';
 
 async function main() {
+  // Validate all language configurations at startup
+  validateAllLanguageConfigurations();
+
   const program = new Command();
 
   program
