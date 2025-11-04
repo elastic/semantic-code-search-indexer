@@ -1,5 +1,1585 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`LanguageParser should parse C++ fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "1d16dd7f0fd2b47dbbb09527ae4ea4cf8928e30e888d1e41b019357d2797e247",
+    "containerPath": "",
+    "content": "#include <iostream>
+",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 2,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [
+      {
+        "path": "<iostream>",
+        "symbols": [],
+        "type": "module",
+      },
+    ],
+    "kind": "preproc_include",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: preproc_include
+
+#include <iostream>
+",
+    "startLine": 1,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "f1a77777c57c0babeec118594be43192bc9b72aacd7709d746067dc654bbabe2",
+    "containerPath": "",
+    "content": "#include <vector>
+",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 3,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [
+      {
+        "path": "<vector>",
+        "symbols": [],
+        "type": "module",
+      },
+    ],
+    "kind": "preproc_include",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: preproc_include
+
+#include <vector>
+",
+    "startLine": 2,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "ecb3f933fee8d81c79096ed3681d368da0356c9e0bb7f61f03732812017233cd",
+    "containerPath": "",
+    "content": "#include "myheader.hpp"
+",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 4,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [
+      {
+        "path": "myheader.hpp",
+        "symbols": [],
+        "type": "module",
+      },
+    ],
+    "kind": "preproc_include",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: preproc_include
+
+#include "myheader.hpp"
+",
+    "startLine": 3,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "e543bc5f1c0a65859792fa4d16ecead75cd97eb1318252c126bfac68b266fe2d",
+    "containerPath": "",
+    "content": "namespace MyNamespace {
+    /* Class documentation */
+    class MyClass {
+    public:
+        MyClass();
+        ~MyClass();
+        
+        // Method documentation
+        void publicMethod();
+        
+        template<typename T>
+        T templateMethod(T value) {
+            return value;
+        }
+        
+    private:
+        int privateField;
+        void privateMethod();
+    };
+    
+    // Struct documentation
+    struct Point {
+        int x;
+        int y;
+        
+        Point(int x, int y) : x(x), y(y) {}
+    };
+    
+    // Enum documentation
+    enum class Color {
+        RED,
+        GREEN,
+        BLUE
+    };
+    
+    // Function documentation
+    template<typename T>
+    T add(T a, T b) {
+        return a + b;
+    }
+    
+    // Variable documentation
+    const int CONSTANT = 42;
+    
+    // Typedef documentation
+    typedef std::vector<int> IntVector;
+    
+    // Using declaration
+    using String = std::string;
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 54,
+    "exports": [
+      {
+        "name": "MyNamespace",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "namespace_definition",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: namespace_definition
+
+namespace MyNamespace {
+    /* Class documentation */
+    class MyClass {
+    public:
+        MyClass();
+        ~MyClass();
+        
+        // Method documentation
+        void publicMethod();
+        
+        template<typename T>
+        T templateMethod(T value) {
+            return value;
+        }
+        
+    private:
+        int privateField;
+        void privateMethod();
+    };
+    
+    // Struct documentation
+    struct Point {
+        int x;
+        int y;
+        
+        Point(int x, int y) : x(x), y(y) {}
+    };
+    
+    // Enum documentation
+    enum class Color {
+        RED,
+        GREEN,
+        BLUE
+    };
+    
+    // Function documentation
+    template<typename T>
+    T add(T a, T b) {
+        return a + b;
+    }
+    
+    // Variable documentation
+    const int CONSTANT = 42;
+    
+    // Typedef documentation
+    typedef std::vector<int> IntVector;
+    
+    // Using declaration
+    using String = std::string;
+}",
+    "startLine": 5,
+    "symbols": [
+      {
+        "kind": "namespace.name",
+        "line": 5,
+        "name": "MyNamespace",
+      },
+      {
+        "kind": "class.name",
+        "line": 7,
+        "name": "MyClass",
+      },
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 16,
+        "name": "value",
+      },
+      {
+        "kind": "field.name",
+        "line": 21,
+        "name": "privateField",
+      },
+      {
+        "kind": "struct.name",
+        "line": 26,
+        "name": "Point",
+      },
+      {
+        "kind": "field.name",
+        "line": 27,
+        "name": "x",
+      },
+      {
+        "kind": "field.name",
+        "line": 28,
+        "name": "y",
+      },
+      {
+        "kind": "function.name",
+        "line": 30,
+        "name": "Point",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 30,
+        "name": "x",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 30,
+        "name": "y",
+      },
+      {
+        "kind": "enum.name",
+        "line": 34,
+        "name": "Color",
+      },
+      {
+        "kind": "function.name",
+        "line": 42,
+        "name": "add",
+      },
+      {
+        "kind": "function.name",
+        "line": 42,
+        "name": "add",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 42,
+        "name": "a",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 42,
+        "name": "b",
+      },
+      {
+        "kind": "variable.name",
+        "line": 47,
+        "name": "CONSTANT",
+      },
+      {
+        "kind": "type.name",
+        "line": 50,
+        "name": "IntVector",
+      },
+      {
+        "kind": "type.name",
+        "line": 53,
+        "name": "String",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "f305e553681213c677070f609c690b6928f436876b5f1484c64e534ee0479a9d",
+    "containerPath": "",
+    "content": "/* Class documentation */",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 6,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+/* Class documentation */",
+    "startLine": 6,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "fcd898d1f035f4feec29f3332ab83d6766597aa9a7bec80e551964f2e96b2dea",
+    "containerPath": "",
+    "content": "class MyClass {
+    public:
+        MyClass();
+        ~MyClass();
+        
+        // Method documentation
+        void publicMethod();
+        
+        template<typename T>
+        T templateMethod(T value) {
+            return value;
+        }
+        
+    private:
+        int privateField;
+        void privateMethod();
+    }",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 23,
+    "exports": [
+      {
+        "name": "MyClass",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "class_specifier",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: class_specifier
+
+class MyClass {
+    public:
+        MyClass();
+        ~MyClass();
+        
+        // Method documentation
+        void publicMethod();
+        
+        template<typename T>
+        T templateMethod(T value) {
+            return value;
+        }
+        
+    private:
+        int privateField;
+        void privateMethod();
+    }",
+    "startLine": 7,
+    "symbols": [
+      {
+        "kind": "class.name",
+        "line": 7,
+        "name": "MyClass",
+      },
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 16,
+        "name": "value",
+      },
+      {
+        "kind": "field.name",
+        "line": 21,
+        "name": "privateField",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "b5eadf1b7bbf1dde62e59439d6ddae8123e19e52f69ac9cf150ed77dbbd0cc40",
+    "containerPath": "",
+    "content": "MyClass();",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: declaration
+
+MyClass();",
+    "startLine": 9,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "377403e43e40c44b3a4b17241bc1aaba3642671cf3ce45530cee38904bd0cf30",
+    "containerPath": "",
+    "content": "~MyClass();",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 10,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: declaration
+
+~MyClass();",
+    "startLine": 10,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "999b53464bac9d5008f7f49943beccec7c6682986d38dfa696725441dc8dbcdb",
+    "containerPath": "",
+    "content": "// Method documentation",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 12,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Method documentation",
+    "startLine": 12,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "483f650d81c36e502e9b774c033603e9888d47329f949cdfc06bc5dfbd5e4d5a",
+    "containerPath": "",
+    "content": "template<typename T>
+        T templateMethod(T value) {
+            return value;
+        }",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 18,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "template_declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: template_declaration
+
+template<typename T>
+        T templateMethod(T value) {
+            return value;
+        }",
+    "startLine": 15,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 16,
+        "name": "value",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "9c0da362014477c81a8916ee268a4bbe12fd12114cabb628c27689c45104a62a",
+    "containerPath": "",
+    "content": "T templateMethod(T value) {
+            return value;
+        }",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 18,
+    "exports": [
+      {
+        "name": "templateMethod",
+        "type": "named",
+      },
+      {
+        "name": "templateMethod",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: function_definition
+
+T templateMethod(T value) {
+            return value;
+        }",
+    "startLine": 16,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "function.name",
+        "line": 16,
+        "name": "templateMethod",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 16,
+        "name": "value",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "5d53d5b5321d350fd4fb82525e091d7e11f9eecdaaf39f27e2f4fa5b7e9475d7",
+    "containerPath": "",
+    "content": "return value;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 17,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "return_statement",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: return_statement
+
+return value;",
+    "startLine": 17,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "8109ab6d50e7a822bfe9f61e0db2dbc85514288a067ba02a3884281bc5191434",
+    "containerPath": "",
+    "content": "// Struct documentation",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 25,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Struct documentation",
+    "startLine": 25,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "a2df93090846724c218685d821cf2dff89f04d044599bab9014b2877a7cf4ba2",
+    "containerPath": "",
+    "content": "struct Point {
+        int x;
+        int y;
+        
+        Point(int x, int y) : x(x), y(y) {}
+    }",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 31,
+    "exports": [
+      {
+        "name": "Point",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "struct_specifier",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: struct_specifier
+
+struct Point {
+        int x;
+        int y;
+        
+        Point(int x, int y) : x(x), y(y) {}
+    }",
+    "startLine": 26,
+    "symbols": [
+      {
+        "kind": "struct.name",
+        "line": 26,
+        "name": "Point",
+      },
+      {
+        "kind": "field.name",
+        "line": 27,
+        "name": "x",
+      },
+      {
+        "kind": "field.name",
+        "line": 28,
+        "name": "y",
+      },
+      {
+        "kind": "function.name",
+        "line": 30,
+        "name": "Point",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 30,
+        "name": "x",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 30,
+        "name": "y",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "76fd96261366e520a31c1801418d4113eca926d03c21582effaf2d152ddf5aab",
+    "containerPath": "",
+    "content": "Point(int x, int y) : x(x), y(y) {}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 30,
+    "exports": [
+      {
+        "name": "Point",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: function_definition
+
+Point(int x, int y) : x(x), y(y) {}",
+    "startLine": 30,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 30,
+        "name": "Point",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 30,
+        "name": "x",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 30,
+        "name": "y",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "88c9b940c83cb09077b1a58e20368e0b4d68ff5fa80805e3ad7f59eddcb8ab5b",
+    "containerPath": "",
+    "content": "// Enum documentation",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 33,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Enum documentation",
+    "startLine": 33,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "c0458cec7f58735abf71211fa1afc3fda9f8d13ae2a5a1457299b6a6dad82c82",
+    "containerPath": "",
+    "content": "enum class Color {
+        RED,
+        GREEN,
+        BLUE
+    }",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 38,
+    "exports": [
+      {
+        "name": "Color",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "enum_specifier",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: enum_specifier
+
+enum class Color {
+        RED,
+        GREEN,
+        BLUE
+    }",
+    "startLine": 34,
+    "symbols": [
+      {
+        "kind": "enum.name",
+        "line": 34,
+        "name": "Color",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "88c8d3748bed0bc71ca240dd5b27ff7460195fcfda079644bc4535b02a3fbb97",
+    "containerPath": "",
+    "content": "// Function documentation",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 40,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Function documentation",
+    "startLine": 40,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "63631de9bcb1f702f54cde572aa61356c297ff26f1c4ef90fb5732b82114a066",
+    "containerPath": "",
+    "content": "template<typename T>
+    T add(T a, T b) {
+        return a + b;
+    }",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 44,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "template_declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: template_declaration
+
+template<typename T>
+    T add(T a, T b) {
+        return a + b;
+    }",
+    "startLine": 41,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 42,
+        "name": "add",
+      },
+      {
+        "kind": "function.name",
+        "line": 42,
+        "name": "add",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 42,
+        "name": "a",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 42,
+        "name": "b",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "9acecb8e2a9f05d4f5ee960e4afe53c5923d1a388e3373083be3a7c8b27e796b",
+    "containerPath": "",
+    "content": "T add(T a, T b) {
+        return a + b;
+    }",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 44,
+    "exports": [
+      {
+        "name": "add",
+        "type": "named",
+      },
+      {
+        "name": "add",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: function_definition
+
+T add(T a, T b) {
+        return a + b;
+    }",
+    "startLine": 42,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 42,
+        "name": "add",
+      },
+      {
+        "kind": "function.name",
+        "line": 42,
+        "name": "add",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 42,
+        "name": "a",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 42,
+        "name": "b",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "800b20fd97b1508b0b22078816a57ea174dc54356f23d8f1ee126c58623efa26",
+    "containerPath": "",
+    "content": "return a + b;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 43,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "return_statement",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: return_statement
+
+return a + b;",
+    "startLine": 43,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "cce1410f3bd0869f50c4cf883a991b2ff52786b232909b70bdb0dd109bce23a6",
+    "containerPath": "",
+    "content": "// Variable documentation",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 46,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Variable documentation",
+    "startLine": 46,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "ef131c574320bbf120a0672b8127e6c51690b200556a78af539ca9d12c1831a2",
+    "containerPath": "",
+    "content": "const int CONSTANT = 42;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 47,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: declaration
+
+const int CONSTANT = 42;",
+    "startLine": 47,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 47,
+        "name": "CONSTANT",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "52487327ebc0742d1f1ae12c211a575d5b531eb8d073891db30296b99c63966d",
+    "containerPath": "",
+    "content": "// Typedef documentation",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 49,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Typedef documentation",
+    "startLine": 49,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "8e44732e8fefdab8142649cb90dc519d490756894865e86ea542980501ae70b0",
+    "containerPath": "",
+    "content": "typedef std::vector<int> IntVector;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 50,
+    "exports": [
+      {
+        "name": "IntVector",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "type_definition",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: type_definition
+
+typedef std::vector<int> IntVector;",
+    "startLine": 50,
+    "symbols": [
+      {
+        "kind": "type.name",
+        "line": 50,
+        "name": "IntVector",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "91a718117a268e756a916585e39f70710a8d647de8dca5189d51888ce49bffbe",
+    "containerPath": "",
+    "content": "// Using declaration",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 52,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Using declaration",
+    "startLine": 52,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "0d9f891af363d62cc4953ceb571452820650ed0c4184d00fe46eeb31bb119876",
+    "containerPath": "",
+    "content": "// Function with namespace",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 56,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "comment",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: comment
+
+// Function with namespace",
+    "startLine": 56,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "9d31178565984f5ba61e4b10f63077d5f351bbf5657eb775ec93dd0c20b26f46",
+    "containerPath": "",
+    "content": "void MyNamespace::MyClass::publicMethod() {
+    std::cout << "Hello" << std::endl;
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 59,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: function_definition
+
+void MyNamespace::MyClass::publicMethod() {
+    std::cout << "Hello" << std::endl;
+}",
+    "startLine": 57,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "d69ffc6b1182356b5d1a54264de2c3098992ed760c9f05e4ac4a8437e5170946",
+    "containerPath": "",
+    "content": "std::cout << "Hello" << std::endl;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 58,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "expression_statement",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: expression_statement
+
+std::cout << "Hello" << std::endl;",
+    "startLine": 58,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "c1c8639ac91635a793a22920604247a2b7d9cc00dea66dad787678587205b09f",
+    "containerPath": "",
+    "content": "int main(int argc, char* argv[]) {
+    MyNamespace::MyClass obj;
+    obj.publicMethod();
+    
+    MyNamespace::Point p(10, 20);
+    int result = MyNamespace::add(1, 2);
+    
+    return 0;
+}",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 69,
+    "exports": [
+      {
+        "name": "main",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "function_definition",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: function_definition
+
+int main(int argc, char* argv[]) {
+    MyNamespace::MyClass obj;
+    obj.publicMethod();
+    
+    MyNamespace::Point p(10, 20);
+    int result = MyNamespace::add(1, 2);
+    
+    return 0;
+}",
+    "startLine": 61,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 61,
+        "name": "main",
+      },
+      {
+        "kind": "parameter.name",
+        "line": 61,
+        "name": "argc",
+      },
+      {
+        "kind": "variable.name",
+        "line": 62,
+        "name": "obj",
+      },
+      {
+        "kind": "method.call",
+        "line": 63,
+        "name": "publicMethod",
+      },
+      {
+        "kind": "variable.name",
+        "line": 65,
+        "name": "p",
+      },
+      {
+        "kind": "variable.name",
+        "line": 66,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 66,
+        "name": "add",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2436b24ed34dec124a26354b798d2ce273193c0c59ff4feca9d742a4e2e04648",
+    "containerPath": "",
+    "content": "MyNamespace::MyClass obj;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 62,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: declaration
+
+MyNamespace::MyClass obj;",
+    "startLine": 62,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 62,
+        "name": "obj",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "051b9a654f8aa6fcfd69cc0d2329975f58ffbda441529bcce0277f2c602cf156",
+    "containerPath": "",
+    "content": "obj.publicMethod();",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 63,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "expression_statement",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: expression_statement
+
+obj.publicMethod();",
+    "startLine": 63,
+    "symbols": [
+      {
+        "kind": "method.call",
+        "line": 63,
+        "name": "publicMethod",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "6d210117f6eecbca584d56d35bd066dbbf06f222d0724e8a31203a1d675a9db1",
+    "containerPath": "",
+    "content": "obj.publicMethod()",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 63,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "call_expression",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: call_expression
+
+obj.publicMethod()",
+    "startLine": 63,
+    "symbols": [
+      {
+        "kind": "method.call",
+        "line": 63,
+        "name": "publicMethod",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "2a740da3ca5f77f0421cace84b5a7ff098d0922ec8843812af4c7c8a57f6fb1c",
+    "containerPath": "",
+    "content": "MyNamespace::Point p(10, 20);",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 65,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: declaration
+
+MyNamespace::Point p(10, 20);",
+    "startLine": 65,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 65,
+        "name": "p",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "36d2e320f01db6d6c27af0c6416d79e9910be94f3178d45b3f4baf9cf8c15e86",
+    "containerPath": "",
+    "content": "int result = MyNamespace::add(1, 2);",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 66,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "declaration",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: declaration
+
+int result = MyNamespace::add(1, 2);",
+    "startLine": 66,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 66,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 66,
+        "name": "add",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "f8a92b55254e013eaf281cc283e6520367570fc0cc9608fb97e17c4187b5a67f",
+    "containerPath": "",
+    "content": "MyNamespace::add(1, 2)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 66,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "call_expression",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: call_expression
+
+MyNamespace::add(1, 2)",
+    "startLine": 66,
+    "symbols": [
+      {
+        "kind": "variable.name",
+        "line": 66,
+        "name": "result",
+      },
+      {
+        "kind": "function.call",
+        "line": 66,
+        "name": "add",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "6be2e46a3d0765fd4d08def164c35b75afcc481db6fd11cc5118c4e2c20b634d",
+    "containerPath": "",
+    "content": "return 0;",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 68,
+    "exports": [],
+    "filePath": "tests/fixtures/cpp.cpp",
+    "git_branch": "main",
+    "git_file_hash": "db9b7401aaab1a21eda4af6b620ce7b5b5d699fd",
+    "imports": [],
+    "kind": "return_statement",
+    "language": "cpp",
+    "semantic_text": "filePath: tests/fixtures/cpp.cpp
+directoryPath: tests/fixtures
+kind: return_statement
+
+return 0;",
+    "startLine": 68,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
 exports[`LanguageParser should parse Go fixtures correctly 1`] = `
 [
   {
