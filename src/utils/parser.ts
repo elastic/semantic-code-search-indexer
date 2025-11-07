@@ -3,7 +3,7 @@ import Parser from 'tree-sitter';
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { languageConfigurations, parseLanguageNames } from '../languages';
 import { CodeChunk, SymbolInfo, ExportInfo } from './elasticsearch';
 import { indexingConfig } from '../config';
@@ -147,7 +147,8 @@ export class LanguageParser {
   private readFileWithMetadata(filePath: string): FileMetadata {
     return {
       content: fs.readFileSync(filePath, 'utf8'),
-      gitFileHash: execSync(`git hash-object ${filePath}`).toString().trim(),
+      // Use execFileSync to prevent shell injection from special characters in file paths
+      gitFileHash: execFileSync('git', ['hash-object', filePath]).toString().trim(),
       timestamp: new Date().toISOString(),
     };
   }
@@ -510,7 +511,8 @@ export class LanguageParser {
     const tree = parser.parse(sourceCode);
     const query = new Query(langConfig.parser, langConfig.queries.join('\n'));
     const matches = query.matches(tree.rootNode);
-    const gitFileHash = execSync(`git hash-object ${filePath}`).toString().trim();
+    // Use execFileSync to prevent shell injection from special characters in file paths
+    const gitFileHash = execFileSync('git', ['hash-object', filePath]).toString().trim();
 
     // Tree-sitter capture names for imports and exports
     const IMPORT_CAPTURE_NAMES = {
@@ -555,7 +557,8 @@ export class LanguageParser {
           let type: 'module' | 'file' = 'module';
           if (importPath.startsWith('.')) {
             const resolvedPath = path.resolve(path.dirname(filePath), importPath);
-            const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: path.dirname(filePath) }).toString().trim();
+            // Use execFileSync to prevent shell injection from special characters in directory paths
+            const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) }).toString().trim();
             importPath = path.relative(gitRoot, resolvedPath);
             type = 'file';
           }
@@ -659,7 +662,8 @@ export class LanguageParser {
             if (exportTarget.startsWith('.')) {
               try {
                 const resolvedPath = path.resolve(path.dirname(filePath), exportTarget);
-                const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: path.dirname(filePath) }).toString().trim();
+                // Use execFileSync to prevent shell injection from special characters in directory paths
+                const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) }).toString().trim();
                 exportTarget = path.relative(gitRoot, resolvedPath);
               } catch (error) {
                 logger.warn(`Failed to resolve re-export path: ${exportTarget}`, error instanceof Error ? error : new Error(String(error)));

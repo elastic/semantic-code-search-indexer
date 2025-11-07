@@ -4,7 +4,7 @@ import { worker } from './worker_command';
 import { appConfig } from '../config';
 import { logger } from '../utils/logger';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 async function startReindexProducer(repoConfigs: string[], concurrency: number) {
   logger.info('Starting multi-repository reindex producer...');
@@ -26,7 +26,8 @@ async function startReindexProducer(repoConfigs: string[], concurrency: number) 
     // Extract git branch from the repository path
     let gitBranch = 'unknown';
     try {
-      gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: repoPath })
+      // Use execFileSync to prevent shell injection from special characters in directory paths
+      gitBranch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: repoPath })
         .toString()
         .trim();
     } catch {
