@@ -11,7 +11,7 @@ import { indexingConfig, appConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import ignore from 'ignore';
 import { createLogger } from '../utils/logger';
@@ -47,7 +47,8 @@ async function getQueue(options?: IndexOptions, repoName?: string, branch?: stri
 
 export async function index(directory: string, clean: boolean, options?: IndexOptions) {
   const repoName = options?.repoName ?? path.basename(path.resolve(directory));
-  const gitBranch = options?.branch ?? execSync('git rev-parse --abbrev-ref HEAD', { cwd: directory })
+  // Use execFileSync to prevent shell injection from special characters in directory paths
+  const gitBranch = options?.branch ?? execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: directory })
     .toString()
     .trim();
 
@@ -65,7 +66,8 @@ export async function index(directory: string, clean: boolean, options?: IndexOp
   await createIndex(options?.elasticsearchIndex);
   await createSettingsIndex(options?.elasticsearchIndex);
 
-  const gitRoot = execSync('git rev-parse --show-toplevel', { cwd: directory }).toString().trim();
+  // Use execFileSync to prevent shell injection from special characters in directory paths
+  const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: directory }).toString().trim();
   const ig = ignore();
   const gitignorePath = path.join(gitRoot, '.gitignore');
   if (fs.existsSync(gitignorePath)) {
@@ -184,7 +186,8 @@ export async function index(directory: string, clean: boolean, options?: IndexOp
 
   await producerQueue.onIdle();
 
-  const commitHash = execSync('git rev-parse HEAD', { cwd: directory }).toString().trim();
+  // Use execFileSync to prevent shell injection from special characters in directory paths
+  const commitHash = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: directory }).toString().trim();
   await updateLastIndexedCommit(gitBranch, commitHash, options?.elasticsearchIndex);
 
   logger.info('--- Producer Summary ---');
