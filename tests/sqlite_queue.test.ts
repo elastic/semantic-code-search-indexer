@@ -134,4 +134,37 @@ describe('SqliteQueue', () => {
     
     noContextQueue.close();
   });
+
+  it('should move documents to failed status after MAX_RETRIES', async () => {
+    await queue.enqueue([MOCK_CHUNK_1]);
+    
+    // Simulate MAX_RETRIES (3) requeue attempts
+    for (let i = 0; i < 3; i++) {
+      const dequeued = await queue.dequeue(1);
+      expect(dequeued.length).toBe(1);
+      await queue.requeue(dequeued);
+    }
+    
+    // After 3 requeues, documents should be in failed status and not dequeued
+    const shouldBeEmpty = await queue.dequeue(1);
+    expect(shouldBeEmpty.length).toBe(0);
+  });
+
+  it('should increment retry_count on each requeue', async () => {
+    await queue.enqueue([MOCK_CHUNK_1]);
+    
+    // First attempt
+    const dequeued1 = await queue.dequeue(1);
+    expect(dequeued1.length).toBe(1);
+    await queue.requeue(dequeued1);
+    
+    // Second attempt - should still be available
+    const dequeued2 = await queue.dequeue(1);
+    expect(dequeued2.length).toBe(1);
+    await queue.requeue(dequeued2);
+    
+    // Third attempt - should still be available
+    const dequeued3 = await queue.dequeue(1);
+    expect(dequeued3.length).toBe(1);
+  });
 });

@@ -92,4 +92,66 @@ describe('IndexerWorker', () => {
     expect(requeueSpy).toHaveBeenCalled();
     expect(commitSpy).not.toHaveBeenCalled();
   });
+
+  it('should requeue batch when Elasticsearch bulk indexing fails', async () => {
+    await queue.enqueue([MOCK_CHUNK]);
+    const requeueSpy = jest.spyOn(queue, 'requeue');
+    const commitSpy = jest.spyOn(queue, 'commit');
+
+    // Mock indexCodeChunks to throw (simulating ES bulk indexing failure)
+    (elasticsearch.indexCodeChunks as jest.Mock).mockRejectedValue(
+      new Error('Bulk indexing failed: 1 of 1 documents had errors. First error: {"type":"mapper_parsing_exception"}')
+    );
+
+    worker.start();
+    await jest.advanceTimersByTimeAsync(10);
+    await worker.onIdle();
+
+    expect(requeueSpy).toHaveBeenCalled();
+    expect(commitSpy).not.toHaveBeenCalled();
+    
+    // Verify the document that was requeued has the correct content
+    const requeuedDocs = requeueSpy.mock.calls[0][0];
+    expect(requeuedDocs).toHaveLength(1);
+    expect(requeuedDocs[0].document.chunk_hash).toBe(MOCK_CHUNK.chunk_hash);
+  });
+
+  it('should not commit documents when bulk indexing fails', async () => {
+    await queue.enqueue([MOCK_CHUNK]);
+    const commitSpy = jest.spyOn(queue, 'commit');
+
+    (elasticsearch.indexCodeChunks as jest.Mock).mockRejectedValue(
+      new Error('Bulk indexing failed: 1 of 1 documents had errors')
+    );
+
+    worker.start();
+    await jest.advanceTimersByTimeAsync(10);
+    await worker.onIdle();
+
+    // Verify commit was never called when indexing fails
+    expect(commitSpy).not.toHaveBeenCalled();
+  });
+
+  it('should handle multiple document failures correctly', async () => {
+    const mockChunk2: CodeChunk = {
+      ...MOCK_CHUNK,
+      chunk_hash: 'chunk_hash_2',
+      content: 'const b = 2;',
+    };
+
+    await queue.enqueue([MOCK_CHUNK, mockChunk2]);
+    const requeueSpy = jest.spyOn(queue, 'requeue');
+
+    (elasticsearch.indexCodeChunks as jest.Mock).mockRejectedValue(
+      new Error('Bulk indexing failed: 2 of 2 documents had errors')
+    );
+
+    worker.start();
+    await jest.advanceTimersByTimeAsync(10);
+    await worker.onIdle();
+
+    expect(requeueSpy).toHaveBeenCalled();
+    const requeuedDocs = requeueSpy.mock.calls[0][0];
+    expect(requeuedDocs).toHaveLength(2);
+  });
 });
