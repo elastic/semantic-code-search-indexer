@@ -274,6 +274,10 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
       }
     });
     logger.error('[ES Consumer] Errors during bulk indexing:', { errors: JSON.stringify(erroredDocuments, null, 2) });
+    throw new Error(
+      `Bulk indexing failed: ${erroredDocuments.length} of ${chunks.length} documents had errors. ` +
+      `First error: ${JSON.stringify(erroredDocuments[0]?.error)}`
+    );
   }
 }
 
