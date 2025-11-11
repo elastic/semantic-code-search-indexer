@@ -111,7 +111,7 @@ async function searchCode(query) {
     query: {
       sparse_vector: {
         field: 'content_embedding',
-        inference_id: '.elser-2-elastic', // Or process.env.ELASTICSEARCH_MODEL
+        inference_id: '.elser-2-elastic', // Or process.env.ELASTICSEARCH_INFERENCE_ID
         query: query,
       },
     },
@@ -130,6 +130,6 @@ While the primary focus is on semantic search, you can also perform traditional 
 
 ### Important Considerations
 
-*   **ELSER Model:** The `semantic_text` field in the index is configured with an `inference_id` that specifies which ELSER model to use for generating embeddings. Ensure that the ELSER model is available in your Elasticsearch cluster. The model ID is configurable via the `ELASTICSEARCH_MODEL` environment variable (defaulting to `.elser-2-elastic`).
+*   **ELSER Model:** The `semantic_text` field in the index is configured with an `inference_id` that specifies which ELSER model to use for generating embeddings. Ensure that the ELSER model is available in your Elasticsearch cluster. The model ID is configurable via the `ELASTICSEARCH_INFERENCE_ID` environment variable (defaulting to `.elser-2-elastic`). Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility.
 *   **Index Name:** Always use the `ELASTICSEARCH_INDEX` environment variable to refer to the index name to avoid mismatches.
 *   **Data Freshness:** The index is updated by running the `code-indexer` tool. For the MCP server to have the latest data, the index needs to be kept up-to-date by running the indexer regularly.

@@ -299,7 +299,7 @@ Configuration is managed via environment variables in a `.env` file.
 | `ELASTICSEARCH_PASSWORD` | The password for Elasticsearch authentication. | |
 | `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication. | |
 | `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts. | `code-chunks` |
-| `ELASTICSEARCH_MODEL` | The name of the ELSER model to use. | `.elser-2-elastic` |
+| `ELASTICSEARCH_INFERENCE_ID` | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility. | `.elser-2-elastic` |
 | `OTEL_LOGGING_ENABLED` | Enable OpenTelemetry logging. | `false` |
 | `OTEL_METRICS_ENABLED` | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`). | Same as `OTEL_LOGGING_ENABLED` |
 | `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs and metrics. | `semantic-code-search-indexer` |
@@ -321,6 +321,17 @@ Configuration is managed via environment variables in a `.env` file.
 | `GIT_PATH` | The path to the `git` executable. | `git` |
 | `NODE_ENV` | The node environment. | `development` |
 | `SEMANTIC_CODE_INDEXER_LANGUAGES` | A comma-separated list of languages to index. | `typescript,javascript,markdown,yaml,java,go,python` |
+
+#### Elastic Inference Service (EIS) Rate Limits
+
+When using the default inference ID `.elser-2-elastic`, your deployment uses the Elastic Inference Service (EIS), which is GPU-backed and has specific rate limits:
+
+- **Rate limits**: 6,000 documents/minute OR 6,000,000 tokens/minute (whichever is reached first)
+- **Recommended settings**: `BATCH_SIZE=14` with concurrency of `2`
+- **Important consideration**: Chunks larger than 512K may generate additional chunks in ELSER, potentially causing some batches to be rejected
+- **Monitoring requirement**: Setting up an OTEL Collector is critical to monitor logs for errors when using these settings
+
+These settings help avoid rate limit issues while maintaining good indexing throughput. Monitor your deployment logs closely when operating near these limits.
 
 ### Chunking Strategy by File Type
 

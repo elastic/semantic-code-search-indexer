@@ -53,7 +53,7 @@ if (elasticsearchConfig.cloudId) {
 }
 
 const defaultIndexName = elasticsearchConfig.index;
-const elserModelId = elasticsearchConfig.model;
+const elserInferenceId = elasticsearchConfig.inferenceId;
 const codeSimilarityPipeline = 'code-similarity-pipeline';
 
 
@@ -112,7 +112,7 @@ export async function createIndex(index?: string): Promise<void> {
           content: { type: 'text' },
           semantic_text: {
             type: 'semantic_text',
-            inference_id: elserModelId,
+            inference_id: elserInferenceId,
           },
           code_vector: {
             type: 'dense_vector',
