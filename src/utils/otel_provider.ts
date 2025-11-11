@@ -8,20 +8,28 @@ import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions';
+import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { otelConfig } from '../config';
-import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
 // Import experimental attributes from incubating entry point
 const {
   ATTR_DEPLOYMENT_ENVIRONMENT,
-  ATTR_HOST_NAME,
-  ATTR_HOST_ARCH,
-  ATTR_HOST_TYPE,
-  ATTR_OS_TYPE,
   // eslint-disable-next-line @typescript-eslint/no-require-imports
 } = require('@opentelemetry/semantic-conventions/incubating');
+
+// Enable OpenTelemetry diagnostic logging
+// Set to DiagLogLevel.DEBUG for maximum verbosity, or DiagLogLevel.INFO for less detail
+const diagLevel = process.env.OTEL_LOG_LEVEL === 'debug' ? DiagLogLevel.DEBUG :
+  process.env.OTEL_LOG_LEVEL === 'info' ? DiagLogLevel.INFO :
+    process.env.OTEL_LOG_LEVEL === 'warn' ? DiagLogLevel.WARN :
+      process.env.OTEL_LOG_LEVEL === 'error' ? DiagLogLevel.ERROR :
+        DiagLogLevel.NONE;
+
+if (diagLevel !== DiagLogLevel.NONE) {
+  diag.setLogger(new DiagConsoleLogger(), diagLevel);
+}
 
 let loggerProvider: LoggerProvider | null = null;
 let meterProvider: MeterProvider | null = null;
@@ -53,27 +61,98 @@ function getServiceVersion(): string {
  * @example
  * parseHeaders("authorization=Bearer token,content-type=application/json")
  * // Returns: { authorization: "Bearer token", "content-type": "application/json" }
+ *
+ * @example
+ * parseHeaders("Authorization=ApiKey dGVzdDp0ZXN0==")
+ * // Returns: { Authorization: "ApiKey dGVzdDp0ZXN0==" }
  */
-function parseHeaders(headersString: string): Record<string, string> {
+export function parseHeaders(headersString: string): Record<string, string> {
   const headers: Record<string, string> = {};
   if (!headersString) return headers;
 
   headersString.split(',').forEach(header => {
-    const [key, value] = header.split('=');
+    // Split only on the first '=' to handle values containing '='
+    const firstEqualIndex = header.indexOf('=');
+    if (firstEqualIndex === -1) return;
+
+    const key = header.substring(0, firstEqualIndex).trim();
+    const value = header.substring(firstEqualIndex + 1).trim();
+
     if (key && value) {
-      headers[key.trim()] = value.trim();
+      headers[key] = value;
     }
   });
   return headers;
 }
 
 /**
+ * Parses OTEL_RESOURCE_ATTRIBUTES environment variable into a key-value object.
+ *
+ * @param resourceAttributesString - The OTEL_RESOURCE_ATTRIBUTES string
+ * @returns An object with parsed resource attributes
+ *
+ * @example
+ * parseResourceAttributes("key1=value1,key2=value2")
+ * // Returns: { key1: "value1", key2: "value2" }
+ */
+function parseResourceAttributes(resourceAttributesString: string): Record<string, string> {
+  const attributes: Record<string, string> = {};
+  if (!resourceAttributesString) return attributes;
+
+  resourceAttributesString.split(',').forEach(pair => {
+    const firstEqualIndex = pair.indexOf('=');
+    if (firstEqualIndex === -1) return;
+
+    const key = pair.substring(0, firstEqualIndex).trim();
+    const value = pair.substring(firstEqualIndex + 1).trim();
+
+    if (key && value) {
+      attributes[key] = value;
+    }
+  });
+  return attributes;
+}
+
+/**
+ * Creates a Resource with auto-detected attributes and custom defaults.
+ *
+ * Detects resource attributes from:
+ * - Environment variables (OTEL_RESOURCE_ATTRIBUTES, OTEL_SERVICE_NAME)
+ * - SDK defaults (telemetry.sdk.*, service.name, etc.)
+ *
+ * Custom attributes are used as defaults and are overridden by env vars.
+ *
+ * @param defaultAttributes - Default resource attributes (overridden by env vars)
+ * @returns A Resource instance with all detected and custom attributes
+ */
+function createResource(defaultAttributes: Record<string, string | number> = {}): Resource {
+  // Start with default attributes
+  let resource = new Resource(defaultAttributes);
+
+  // Merge with SDK defaults (telemetry.sdk.*, service.name, etc.)
+  resource = resource.merge(Resource.default());
+
+  // Parse and merge OTEL_RESOURCE_ATTRIBUTES if present
+  const otelResourceAttributes = process.env.OTEL_RESOURCE_ATTRIBUTES;
+  if (otelResourceAttributes) {
+    const envAttributes = parseResourceAttributes(otelResourceAttributes);
+    resource = resource.merge(new Resource(envAttributes));
+  }
+
+  return resource;
+}
+
+/**
  * Gets or creates the singleton OpenTelemetry LoggerProvider instance.
  * 
  * Creates a LoggerProvider configured with:
- * - Resource attributes (service info, host info)
+ * - Resource attributes (auto-detected + custom service info)
  * - OTLP HTTP exporter for sending logs to a collector
  * - Batch log record processor for efficient transmission
+ * 
+ * Respects standard OTEL environment variables:
+ * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
+ * - OTEL_SERVICE_NAME: Service name (can be overridden by config)
  * 
  * @returns The LoggerProvider instance if OTEL_LOGGING_ENABLED is true, otherwise null.
  */
@@ -88,17 +167,17 @@ export function getLoggerProvider(): LoggerProvider | null {
 
   const serviceVersion = getServiceVersion();
 
-  const resourceAttributes: Record<string, string | number> = {
+  const defaultAttributes: Record<string, string | number> = {
     [ATTR_SERVICE_NAME]: otelConfig.serviceName,
     [ATTR_SERVICE_VERSION]: serviceVersion,
-    [ATTR_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'production',
-    [ATTR_HOST_NAME]: os.hostname(),
-    [ATTR_HOST_ARCH]: os.arch(),
-    [ATTR_HOST_TYPE]: os.type(),
-    [ATTR_OS_TYPE]: os.platform(),
   };
 
-  const resource = new Resource(resourceAttributes);
+  // Only set deployment.environment if not in OTEL_RESOURCE_ATTRIBUTES
+  if (!process.env.OTEL_RESOURCE_ATTRIBUTES?.includes('deployment.environment')) {
+    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = process.env.NODE_ENV || 'production';
+  }
+
+  const resource = createResource(defaultAttributes);
 
   const exporter = new OTLPLogExporter({
     url: otelConfig.endpoint.endsWith('/v1/logs') 
@@ -120,9 +199,13 @@ export function getLoggerProvider(): LoggerProvider | null {
  * Gets or creates the singleton OpenTelemetry MeterProvider instance.
  * 
  * Creates a MeterProvider configured with:
- * - Resource attributes (service info, host info)
+ * - Resource attributes (auto-detected + custom service info)
  * - OTLP HTTP exporter for sending metrics to a collector
  * - Periodic metric reader for scheduled metric export
+ * 
+ * Respects standard OTEL environment variables:
+ * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
+ * - OTEL_SERVICE_NAME: Service name (can be overridden by config)
  * 
  * @returns The MeterProvider instance if OTEL_METRICS_ENABLED is true, otherwise null.
  */
@@ -137,17 +220,17 @@ export function getMeterProvider(): MeterProvider | null {
 
   const serviceVersion = getServiceVersion();
 
-  const resourceAttributes: Record<string, string | number> = {
+  const defaultAttributes: Record<string, string | number> = {
     [ATTR_SERVICE_NAME]: otelConfig.serviceName,
     [ATTR_SERVICE_VERSION]: serviceVersion,
-    [ATTR_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'production',
-    [ATTR_HOST_NAME]: os.hostname(),
-    [ATTR_HOST_ARCH]: os.arch(),
-    [ATTR_HOST_TYPE]: os.type(),
-    [ATTR_OS_TYPE]: os.platform(),
   };
 
-  const resource = new Resource(resourceAttributes);
+  // Only set deployment.environment if not in OTEL_RESOURCE_ATTRIBUTES
+  if (!process.env.OTEL_RESOURCE_ATTRIBUTES?.includes('deployment.environment')) {
+    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = process.env.NODE_ENV || 'production';
+  }
+
+  const resource = createResource(defaultAttributes);
 
   const exporter = new OTLPMetricExporter({
     url: otelConfig.metricsEndpoint.endsWith('/v1/metrics')

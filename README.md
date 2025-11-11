@@ -302,12 +302,14 @@ Configuration is managed via environment variables in a `.env` file.
 | `ELASTICSEARCH_MODEL` | The name of the ELSER model to use. | `.elser-2-elastic` |
 | `OTEL_LOGGING_ENABLED` | Enable OpenTelemetry logging. | `false` |
 | `OTEL_METRICS_ENABLED` | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`). | Same as `OTEL_LOGGING_ENABLED` |
-| `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs and metrics. | `semantic-code-search-indexer` |
+| `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs and metrics (standard OTEL var). | `semantic-code-search-indexer` |
+| `OTEL_RESOURCE_ATTRIBUTES` | Additional resource attributes (standard OTEL var, e.g., `key1=value1,key2=value2`). | - |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint for both logs and metrics. | `http://localhost:4318` |
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | Logs-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT). | |
 | `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | Metrics-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT). | |
-| `OTEL_EXPORTER_OTLP_HEADERS` | Headers for OTLP exporter (e.g., `authorization=Bearer token`). | |
+| `OTEL_EXPORTER_OTLP_HEADERS` | Headers for OTLP exporter (format: `key1=value1,key2=value2`). | |
 | `OTEL_METRIC_EXPORT_INTERVAL_MILLIS` | Interval in milliseconds between metric exports. | `60000` (60 seconds) |
+| `OTEL_LOG_LEVEL` | OpenTelemetry SDK diagnostic log level (`debug`, `info`, `warn`, `error`). | `none` |
 | `QUEUE_DIR` | The directory for the queue database. Used by the `index-worker` and `clear-queue` commands. | `.queue` |
 | `QUEUE_BASE_DIR` | The base directory for all multi-repo queue databases. | `.queues` |
 | `BATCH_SIZE` | The number of chunks to index in a single bulk request. | `500` |
@@ -376,13 +378,14 @@ To enable OpenTelemetry log and metrics export:
 OTEL_LOGGING_ENABLED=true
 OTEL_METRICS_ENABLED=true  # Optional, defaults to same as OTEL_LOGGING_ENABLED
 OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=production,team=platform,region=us-west-2
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 ```
 
 For authentication to the collector:
 
 ```bash
-OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
+OTEL_EXPORTER_OTLP_HEADERS="Authorization=ApiKey abc123==,x-custom-header=value"
 ```
 
 You can also configure separate endpoints for logs and metrics:
@@ -397,8 +400,14 @@ OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
 The following resource attributes are automatically attached to all logs and metrics:
 - `service.name`: Service name (from `OTEL_SERVICE_NAME`)
 - `service.version`: Version from package.json
-- `deployment.environment`: From `NODE_ENV`
-- `host.name`, `host.arch`, `host.type`, `os.type`: Host information
+- `deployment.environment`: From `NODE_ENV` (unless overridden by `OTEL_RESOURCE_ATTRIBUTES`)
+- Auto-detected attributes from OpenTelemetry SDK (host, process, etc.)
+
+You can add custom resource attributes using the standard `OTEL_RESOURCE_ATTRIBUTES` environment variable:
+
+```bash
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=staging,team=platform,custom.key=custom-value
+```
 
 ### Log and Metric Attributes
 
@@ -484,6 +493,36 @@ docker run -p 4318:4318 -p 4317:4317 -p 13133:13133 \
   -v $(pwd)/docs/otel-collector-config.yaml:/etc/otelcol/config.yaml \
   otel/opentelemetry-collector-contrib:latest
 ```
+
+### Troubleshooting
+
+#### OpenTelemetry Not Sending Data
+
+If your OTEL data isn't reaching your collector, enable diagnostic logging:
+
+```bash
+export OTEL_LOG_LEVEL=debug
+```
+
+This will output detailed information about:
+- Exporter initialization and configuration
+- HTTP requests being sent (URLs, headers, status codes)
+- Export successes and failures
+- Retry attempts and backoff behavior
+- Resource attributes being attached
+
+**Debug levels:**
+- `debug` - Maximum verbosity (shows all HTTP requests, payloads, etc.)
+- `info` - General information about exports
+- `warn` - Warnings about potential issues
+- `error` - Only errors
+
+**Common issues revealed by debug logs:**
+- Incorrect endpoint URLs (missing `/v1/logs` or `/v1/metrics`)
+- Authentication header problems (e.g., base64-encoded API keys with `==`)
+- Network connectivity issues
+- SSL/TLS certificate errors
+- Collector rejecting data (wrong format, missing fields)
 
 ---
 
