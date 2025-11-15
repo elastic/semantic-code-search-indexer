@@ -20,6 +20,23 @@ This project is a high-performance code indexer designed to provide deep, contex
 -   Elasticsearch 8.0+ with **ELSER model deployed** (critical - indexing will fail without this)
 -   Elasticsearch credentials (username/password or API key)
 
+### Elastic Cloud Setup
+
+If you're using Elastic Cloud, you'll need:
+
+1. **Cloud ID**: Found in your Elastic Cloud deployment under "Cloud ID" (looks like `deployment:dXMtY2...`)
+2. **Authentication**: Either:
+   - **API Key** (recommended): Create a **deployment-level API key** from within your deployment in Kibana → Stack Management → Security → API Keys. Note: This is NOT the organization-level API key from the Elastic Cloud console.
+   - **Username/Password**: Use the `elastic` superuser or create a dedicated user
+
+**Example `.env` for Elastic Cloud:**
+```bash
+ELASTICSEARCH_CLOUD_ID=your-deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvJDEyMzQ1...
+ELASTICSEARCH_API_KEY=your-api-key-here
+ELASTICSEARCH_INDEX=code-chunks
+ELASTICSEARCH_INFERENCE_ID=.elser-2-elasticsearch
+```
+
 ### Quick Start
 
 ```bash
@@ -293,13 +310,13 @@ Configuration is managed via environment variables in a `.env` file.
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `ELASTICSEARCH_ENDPOINT` | The endpoint URL for your Elasticsearch instance. | |
-| `ELASTICSEARCH_CLOUD_ID` | The Cloud ID for your Elastic Cloud instance. | |
-| `ELASTICSEARCH_USER` | The username for Elasticsearch authentication. | |
-| `ELASTICSEARCH_PASSWORD` | The password for Elasticsearch authentication. | |
-| `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication. | |
+| `ELASTICSEARCH_ENDPOINT` | The endpoint URL for your self-hosted Elasticsearch instance. Use either this OR `ELASTICSEARCH_CLOUD_ID`, not both. | |
+| `ELASTICSEARCH_CLOUD_ID` | The Cloud ID for your Elastic Cloud deployment. Use either this OR `ELASTICSEARCH_ENDPOINT`, not both. | |
+| `ELASTICSEARCH_USER` | The username for Elasticsearch authentication (works with both endpoint and cloud ID). | |
+| `ELASTICSEARCH_PASSWORD` | The password for Elasticsearch authentication (works with both endpoint and cloud ID). | |
+| `ELASTICSEARCH_API_KEY` | An API key for Elasticsearch authentication (works with both endpoint and cloud ID). If set, takes precedence over username/password. | |
 | `ELASTICSEARCH_INDEX` | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts. | `code-chunks` |
-| `ELASTICSEARCH_INFERENCE_ID` | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility. | `.elser-2-elastic` |
+| `ELASTICSEARCH_INFERENCE_ID` | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is deprecated but still supported for backward compatibility. | `.elser-2-elasticsearch` |
 | `OTEL_LOGGING_ENABLED` | Enable OpenTelemetry logging. | `false` |
 | `OTEL_METRICS_ENABLED` | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`). | Same as `OTEL_LOGGING_ENABLED` |
 | `OTEL_SERVICE_NAME` | Service name for OpenTelemetry logs and metrics. | `semantic-code-search-indexer` |

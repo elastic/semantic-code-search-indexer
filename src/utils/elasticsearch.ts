@@ -22,15 +22,27 @@ const baseOptions: Partial<ClientOptions> = {
 };
 
 if (elasticsearchConfig.cloudId) {
-  client = new Client({
+  const clientOptions: ClientOptions = {
     ...baseOptions,
     cloud: {
       id: elasticsearchConfig.cloudId,
     },
-    auth: {
-      apiKey: elasticsearchConfig.apiKey || '',
-    },
-  });
+  };
+
+  if (elasticsearchConfig.apiKey) {
+    clientOptions.auth = { apiKey: elasticsearchConfig.apiKey };
+  } else if (elasticsearchConfig.username && elasticsearchConfig.password) {
+    clientOptions.auth = {
+      username: elasticsearchConfig.username,
+      password: elasticsearchConfig.password,
+    };
+  } else {
+    throw new Error(
+      'Elasticsearch Cloud authentication not configured. Please set ELASTICSEARCH_API_KEY or ELASTICSEARCH_USER and ELASTICSEARCH_PASSWORD.'
+    );
+  }
+
+  client = new Client(clientOptions);
 } else if (elasticsearchConfig.endpoint) {
   const clientOptions: ClientOptions = {
     ...baseOptions,
