@@ -6,4 +6,3 @@ export const handlebarsConfig: LanguageConfiguration = {
   parser: null, // Indicates a custom parser should be used
   queries: [],
 };
-

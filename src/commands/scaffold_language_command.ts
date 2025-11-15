@@ -53,8 +53,8 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
     // Parse and validate file extensions
     const extensions = options.extensions
       .split(',')
-      .map(ext => ext.trim())
-      .filter(ext => ext.length > 0);
+      .map((ext) => ext.trim())
+      .filter((ext) => ext.length > 0);
 
     if (extensions.length === 0) {
       console.error('Error: At least one file extension is required');
@@ -62,7 +62,7 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
     }
 
     // Ensure extensions start with a dot
-    const validExtensions = extensions.map(ext => {
+    const validExtensions = extensions.map((ext) => {
       if (!ext.startsWith('.')) {
         return `.${ext}`;
       }
@@ -82,17 +82,14 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
 
     // Generate configuration content
     const configVarName = `${languageName}Config`;
-    const extensionsString = validExtensions.map(ext => `'${ext}'`).join(', ');
+    const extensionsString = validExtensions.map((ext) => `'${ext}'`).join(', ');
 
     let content: string;
 
     if (isCustomParser) {
       // Use custom parser template
       try {
-        const template = fs.readFileSync(
-          path.join(languagesDir, 'templates', 'custom-parser-template.txt'),
-          'utf-8'
-        );
+        const template = fs.readFileSync(path.join(languagesDir, 'templates', 'custom-parser-template.txt'), 'utf-8');
         content = template
           .replace(/\{\{LANGUAGE_NAME\}\}/g, languageName)
           .replace(/\{\{FILE_EXTENSIONS\}\}/g, extensionsString);
@@ -104,14 +101,11 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
     } else {
       // Use tree-sitter template
       try {
-        const template = fs.readFileSync(
-          path.join(languagesDir, 'templates', 'tree-sitter-template.txt'),
-          'utf-8'
-        );
-        
+        const template = fs.readFileSync(path.join(languagesDir, 'templates', 'tree-sitter-template.txt'), 'utf-8');
+
         // Determine package variable name (e.g., tree-sitter-rust -> rust)
         const packageVarName = options.parser!.replace('tree-sitter-', '');
-        
+
         content = template
           .replace(/\{\{LANGUAGE_NAME\}\}/g, languageName)
           .replace(/\{\{FILE_EXTENSIONS\}\}/g, extensionsString)
@@ -141,7 +135,7 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
 
     if (validationErrors.length > 0) {
       console.log('\n⚠ Validation warnings for generated configuration:');
-      validationErrors.forEach(error => {
+      validationErrors.forEach((error) => {
         console.log(`  - ${error.field}: ${error.message}`);
       });
     }
@@ -153,7 +147,7 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
 
       // Add import statement
       const importStatement = `import { ${configVarName} } from './${languageName}';`;
-      
+
       // Find the last import statement
       const lines = indexContent.split('\n');
       let lastImportIndex = -1;
@@ -170,10 +164,8 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
         lines.splice(lastImportIndex + 1, 0, importStatement);
 
         // Add to languageConfigurations object
-        const configsStartIndex = lines.findIndex(line => 
-          line.includes('export const languageConfigurations')
-        );
-        
+        const configsStartIndex = lines.findIndex((line) => line.includes('export const languageConfigurations'));
+
         if (configsStartIndex === -1) {
           console.warn('Warning: Could not find languageConfigurations export in index.ts');
         } else {
@@ -214,9 +206,10 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
       console.log(`2. Install the tree-sitter package: npm install ${options.parser}`);
       console.log('3. Add the package to dependencies in package.json');
     }
-    console.log(`${isCustomParser || !options.parser ? '2' : '4'}. Test the configuration with: npm run dump-tree <file-path>`);
+    console.log(
+      `${isCustomParser || !options.parser ? '2' : '4'}. Test the configuration with: npm run dump-tree <file-path>`
+    );
     console.log(`${isCustomParser || !options.parser ? '3' : '5'}. Build and run tests: npm run build && npm test`);
-
   } catch (error) {
     console.error('An error occurred:', error);
     process.exit(1);

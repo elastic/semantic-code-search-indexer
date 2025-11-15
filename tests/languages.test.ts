@@ -120,4 +120,3 @@ describe('parseLanguageNames', () => {
     expect(allLanguages).toContain('cpp');
   });
 });
-

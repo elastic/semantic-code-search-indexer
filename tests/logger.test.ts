@@ -25,27 +25,27 @@ describe('Logger', () => {
 
       it('outputs to the console', () => {
         logger.info('test message');
-        
+
         expect(consoleLogSpy).toHaveBeenCalled();
       });
 
       it('includes the log level in the output', () => {
         logger.info('test message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('[INFO]');
       });
 
       it('includes the message in the output', () => {
         logger.info('test message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('test message');
       });
 
       it('includes an ISO timestamp in the output', () => {
         logger.info('test message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toMatch(/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
       });
@@ -59,7 +59,7 @@ describe('Logger', () => {
 
       it('does not output to the console', () => {
         logger.info('test message');
-        
+
         expect(consoleLogSpy).not.toHaveBeenCalled();
       });
     });
@@ -74,14 +74,14 @@ describe('Logger', () => {
     describe('.info()', () => {
       it('outputs with INFO level', () => {
         logger.info('info message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('[INFO]');
       });
 
       it('outputs the provided message', () => {
         logger.info('info message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('info message');
       });
@@ -90,14 +90,14 @@ describe('Logger', () => {
     describe('.warn()', () => {
       it('outputs with WARN level', () => {
         logger.warn('warn message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('[WARN]');
       });
 
       it('outputs the provided message', () => {
         logger.warn('warn message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('warn message');
       });
@@ -106,14 +106,14 @@ describe('Logger', () => {
     describe('.error()', () => {
       it('outputs with ERROR level', () => {
         logger.error('error message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('[ERROR]');
       });
 
       it('outputs the provided message', () => {
         logger.error('error message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('error message');
       });
@@ -122,14 +122,14 @@ describe('Logger', () => {
     describe('.debug()', () => {
       it('outputs with DEBUG level', () => {
         logger.debug('debug message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('[DEBUG]');
       });
 
       it('outputs the provided message', () => {
         logger.debug('debug message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('debug message');
       });
@@ -145,17 +145,17 @@ describe('Logger', () => {
     describe('when created with repository context', () => {
       it('outputs logs to console', () => {
         const repoLogger = createLogger({ name: 'kibana', branch: 'main' });
-        
+
         repoLogger.info('test message');
-        
+
         expect(consoleLogSpy).toHaveBeenCalled();
       });
 
       it('includes the message in the output', () => {
         const repoLogger = createLogger({ name: 'kibana', branch: 'main' });
-        
+
         repoLogger.info('test message');
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('test message');
       });
@@ -164,14 +164,14 @@ describe('Logger', () => {
     describe('when provided with metadata', () => {
       it('outputs the message', () => {
         logger.info('test message', { key: 'value', count: 42 });
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).toContain('test message');
       });
 
       it('does not include metadata in console output', () => {
         logger.info('test message', { key: 'value', count: 42 });
-        
+
         const logOutput = consoleLogSpy.mock.calls[0][0];
         expect(logOutput).not.toContain('key');
         expect(logOutput).not.toContain('value');
@@ -201,12 +201,12 @@ describe('Logger', () => {
 
     it('creates a logger that has all required methods', () => {
       const repoLogger = createLogger({ name: 'elasticsearch', branch: 'feature-branch' });
-      
+
       expect(repoLogger.info).toBeDefined();
       expect(repoLogger.warn).toBeDefined();
       expect(repoLogger.error).toBeDefined();
       expect(repoLogger.debug).toBeDefined();
-      
+
       expect(typeof repoLogger.info).toBe('function');
       expect(typeof repoLogger.warn).toBe('function');
       expect(typeof repoLogger.error).toBe('function');

@@ -5,7 +5,7 @@ describe('Metrics', () => {
   describe('basic functionality', () => {
     it('should not throw when OTel is disabled', () => {
       const metrics = createMetrics();
-      
+
       expect(() => {
         metrics.parser?.filesProcessed.add(1);
         metrics.queue?.documentsEnqueued.add(5);
@@ -38,12 +38,12 @@ describe('Metrics', () => {
         status: 'success',
         count: 42,
       });
-      
+
       // Attributes should always include custom values
       expect(attributes['language']).toBe('javascript');
       expect(attributes['status']).toBe('success');
       expect(attributes['count']).toBe(42);
-      
+
       // Repo context may be included if metrics are enabled
       // but should at least not throw
       expect(attributes).toBeDefined();
@@ -52,7 +52,7 @@ describe('Metrics', () => {
     it('should work with empty custom attributes', () => {
       const metrics = createMetrics({ name: 'repo', branch: 'branch' });
       const attributes = createAttributes(metrics, {});
-      
+
       // Should not throw
       expect(attributes).toBeDefined();
     });
@@ -60,7 +60,7 @@ describe('Metrics', () => {
     it('should work without repo context', () => {
       const metrics = createMetrics();
       const attributes = createAttributes(metrics, { custom: 'value' });
-      
+
       expect(attributes['custom']).toBe('value');
     });
   });

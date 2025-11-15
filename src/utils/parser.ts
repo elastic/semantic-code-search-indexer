@@ -27,7 +27,6 @@ import {
 
 const { Query } = Parser;
 
-
 /**
  * Extracts directory information from a file path.
  * @param filePath The relative file path
@@ -126,7 +125,7 @@ export class LanguageParser {
         if (existing) {
           logger.warn(
             `File extension "${suffix}" is registered to both "${existing.name}" and "${config.name}". ` +
-            `Using "${config.name}".`
+              `Using "${config.name}".`
           );
         }
         this.fileSuffixMap.set(suffix, config);
@@ -347,7 +346,7 @@ export class LanguageParser {
 
       metricData.filesProcessed = 1;
       metricData.chunksCreated = chunks.length;
-      metricData.chunkSizes = chunks.map(c => Buffer.byteLength(c.content, 'utf8'));
+      metricData.chunkSizes = chunks.map((c) => Buffer.byteLength(c.content, 'utf8'));
 
       return { chunks, metrics: metricData };
     } catch (error) {
@@ -384,7 +383,7 @@ export class LanguageParser {
     let chunksSkipped = 0;
 
     const chunks = paragraphs
-      .filter(chunk => {
+      .filter((chunk) => {
         if (!this.validateChunkSize(chunk, filePath)) {
           chunksSkipped++;
           return false;
@@ -411,7 +410,7 @@ export class LanguageParser {
           endLine,
           timestamp,
         });
-    });
+      });
 
     return { chunks, chunksSkipped };
   }
@@ -425,12 +424,16 @@ export class LanguageParser {
    * @param relativePath - Relative path from repository root
    * @returns Object with chunks array and chunksSkipped count
    */
-  private parseText(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
+  private parseText(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
     const { content } = this.readFileWithMetadata(filePath);
-    
+
     // Check if file has paragraph structure
     const hasParagraphs = /\n\s*\n/.test(content);
-    
+
     if (hasParagraphs) {
       const result = this.parseParagraphs(filePath, gitBranch, relativePath, LANG_TEXT);
       // If paragraphs produced valid chunks, use them
@@ -438,7 +441,7 @@ export class LanguageParser {
         return result;
       }
     }
-    
+
     // Fallback to line-based
     return this.parseByLines(filePath, gitBranch, relativePath, LANG_TEXT);
   }
@@ -453,7 +456,11 @@ export class LanguageParser {
    * @param relativePath - Relative path from repository root
    * @returns Object with chunks array and chunksSkipped count
    */
-  private parseMarkdown(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
+  private parseMarkdown(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
     return this.parseParagraphs(
       filePath,
       gitBranch,
@@ -472,7 +479,11 @@ export class LanguageParser {
    * @param relativePath - Relative path from repository root
    * @returns Object with chunks array and chunksSkipped count
    */
-  private parseHandlebars(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
+  private parseHandlebars(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
     return this.parseWholeFile(filePath, gitBranch, relativePath, LANG_HANDLEBARS);
   }
 
@@ -485,7 +496,11 @@ export class LanguageParser {
    * @param relativePath - Relative path from repository root
    * @returns Object with chunks array and chunksSkipped count
    */
-  private parseYaml(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
+  private parseYaml(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
     return this.parseByLines(filePath, gitBranch, relativePath, LANG_YAML);
   }
 
@@ -498,11 +513,20 @@ export class LanguageParser {
    * @param relativePath - Relative path from repository root
    * @returns Object with chunks array and chunksSkipped count
    */
-  private parseJson(filePath: string, gitBranch: string, relativePath: string): { chunks: CodeChunk[]; chunksSkipped: number } {
+  private parseJson(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
     return this.parseByLines(filePath, gitBranch, relativePath, LANG_JSON);
   }
 
-  private parseWithTreeSitter(filePath: string, gitBranch: string, relativePath: string, langConfig: LanguageConfiguration): { chunks: CodeChunk[]; chunksSkipped: number } {
+  private parseWithTreeSitter(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string,
+    langConfig: LanguageConfiguration
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
     const now = new Date().toISOString();
     const parser = new Parser();
     parser.setLanguage(langConfig.parser);
@@ -558,7 +582,9 @@ export class LanguageParser {
           if (importPath.startsWith('.')) {
             const resolvedPath = path.resolve(path.dirname(filePath), importPath);
             // Use execFileSync to prevent shell injection from special characters in directory paths
-            const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) }).toString().trim();
+            const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) })
+              .toString()
+              .trim();
             importPath = path.relative(gitRoot, resolvedPath);
             type = 'file';
           }
@@ -599,7 +625,7 @@ export class LanguageParser {
         if (allMatches.length > 0) {
           // Use the last __all__ assignment if there are multiple
           const lastMatch = allMatches[allMatches.length - 1];
-          const listNode = lastMatch.captures.find(c => c.name === 'all_list')?.node;
+          const listNode = lastMatch.captures.find((c) => c.name === 'all_list')?.node;
           if (listNode) {
             const pythonAllList: string[] = [];
             // Extract string literals from the list
@@ -648,7 +674,9 @@ export class LanguageParser {
             // For default exports like "export default MyClass", traverse AST to find the identifier being exported
             const parent = capture.node.parent;
             if (parent) {
-              const identifierNode = parent.children.find(child => child.type === 'identifier' || child.type === 'type_identifier');
+              const identifierNode = parent.children.find(
+                (child) => child.type === 'identifier' || child.type === 'type_identifier'
+              );
               if (identifierNode) {
                 exportName = identifierNode.text;
               }
@@ -663,10 +691,15 @@ export class LanguageParser {
               try {
                 const resolvedPath = path.resolve(path.dirname(filePath), exportTarget);
                 // Use execFileSync to prevent shell injection from special characters in directory paths
-                const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) }).toString().trim();
+                const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) })
+                  .toString()
+                  .trim();
                 exportTarget = path.relative(gitRoot, resolvedPath);
               } catch (error) {
-                logger.warn(`Failed to resolve re-export path: ${exportTarget}`, error instanceof Error ? error : new Error(String(error)));
+                logger.warn(
+                  `Failed to resolve re-export path: ${exportTarget}`,
+                  error instanceof Error ? error : new Error(String(error))
+                );
                 // Keep the original relative path
               }
             }
@@ -695,82 +728,100 @@ export class LanguageParser {
       }
     }
 
-    const uniqueMatches = Array.from(new Map(matches.map(match => {
-      const node = match.captures[0].node;
-      const chunkHash = createHash('sha256').update(node.text).digest('hex');
-      return [`${node.startIndex}-${node.endIndex}-${chunkHash}`, match];
-    })).values());
+    const uniqueMatches = Array.from(
+      new Map(
+        matches.map((match) => {
+          const node = match.captures[0].node;
+          const chunkHash = createHash('sha256').update(node.text).digest('hex');
+          return [`${node.startIndex}-${node.endIndex}-${chunkHash}`, match];
+        })
+      ).values()
+    );
 
     let chunksSkipped = 0;
-    const chunks = uniqueMatches.map(({ captures }): CodeChunk | null => {
-      const node = captures[0].node;
-      const content = node.text;
-      const contentSize = Buffer.byteLength(content, 'utf8');
-      if (contentSize > indexingConfig.maxChunkSizeBytes) {
-        logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
-        chunksSkipped++;
-        return null;
-      }
-      const chunkHash = createHash('sha256').update(content).digest('hex');
-
-      let containerPath = '';
-      let parent = node.parent;
-      if (parent) {
-        if (parent.type === 'class_body') {
-          parent = parent.parent;
+    const chunks = uniqueMatches
+      .map(({ captures }): CodeChunk | null => {
+        const node = captures[0].node;
+        const content = node.text;
+        const contentSize = Buffer.byteLength(content, 'utf8');
+        if (contentSize > indexingConfig.maxChunkSizeBytes) {
+          logger.warn(`Skipping chunk in ${filePath} because it is larger than maxChunkSizeBytes`);
+          chunksSkipped++;
+          return null;
         }
+        const chunkHash = createHash('sha256').update(content).digest('hex');
 
-        if (parent && (parent.type === 'class_declaration' || parent.type === 'function_declaration' || parent.type === 'class_definition')) {
-          const nameNode = parent.namedChildren.find(child => child.type === 'identifier' || child.type === 'type_identifier');
-          if (nameNode) {
-            containerPath = nameNode.text;
+        let containerPath = '';
+        let parent = node.parent;
+        if (parent) {
+          if (parent.type === 'class_body') {
+            parent = parent.parent;
+          }
+
+          if (
+            parent &&
+            (parent.type === 'class_declaration' ||
+              parent.type === 'function_declaration' ||
+              parent.type === 'class_definition')
+          ) {
+            const nameNode = parent.namedChildren.find(
+              (child) => child.type === 'identifier' || child.type === 'type_identifier'
+            );
+            if (nameNode) {
+              containerPath = nameNode.text;
+            }
           }
         }
-      }
 
-      const startLine = node.startPosition.row + 1;
-      const endLine = node.endPosition.row + 1;
-      const chunkImports = importsByLine[startLine] || [];
-      const chunkSymbols: SymbolInfo[] = [];
-      for (let i = startLine; i <= endLine; i++) {
-        if (symbolsByLine[i]) {
-          chunkSymbols.push(...symbolsByLine[i]);
+        const startLine = node.startPosition.row + 1;
+        const endLine = node.endPosition.row + 1;
+        const chunkImports = importsByLine[startLine] || [];
+        const chunkSymbols: SymbolInfo[] = [];
+        for (let i = startLine; i <= endLine; i++) {
+          if (symbolsByLine[i]) {
+            chunkSymbols.push(...symbolsByLine[i]);
+          }
         }
-      }
-      const chunkExports = exportsByLine[startLine] || [];
+        const chunkExports = exportsByLine[startLine] || [];
 
-      const directoryInfo = extractDirectoryInfo(relativePath);
+        const directoryInfo = extractDirectoryInfo(relativePath);
 
-      const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
-        type: CHUNK_TYPE_CODE,
-        language: langConfig.name,
-        kind: node.type,
-        imports: chunkImports,
-        symbols: chunkSymbols,
-        exports: chunkExports,
-        containerPath,
-        filePath: relativePath,
-        ...directoryInfo,
-        git_file_hash: gitFileHash,
-        git_branch: gitBranch,
-        chunk_hash: chunkHash,
-        startLine,
-        endLine,
-        content: content,
-        created_at: now,
-        updated_at: now,
-      };
+        const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
+          type: CHUNK_TYPE_CODE,
+          language: langConfig.name,
+          kind: node.type,
+          imports: chunkImports,
+          symbols: chunkSymbols,
+          exports: chunkExports,
+          containerPath,
+          filePath: relativePath,
+          ...directoryInfo,
+          git_file_hash: gitFileHash,
+          git_branch: gitBranch,
+          chunk_hash: chunkHash,
+          startLine,
+          endLine,
+          content: content,
+          created_at: now,
+          updated_at: now,
+        };
 
-      return {
-        ...baseChunk,
-        semantic_text: this.prepareSemanticText(baseChunk),
-      };
-    }).filter((chunk): chunk is CodeChunk => chunk !== null);
+        return {
+          ...baseChunk,
+          semantic_text: this.prepareSemanticText(baseChunk),
+        };
+      })
+      .filter((chunk): chunk is CodeChunk => chunk !== null);
 
     return { chunks, chunksSkipped };
   }
 
-  private prepareSemanticText(chunk: Omit<CodeChunk, 'semantic_text' | 'code_vector' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'>): string {
+  private prepareSemanticText(
+    chunk: Omit<
+      CodeChunk,
+      'semantic_text' | 'code_vector' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'
+    >
+  ): string {
     let text = `filePath: ${chunk.filePath}\n`;
     if (chunk.directoryPath) {
       text += `directoryPath: ${chunk.directoryPath}\n`;

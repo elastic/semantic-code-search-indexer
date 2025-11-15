@@ -57,18 +57,18 @@ export interface Metrics {
 
 /**
  * Creates a metrics instance with all metric instruments.
- * 
+ *
  * If OpenTelemetry metrics are disabled, returns a no-op metrics instance
  * that safely ignores all metric recording calls.
- * 
+ *
  * @param repoInfo - Optional repository context to attach to all metrics
  * @returns Metrics instance with all metric instruments
- * 
+ *
  * @example
  * // Create metrics with repository context
  * const metrics = createMetrics({ name: 'kibana', branch: 'main' });
  * metrics.parser?.filesProcessed.add(1, { language: 'typescript', status: 'success' });
- * 
+ *
  * @example
  * // Create metrics without repository context
  * const metrics = createMetrics();
@@ -76,7 +76,7 @@ export interface Metrics {
  */
 export function createMetrics(repoInfo?: RepoInfo): Metrics {
   const meterProvider = getMeterProvider();
-  
+
   if (!meterProvider) {
     return {
       meter: null,
@@ -184,20 +184,23 @@ export function createMetrics(repoInfo?: RepoInfo): Metrics {
 
 /**
  * Helper function to create attributes for metrics recording.
- * 
+ *
  * Merges repository context with additional attributes.
- * 
+ *
  * @param metrics - Metrics instance
  * @param attributes - Additional attributes to include
  * @returns Combined attributes object
  */
-export function createAttributes(metrics: Metrics, attributes: Record<string, string | number> = {}): Record<string, string | number> {
+export function createAttributes(
+  metrics: Metrics,
+  attributes: Record<string, string | number> = {}
+): Record<string, string | number> {
   const result: Record<string, string | number> = { ...attributes };
-  
+
   if (metrics.repoInfo) {
     result[ATTR_REPO_NAME] = metrics.repoInfo.name;
     result[ATTR_REPO_BRANCH] = metrics.repoInfo.branch;
   }
-  
+
   return result;
 }

@@ -5,7 +5,7 @@ export const javaConfig: LanguageConfiguration = {
   name: 'java',
   fileSuffixes: ['.java'],
   parser: java,
-    queries: [
+  queries: [
     '(import_declaration) @import',
     '(if_statement) @if',
     '(return_statement) @return',
@@ -37,9 +37,7 @@ export const javaConfig: LanguageConfiguration = {
     )
     `,
   ],
-  importQueries: [
-    '(import_declaration (scoped_identifier (identifier) @import.symbol) @import.path)',
-  ],
+  importQueries: ['(import_declaration (scoped_identifier (identifier) @import.symbol) @import.path)'],
   symbolQueries: [
     '(class_declaration name: (identifier) @class.name)',
     '(method_declaration name: (identifier) @method.name)',

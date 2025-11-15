@@ -38,7 +38,7 @@ export const listFailedCommand = new Command('queue:list-failed')
         WHERE status = 'failed'
         ORDER BY id
       `);
-      
+
       const failedDocs = selectStmt.all() as { id: number; document: string }[];
 
       if (failedDocs.length === 0) {
@@ -57,7 +57,7 @@ export const listFailedCommand = new Command('queue:list-failed')
           console.log(`ID: ${doc.id} | Error: Failed to parse document JSON.`);
         }
       }
-      
+
       db.close();
     } catch (error) {
       logger.error(`Failed to connect to or read the database at ${dbPath}.`, { error });

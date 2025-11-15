@@ -148,7 +148,7 @@ describe('validateLanguageConfiguration', () => {
       const configs = [validConfig];
       const errors = validateLanguageConfiguration(validConfig, configs);
       // Should not have duplicate errors when checking against itself
-      const duplicateErrors = errors.filter(e => e.message.includes('already used'));
+      const duplicateErrors = errors.filter((e) => e.message.includes('already used'));
       expect(duplicateErrors).toEqual([]);
     });
   });
@@ -219,7 +219,7 @@ describe('validateLanguageConfigurations', () => {
       },
     };
     const results = validateLanguageConfigurations(configs);
-    
+
     expect(Object.keys(results)).toEqual(expect.arrayContaining(['invalid1', 'invalid2']));
     expect(results.invalid1).toBeDefined();
     expect(results.invalid2).toBeDefined();
@@ -241,11 +241,9 @@ describe('validateLanguageConfigurations', () => {
       },
     };
     const results = validateLanguageConfigurations(configs);
-    
+
     // At least one should have an error about duplicate extensions
-    const hasConflict = Object.values(results).some(errors =>
-      errors.some(e => e.message.includes('already used'))
-    );
+    const hasConflict = Object.values(results).some((errors) => errors.some((e) => e.message.includes('already used')));
     expect(hasConflict).toBe(true);
   });
 

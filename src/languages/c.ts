@@ -3,7 +3,7 @@ import { LanguageConfiguration } from '../utils/parser';
 
 /**
  * Configuration for c language parsing
- * 
+ *
  * This configuration uses tree-sitter for parsing and extracting code structure.
  * For more information, see: https://tree-sitter.github.io/tree-sitter/
  */

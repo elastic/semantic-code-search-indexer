@@ -24,7 +24,7 @@ async function references(filePath: string, line: number, character: number) {
 
   if (results && results.length > 0) {
     console.log('Found references:');
-    results.forEach(result => {
+    results.forEach((result) => {
       const resultPath = result.uri.replace(`file://${projectRoot}/`, '');
       console.log(`  - ${resultPath}:${result.range.start.line}:${result.range.start.character}`);
     });

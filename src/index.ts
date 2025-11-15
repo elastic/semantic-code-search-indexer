@@ -22,10 +22,7 @@ async function main() {
 
   const program = new Command();
 
-  program
-    .name('code-indexer')
-    .version('1.0.0')
-    .description('A CLI for indexing codebases into Elasticsearch');
+  program.name('code-indexer').version('1.0.0').description('A CLI for indexing codebases into Elasticsearch');
 
   program.addCommand(bulkIncrementalIndexCommand);
   program.addCommand(bulkReindexCommand);
@@ -47,10 +44,10 @@ async function main() {
 // Graceful shutdown handlers
 /**
  * Handles graceful shutdown of the application.
- * 
+ *
  * Flushes any pending OpenTelemetry logs to the collector before exiting.
  * Called on SIGTERM and SIGINT signals to ensure clean application termination.
- * 
+ *
  * @param signal - The signal name that triggered the shutdown (e.g., 'SIGTERM', 'SIGINT').
  */
 async function handleShutdown(signal: string) {
@@ -67,11 +64,13 @@ async function handleShutdown(signal: string) {
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 
-main().then(async () => {
-  await shutdown();
-  process.exit(0);
-}).catch(async error => {
-  console.error('An error occurred:', error);
-  await shutdown();
-  process.exit(1);
-});
+main()
+  .then(async () => {
+    await shutdown();
+    process.exit(0);
+  })
+  .catch(async (error) => {
+    console.error('An error occurred:', error);
+    await shutdown();
+    process.exit(1);
+  });

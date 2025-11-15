@@ -38,21 +38,57 @@ jest.mock('../src/utils/logger', () => ({
 }));
 
 const MOCK_CHUNK_1: CodeChunk = {
-  type: 'code', language: 'typescript', filePath: 'test1.ts', directoryPath: '', directoryName: '', directoryDepth: 0, git_file_hash: 'hash1', git_branch: 'main',
-  chunk_hash: 'chunk_hash_1', startLine: 1, endLine: 1, content: 'const a = 1;', semantic_text: 'const a = 1;',
-  created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+  type: 'code',
+  language: 'typescript',
+  filePath: 'test1.ts',
+  directoryPath: '',
+  directoryName: '',
+  directoryDepth: 0,
+  git_file_hash: 'hash1',
+  git_branch: 'main',
+  chunk_hash: 'chunk_hash_1',
+  startLine: 1,
+  endLine: 1,
+  content: 'const a = 1;',
+  semantic_text: 'const a = 1;',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 const MOCK_CHUNK_2: CodeChunk = {
-  type: 'code', language: 'typescript', filePath: 'test2.ts', directoryPath: '', directoryName: '', directoryDepth: 0, git_file_hash: 'hash2', git_branch: 'main',
-  chunk_hash: 'chunk_hash_2', startLine: 1, endLine: 1, content: 'const b = 2;', semantic_text: 'const b = 2;',
-  created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+  type: 'code',
+  language: 'typescript',
+  filePath: 'test2.ts',
+  directoryPath: '',
+  directoryName: '',
+  directoryDepth: 0,
+  git_file_hash: 'hash2',
+  git_branch: 'main',
+  chunk_hash: 'chunk_hash_2',
+  startLine: 1,
+  endLine: 1,
+  content: 'const b = 2;',
+  semantic_text: 'const b = 2;',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 const MOCK_CHUNK_3: CodeChunk = {
-    type: 'code', language: 'typescript', filePath: 'test3.ts', directoryPath: '', directoryName: '', directoryDepth: 0, git_file_hash: 'hash3', git_branch: 'main',
-    chunk_hash: 'chunk_hash_3', startLine: 1, endLine: 1, content: 'const c = 3;', semantic_text: 'const c = 3;',
-    created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+  type: 'code',
+  language: 'typescript',
+  filePath: 'test3.ts',
+  directoryPath: '',
+  directoryName: '',
+  directoryDepth: 0,
+  git_file_hash: 'hash3',
+  git_branch: 'main',
+  chunk_hash: 'chunk_hash_3',
+  startLine: 1,
+  endLine: 1,
+  content: 'const c = 3;',
+  semantic_text: 'const c = 3;',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 describe('retryFailedCommand', () => {
@@ -93,16 +129,22 @@ describe('retryFailedCommand', () => {
     const db = new Database(dbPath);
 
     // Check the previously failed documents
-    const doc1 = db.prepare('SELECT * FROM queue WHERE id = 1').get() as { status: string; retry_count: number } | undefined;
+    const doc1 = db.prepare('SELECT * FROM queue WHERE id = 1').get() as
+      | { status: string; retry_count: number }
+      | undefined;
     expect(doc1?.status).toBe('pending');
     expect(doc1?.retry_count).toBe(0);
 
-    const doc3 = db.prepare('SELECT * FROM queue WHERE id = 3').get() as { status: string; retry_count: number } | undefined;
+    const doc3 = db.prepare('SELECT * FROM queue WHERE id = 3').get() as
+      | { status: string; retry_count: number }
+      | undefined;
     expect(doc3?.status).toBe('pending');
     expect(doc3?.retry_count).toBe(0);
 
     // Check the document that was not failed
-    const doc2 = db.prepare('SELECT * FROM queue WHERE id = 2').get() as { status: string; retry_count: number } | undefined;
+    const doc2 = db.prepare('SELECT * FROM queue WHERE id = 2').get() as
+      | { status: string; retry_count: number }
+      | undefined;
     expect(doc2?.status).toBe('pending');
     expect(doc2?.retry_count).toBe(0); // Should be untouched
 

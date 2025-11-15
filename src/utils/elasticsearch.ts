@@ -68,7 +68,6 @@ const defaultIndexName = elasticsearchConfig.index;
 const elserInferenceId = elasticsearchConfig.inferenceId;
 const codeSimilarityPipeline = 'code-similarity-pipeline';
 
-
 /**
  * Creates the Elasticsearch index for storing code chunks.
  *
@@ -165,17 +164,13 @@ export async function createSettingsIndex(index?: string): Promise<void> {
 export async function getLastIndexedCommit(branch: string, index?: string): Promise<string | null> {
   const settingsIndexName = `${index || defaultIndexName}_settings`;
   try {
-    const response = await client.get<{ commit_hash: string  }>({
+    const response = await client.get<{ commit_hash: string }>({
       index: settingsIndexName,
       id: branch,
     });
     return response._source?.commit_hash ?? null;
   } catch (error: unknown) {
-    if (
-      error instanceof Error &&
-      'meta' in error &&
-      (error.meta as { statusCode?: number }).statusCode === 404
-    ) {
+    if (error instanceof Error && 'meta' in error && (error.meta as { statusCode?: number }).statusCode === 404) {
       return null;
     }
     throw error;
@@ -255,7 +250,7 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
   }
 
   const indexName = index || defaultIndexName;
-  const operations = chunks.flatMap(doc => [{ index: { _index: indexName, _id: doc.chunk_hash } }, doc]);
+  const operations = chunks.flatMap((doc) => [{ index: { _index: indexName, _id: doc.chunk_hash } }, doc]);
 
   const bulkOptions: { refresh: boolean; operations: (BulkOperationContainer | CodeChunk)[]; pipeline?: string } = {
     refresh: false,
@@ -271,24 +266,24 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
   if (bulkResponse.errors) {
     const erroredDocuments: ErroredDocument[] = [];
     // The `action` object from the Elasticsearch bulk response has a dynamic structure
-      // (e.g., { index: { ... } }, { create: { ... } }) which is difficult to type
-      // statically without overly complex type guards.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      bulkResponse.items.forEach((action: any, i: number) => {
+    // (e.g., { index: { ... } }, { create: { ... } }) which is difficult to type
+    // statically without overly complex type guards.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bulkResponse.items.forEach((action: any, i: number) => {
       const operation = Object.keys(action)[0];
       if (action[operation].error) {
         erroredDocuments.push({
           status: action[operation].status,
           error: action[operation].error,
           operation: operations[i * 2] as { index: { _index: string } },
-          document: operations[i * 2 + 1] as CodeChunk
+          document: operations[i * 2 + 1] as CodeChunk,
         });
       }
     });
     logger.error('[ES Consumer] Errors during bulk indexing:', { errors: JSON.stringify(erroredDocuments, null, 2) });
     throw new Error(
       `Bulk indexing failed: ${erroredDocuments.length} of ${chunks.length} documents had errors. ` +
-      `First error: ${JSON.stringify(erroredDocuments[0]?.error)}`
+        `First error: ${JSON.stringify(erroredDocuments[0]?.error)}`
     );
   }
 }
@@ -371,7 +366,10 @@ interface FileAggregation {
  * @param query The Elasticsearch query to use for the search.
  * @returns A promise that resolves to a record of file paths to symbol info.
  */
-export async function aggregateBySymbols(query: QueryDslQueryContainer, index?: string): Promise<Record<string, SymbolInfo[]>> {
+export async function aggregateBySymbols(
+  query: QueryDslQueryContainer,
+  index?: string
+): Promise<Record<string, SymbolInfo[]>> {
   const indexName = index || defaultIndexName;
   const response = await client.search<unknown, FileAggregation>({
     index: indexName,
@@ -421,7 +419,7 @@ export async function aggregateBySymbols(query: QueryDslQueryContainer, index?: 
     const files = response.aggregations;
     for (const bucket of files.files.buckets) {
       const filePath = bucket.key;
-      const symbols: SymbolInfo[] = bucket.symbols.names.buckets.map(b => ({
+      const symbols: SymbolInfo[] = bucket.symbols.names.buckets.map((b) => ({
         name: b.key,
         kind: b.kind.buckets[0].key,
         line: b.line.buckets[0].key,

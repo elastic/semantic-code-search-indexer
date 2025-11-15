@@ -28,12 +28,8 @@ export class SqliteQueue implements IQueue {
       fs.mkdirSync(dir, { recursive: true });
     }
     this.db = new Database(dbPath);
-    this.logger = repoName && branch 
-      ? createLogger({ name: repoName, branch })
-      : logger;
-    this.metrics = repoName && branch
-      ? createMetrics({ name: repoName, branch })
-      : createMetrics();
+    this.logger = repoName && branch ? createLogger({ name: repoName, branch }) : logger;
+    this.metrics = repoName && branch ? createMetrics({ name: repoName, branch }) : createMetrics();
   }
 
   async initialize(): Promise<void> {
@@ -51,7 +47,7 @@ export class SqliteQueue implements IQueue {
     `);
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_status ON queue (status);');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_batch_id ON queue (batch_id);');
-    
+
     // Set up observable gauges for queue sizes
     this.setupQueueGauges();
   }
@@ -85,7 +81,7 @@ export class SqliteQueue implements IQueue {
 
   /**
    * Gets current queue statistics by status.
-   * 
+   *
    * @returns Object with counts for pending, processing, and failed documents
    */
   private getQueueStats(): { pending: number; processing: number; failed: number } {
@@ -95,7 +91,7 @@ export class SqliteQueue implements IQueue {
       GROUP BY status
     `);
     const rows = stmt.all() as { status: string; count: number }[];
-    
+
     const stats = { pending: 0, processing: 0, failed: 0 };
     for (const row of rows) {
       if (row.status === QUEUE_STATUS_PENDING) {
@@ -106,7 +102,7 @@ export class SqliteQueue implements IQueue {
         stats.failed = row.count;
       }
     }
-    
+
     return stats;
   }
 
@@ -115,9 +111,7 @@ export class SqliteQueue implements IQueue {
       return;
     }
     const batchId = new Date().toISOString();
-    const insert = this.db.prepare(
-      'INSERT INTO queue (batch_id, document) VALUES (?, ?)'
-    );
+    const insert = this.db.prepare('INSERT INTO queue (batch_id, document) VALUES (?, ?)');
     const transaction = this.db.transaction((docs) => {
       for (const doc of docs) {
         insert.run(batchId, JSON.stringify(doc));
@@ -125,7 +119,7 @@ export class SqliteQueue implements IQueue {
     });
     transaction(documents);
     this.logger.info(`Enqueued batch of ${documents.length} documents with batch_id: ${batchId}`);
-    
+
     // Record enqueue metrics
     this.metrics.queue?.documentsEnqueued.add(documents.length, createAttributes(this.metrics));
   }
@@ -139,12 +133,12 @@ export class SqliteQueue implements IQueue {
       LIMIT ?
     `);
 
-    const rows = selectStmt.all(count) as { id: number, batch_id: string, document: string }[];
+    const rows = selectStmt.all(count) as { id: number; batch_id: string; document: string }[];
     if (rows.length === 0) {
       return [];
     }
 
-    const ids = rows.map(r => r.id);
+    const ids = rows.map((r) => r.id);
     const updateStmt = this.db.prepare(`
         UPDATE queue
         SET status = '${QUEUE_STATUS_PROCESSING}', processing_started_at = CURRENT_TIMESTAMP
@@ -155,7 +149,7 @@ export class SqliteQueue implements IQueue {
     // Record dequeue metrics
     this.metrics.queue?.documentsDequeued.add(rows.length, createAttributes(this.metrics));
 
-    return rows.map(row => ({
+    return rows.map((row) => ({
       id: `${row.batch_id}_${row.id}`, // Composite ID
       document: JSON.parse(row.document),
     }));
@@ -165,13 +159,11 @@ export class SqliteQueue implements IQueue {
     if (documents.length === 0) {
       return;
     }
-    const ids = documents.map(d => parseInt(d.id.split('_').pop() || '0', 10));
-    const deleteStmt = this.db.prepare(
-      `DELETE FROM queue WHERE id IN (${ids.map(() => '?').join(',')})`
-    );
+    const ids = documents.map((d) => parseInt(d.id.split('_').pop() || '0', 10));
+    const deleteStmt = this.db.prepare(`DELETE FROM queue WHERE id IN (${ids.map(() => '?').join(',')})`);
     const result = deleteStmt.run(...ids);
     this.logger.info(`Committed and deleted ${result.changes} documents.`);
-    
+
     // Record commit and delete metrics
     this.metrics.queue?.documentsCommitted.add(result.changes, createAttributes(this.metrics));
     this.metrics.queue?.documentsDeleted.add(result.changes, createAttributes(this.metrics));
@@ -181,44 +173,44 @@ export class SqliteQueue implements IQueue {
     if (documents.length === 0) {
       return;
     }
-    const ids = documents.map(d => parseInt(d.id.split('_').pop() || '0', 10));
+    const ids = documents.map((d) => parseInt(d.id.split('_').pop() || '0', 10));
 
     const selectRetriesStmt = this.db.prepare(
-        `SELECT id, retry_count FROM queue WHERE id IN (${ids.map(() => '?').join(',')})`
+      `SELECT id, retry_count FROM queue WHERE id IN (${ids.map(() => '?').join(',')})`
     );
-    const rowsToRequeue = selectRetriesStmt.all(...ids) as { id: number, retry_count: number }[];
+    const rowsToRequeue = selectRetriesStmt.all(...ids) as { id: number; retry_count: number }[];
 
     const toRequeue: number[] = [];
     const toFail: number[] = [];
 
     for (const row of rowsToRequeue) {
-        if (row.retry_count + 1 >= MAX_RETRIES) {
-            toFail.push(row.id);
-        } else {
-            toRequeue.push(row.id);
-        }
+      if (row.retry_count + 1 >= MAX_RETRIES) {
+        toFail.push(row.id);
+      } else {
+        toRequeue.push(row.id);
+      }
     }
 
     if (toRequeue.length > 0) {
-        const requeueStmt = this.db.prepare(
-            `UPDATE queue SET status = '${QUEUE_STATUS_PENDING}', retry_count = retry_count + 1, processing_started_at = NULL WHERE id IN (${toRequeue.map(() => '?').join(',')})`
-        );
-        requeueStmt.run(...toRequeue);
-        this.logger.warn(`Requeued ${toRequeue.length} documents.`);
-        
-        // Record requeue metrics
-        this.metrics.queue?.documentsRequeued.add(toRequeue.length, createAttributes(this.metrics));
+      const requeueStmt = this.db.prepare(
+        `UPDATE queue SET status = '${QUEUE_STATUS_PENDING}', retry_count = retry_count + 1, processing_started_at = NULL WHERE id IN (${toRequeue.map(() => '?').join(',')})`
+      );
+      requeueStmt.run(...toRequeue);
+      this.logger.warn(`Requeued ${toRequeue.length} documents.`);
+
+      // Record requeue metrics
+      this.metrics.queue?.documentsRequeued.add(toRequeue.length, createAttributes(this.metrics));
     }
 
     if (toFail.length > 0) {
-        const failStmt = this.db.prepare(
-            `UPDATE queue SET status = '${QUEUE_STATUS_FAILED}' WHERE id IN (${toFail.map(() => '?').join(',')})`
-        );
-        failStmt.run(...toFail);
-        this.logger.error(`Moved ${toFail.length} documents to failed status after ${MAX_RETRIES} retries.`);
-        
-        // Record failed metrics
-        this.metrics.queue?.documentsFailed.add(toFail.length, createAttributes(this.metrics));
+      const failStmt = this.db.prepare(
+        `UPDATE queue SET status = '${QUEUE_STATUS_FAILED}' WHERE id IN (${toFail.map(() => '?').join(',')})`
+      );
+      failStmt.run(...toFail);
+      this.logger.error(`Moved ${toFail.length} documents to failed status after ${MAX_RETRIES} retries.`);
+
+      // Record failed metrics
+      this.metrics.queue?.documentsFailed.add(toFail.length, createAttributes(this.metrics));
     }
   }
 
@@ -231,31 +223,31 @@ export class SqliteQueue implements IQueue {
     const staleTasks = selectStmt.all(staleTimestamp) as { id: number }[];
 
     if (staleTasks.length > 0) {
-        const ids = staleTasks.map(t => t.id);
-        this.logger.warn(`Found ${ids.length} stale tasks. Re-queueing...`);
-        
-        const documentsToRequeue: QueuedDocument[] = staleTasks.map(t => ({
-            id: `stale_${t.id}`,
-            document: {
-                type: CHUNK_TYPE_CODE,
-                language: '',
-                filePath: '',
-                directoryPath: '',
-                directoryName: '',
-                directoryDepth: 0,
-                git_file_hash: '',
-                git_branch: '',
-                chunk_hash: '',
-                startLine: 0,
-                endLine: 0,
-                content: '',
-                semantic_text: '',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            }
-        }));
-        
-        await this.requeue(documentsToRequeue);
+      const ids = staleTasks.map((t) => t.id);
+      this.logger.warn(`Found ${ids.length} stale tasks. Re-queueing...`);
+
+      const documentsToRequeue: QueuedDocument[] = staleTasks.map((t) => ({
+        id: `stale_${t.id}`,
+        document: {
+          type: CHUNK_TYPE_CODE,
+          language: '',
+          filePath: '',
+          directoryPath: '',
+          directoryName: '',
+          directoryDepth: 0,
+          git_file_hash: '',
+          git_branch: '',
+          chunk_hash: '',
+          startLine: 0,
+          endLine: 0,
+          content: '',
+          semantic_text: '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      }));
+
+      await this.requeue(documentsToRequeue);
     }
   }
 

@@ -9,7 +9,7 @@ jest.mock('fs/promises');
 describe('scaffold_language_command', () => {
   const languagesDir = path.join(process.cwd(), 'src', 'languages');
   const indexPath = path.join(languagesDir, 'index.ts');
-  
+
   const mockIndexContent = `// src/languages/index.ts
 import { typescript } from './typescript';
 import { javascript } from './javascript';
@@ -48,7 +48,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
   beforeEach(() => {
     // Reset virtual filesystem
     vol.reset();
-    
+
     // Setup mock filesystem
     vol.fromJSON({
       [indexPath]: mockIndexContent,
@@ -69,7 +69,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
     it('should generate file with tree-sitter template when parser is specified', () => {
       const langName = 'rust';
       const parser = 'tree-sitter-rust';
-      
+
       // This would be the generated content
       const expectedContent = mockTreeSitterTemplate
         .replace(/\{\{LANGUAGE_NAME\}\}/g, langName)
@@ -85,7 +85,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
 
     it('should generate file with custom template when --custom is specified', () => {
       const langName = 'custom_lang';
-      
+
       const expectedContent = mockCustomTemplate
         .replace(/\{\{LANGUAGE_NAME\}\}/g, langName)
         .replace(/\{\{FILE_EXTENSIONS\}\}/g, `'.cst'`);
@@ -97,7 +97,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
 
     it('should use custom template when no parser is specified', () => {
       const langName = 'markup';
-      
+
       const expectedContent = mockCustomTemplate
         .replace(/\{\{LANGUAGE_NAME\}\}/g, langName)
         .replace(/\{\{FILE_EXTENSIONS\}\}/g, `'.mkp'`);
@@ -107,7 +107,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
 
     it('should handle multiple extensions correctly', () => {
       const langName = 'cpp';
-      
+
       const expectedExtensions = `'.cpp', '.cc', '.cxx', '.hpp', '.h'`;
       const expectedContent = mockTreeSitterTemplate
         .replace(/\{\{LANGUAGE_NAME\}\}/g, langName)
@@ -129,29 +129,23 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
         'invalid.name', // Dot
       ];
 
-      invalidNames.forEach(name => {
+      invalidNames.forEach((name) => {
         expect(name.match(/^[a-z][a-z0-9_]*$/)).toBeNull();
       });
     });
 
     it('should accept valid language names', () => {
-      const validNames = [
-        'rust',
-        'cpp',
-        'c_sharp',
-        'rust2',
-        'proto3',
-      ];
+      const validNames = ['rust', 'cpp', 'c_sharp', 'rust2', 'proto3'];
 
-      validNames.forEach(name => {
+      validNames.forEach((name) => {
         expect(name.match(/^[a-z][a-z0-9_]*$/)).not.toBeNull();
       });
     });
 
     it('should normalize extensions to start with dot', () => {
       const extensions = ['rs', '.rlib', 'toml'];
-      const normalized = extensions.map(ext => ext.startsWith('.') ? ext : `.${ext}`);
-      
+      const normalized = extensions.map((ext) => (ext.startsWith('.') ? ext : `.${ext}`));
+
       expect(normalized).toEqual(['.rs', '.rlib', '.toml']);
     });
   });
@@ -161,7 +155,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
       const langName = 'rust';
       const configVarName = `${langName}Config`;
       const importStatement = `import { ${configVarName} } from './${langName}';`;
-      
+
       expect(importStatement).toBe(`import { rustConfig } from './rust';`);
     });
 
@@ -169,7 +163,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
       const langName = 'rust';
       const configVarName = `${langName}Config`;
       const registrationLine = `  ${langName}: ${configVarName},`;
-      
+
       expect(registrationLine).toBe('  rust: rustConfig,');
     });
   });
@@ -178,7 +172,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
     it('should create valid mock configuration for validation', () => {
       const langName = 'rust';
       const suffixes = ['.rs', '.rlib'];
-      
+
       const mockConfig = {
         name: langName,
         fileSuffixes: suffixes,
@@ -198,7 +192,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
       const langName = 'rust';
       const expectedFileName = `${langName}.ts`;
       const expectedPath = path.join(languagesDir, expectedFileName);
-      
+
       expect(expectedFileName).toBe('rust.ts');
       expect(expectedPath).toContain('src/languages/rust.ts');
     });
@@ -206,7 +200,7 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
     it('should construct correct template paths', () => {
       const treeSitterTemplatePath = path.join(languagesDir, 'templates', 'tree-sitter-template.txt');
       const customTemplatePath = path.join(languagesDir, 'templates', 'custom-parser-template.txt');
-      
+
       expect(treeSitterTemplatePath).toContain('templates/tree-sitter-template.txt');
       expect(customTemplatePath).toContain('templates/custom-parser-template.txt');
     });

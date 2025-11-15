@@ -8,7 +8,7 @@ import {
   DidOpenTextDocumentParams,
   ReferenceParams,
   ReferencesRequest,
-  Location
+  Location,
 } from 'vscode-languageserver-protocol';
 import { spawn, ChildProcess } from 'child_process';
 import * as rpc from 'vscode-jsonrpc/node';

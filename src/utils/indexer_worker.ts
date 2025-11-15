@@ -43,39 +43,45 @@ export class IndexerWorker {
 
   async start(): Promise<void> {
     this.isRunning = true;
-    this.logger.info('IndexerWorker started', { concurrency: this.concurrency, batchSize: this.batchSize, watch: this.watch });
+    this.logger.info('IndexerWorker started', {
+      concurrency: this.concurrency,
+      batchSize: this.batchSize,
+      watch: this.watch,
+    });
 
     if (this.queue instanceof SqliteQueue) {
-        await this.queue.requeueStaleTasks();
+      await this.queue.requeueStaleTasks();
     }
 
     while (this.isRunning) {
-        // Backpressure: Only dequeue a new batch if we have a free worker slot.
-        if (this.consumerQueue.size >= this.concurrency) {
-            // Wait for the next task to complete, which signals a slot is free.
-            await new Promise(resolve => this.consumerQueue.once('next', resolve));
-            continue;
-        }
+      // Backpressure: Only dequeue a new batch if we have a free worker slot.
+      if (this.consumerQueue.size >= this.concurrency) {
+        // Wait for the next task to complete, which signals a slot is free.
+        await new Promise((resolve) => this.consumerQueue.once('next', resolve));
+        continue;
+      }
 
-        const documentBatch = await this.queue.dequeue(this.batchSize);
+      const documentBatch = await this.queue.dequeue(this.batchSize);
 
-        if (documentBatch.length > 0) {
-            this.logger.info(`Dequeued batch of ${documentBatch.length} documents. Active tasks: ${this.consumerQueue.size + 1}`);
-            // Add the task to the queue. Do not await.
-            // p-queue will manage running it concurrently.
-            this.consumerQueue.add(() => this.processBatch(documentBatch));
+      if (documentBatch.length > 0) {
+        this.logger.info(
+          `Dequeued batch of ${documentBatch.length} documents. Active tasks: ${this.consumerQueue.size + 1}`
+        );
+        // Add the task to the queue. Do not await.
+        // p-queue will manage running it concurrently.
+        this.consumerQueue.add(() => this.processBatch(documentBatch));
+      } else {
+        if (this.watch) {
+          // If in watch mode and the queue is empty, wait before polling again.
+          await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL_MS));
         } else {
-            if (this.watch) {
-                // If in watch mode and the queue is empty, wait before polling again.
-                await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL_MS));
-            } else {
-                // If not in watch mode and the queue is empty, exit the loop.
-                // The final `onIdle` will wait for any remaining tasks.
-                break;
-            }
+          // If not in watch mode and the queue is empty, exit the loop.
+          // The final `onIdle` will wait for any remaining tasks.
+          break;
         }
+      }
     }
-    
+
     // Wait for any final in-flight tasks to complete before exiting.
     await this.consumerQueue.onIdle();
     this.logger.info('IndexerWorker finished processing all tasks.');
@@ -95,28 +101,28 @@ export class IndexerWorker {
     const commonMetricAttributes = createAttributes(this.metrics, {
       concurrency: this.concurrency.toString(),
     });
-    
+
     try {
-      const codeChunks = batch.map(item => item.document);
+      const codeChunks = batch.map((item) => item.document);
       await indexCodeChunks(codeChunks, this.elasticsearchIndex);
       await this.queue.commit(batch);
-      
+
       const duration = Date.now() - startTime;
-      
+
       // Record successful batch metrics
       this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
       this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
       this.metrics.indexer?.batchSize.record(batch.length, commonMetricAttributes);
-      
+
       this.logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
       return true;
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       // Record failed batch metrics
       this.metrics.indexer?.batchFailed.add(1, commonMetricAttributes);
       this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
-      
+
       if (error instanceof Error) {
         this.logger.error('Error processing batch, requeueing.', {
           errorMessage: error.message,

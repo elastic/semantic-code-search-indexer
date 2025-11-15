@@ -12,7 +12,7 @@ export interface ValidationError {
 
 /**
  * Validates a language configuration against rules and existing configurations
- * 
+ *
  * @param config - The language configuration to validate
  * @param existingConfigs - Array of existing language configurations to check for duplicates
  * @returns Array of validation errors (empty if valid)
@@ -25,54 +25,52 @@ export function validateLanguageConfiguration(
 
   // Validate required fields - name
   if (!config.name) {
-    errors.push({ 
-      field: 'name', 
-      message: 'Language name is required' 
+    errors.push({
+      field: 'name',
+      message: 'Language name is required',
     });
   } else if (!config.name.match(/^[a-z][a-z0-9_]*$/)) {
-    errors.push({ 
-      field: 'name', 
-      message: 'Name must be lowercase alphanumeric with underscores, starting with a letter' 
+    errors.push({
+      field: 'name',
+      message: 'Name must be lowercase alphanumeric with underscores, starting with a letter',
     });
   }
 
   // Validate file suffixes
   if (!config.fileSuffixes || config.fileSuffixes.length === 0) {
-    errors.push({ 
-      field: 'fileSuffixes', 
-      message: 'At least one file extension is required' 
+    errors.push({
+      field: 'fileSuffixes',
+      message: 'At least one file extension is required',
     });
   } else {
     // Validate each file suffix format
     config.fileSuffixes.forEach((suffix, index) => {
       if (!suffix.startsWith('.')) {
-        errors.push({ 
-          field: `fileSuffixes[${index}]`, 
-          message: `File extension "${suffix}" must start with a dot (e.g., ".ts")` 
+        errors.push({
+          field: `fileSuffixes[${index}]`,
+          message: `File extension "${suffix}" must start with a dot (e.g., ".ts")`,
         });
       }
       if (suffix.length < 2) {
-        errors.push({ 
-          field: `fileSuffixes[${index}]`, 
-          message: `File extension "${suffix}" is too short (must be at least 2 characters)` 
+        errors.push({
+          field: `fileSuffixes[${index}]`,
+          message: `File extension "${suffix}" is too short (must be at least 2 characters)`,
         });
       }
     });
 
     // Check for duplicate extensions across languages
-    existingConfigs.forEach(existingConfig => {
+    existingConfigs.forEach((existingConfig) => {
       if (existingConfig.name === config.name) {
         return; // Skip checking against itself
       }
-      
-      const duplicates = config.fileSuffixes.filter(suffix => 
-        existingConfig.fileSuffixes.includes(suffix)
-      );
-      
+
+      const duplicates = config.fileSuffixes.filter((suffix) => existingConfig.fileSuffixes.includes(suffix));
+
       if (duplicates.length > 0) {
-        errors.push({ 
-          field: 'fileSuffixes', 
-          message: `File extension(s) ${duplicates.join(', ')} already used by language "${existingConfig.name}"` 
+        errors.push({
+          field: 'fileSuffixes',
+          message: `File extension(s) ${duplicates.join(', ')} already used by language "${existingConfig.name}"`,
         });
       }
     });
@@ -88,9 +86,9 @@ export function validateLanguageConfiguration(
           new Parser.Query(config.parser, query);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          errors.push({ 
-            field: `queries[${index}]`, 
-            message: `Invalid query syntax: ${errorMessage}` 
+          errors.push({
+            field: `queries[${index}]`,
+            message: `Invalid query syntax: ${errorMessage}`,
           });
         }
       }
@@ -99,9 +97,9 @@ export function validateLanguageConfiguration(
 
   // Validate parser field
   if (config.parser === undefined) {
-    errors.push({ 
-      field: 'parser', 
-      message: 'Parser field is required (use null for custom parsers)' 
+    errors.push({
+      field: 'parser',
+      message: 'Parser field is required (use null for custom parsers)',
     });
   }
 
@@ -110,7 +108,7 @@ export function validateLanguageConfiguration(
 
 /**
  * Validates all language configurations in a collection
- * 
+ *
  * @param configs - Record of language configurations to validate
  * @returns Object mapping language names to their validation errors
  */
@@ -119,13 +117,13 @@ export function validateLanguageConfigurations(
 ): Record<string, ValidationError[]> {
   const results: Record<string, ValidationError[]> = {};
   const configArray = Object.values(configs);
-  
+
   Object.entries(configs).forEach(([name, config]) => {
     const errors = validateLanguageConfiguration(config, configArray);
     if (errors.length > 0) {
       results[name] = errors;
     }
   });
-  
+
   return results;
 }

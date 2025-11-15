@@ -4,10 +4,7 @@ import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { MeterProvider, PeriodicExportingMetricReader, AggregationTemporality } from '@opentelemetry/sdk-metrics';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { Resource } from '@opentelemetry/resources';
-import {
-  ATTR_SERVICE_NAME,
-  ATTR_SERVICE_VERSION,
-} from '@opentelemetry/semantic-conventions';
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { otelConfig } from '../config';
 import path from 'path';
@@ -21,11 +18,16 @@ const {
 
 // Enable OpenTelemetry diagnostic logging
 // Set to DiagLogLevel.DEBUG for maximum verbosity, or DiagLogLevel.INFO for less detail
-const diagLevel = process.env.OTEL_LOG_LEVEL === 'debug' ? DiagLogLevel.DEBUG :
-  process.env.OTEL_LOG_LEVEL === 'info' ? DiagLogLevel.INFO :
-    process.env.OTEL_LOG_LEVEL === 'warn' ? DiagLogLevel.WARN :
-      process.env.OTEL_LOG_LEVEL === 'error' ? DiagLogLevel.ERROR :
-        DiagLogLevel.NONE;
+const diagLevel =
+  process.env.OTEL_LOG_LEVEL === 'debug'
+    ? DiagLogLevel.DEBUG
+    : process.env.OTEL_LOG_LEVEL === 'info'
+      ? DiagLogLevel.INFO
+      : process.env.OTEL_LOG_LEVEL === 'warn'
+        ? DiagLogLevel.WARN
+        : process.env.OTEL_LOG_LEVEL === 'error'
+          ? DiagLogLevel.ERROR
+          : DiagLogLevel.NONE;
 
 if (diagLevel !== DiagLogLevel.NONE) {
   diag.setLogger(new DiagConsoleLogger(), diagLevel);
@@ -36,7 +38,7 @@ let meterProvider: MeterProvider | null = null;
 
 /**
  * Retrieves the service version from package.json.
- * 
+ *
  * @returns The version string from package.json, or '1.0.0' as a fallback.
  */
 function getServiceVersion(): string {
@@ -54,10 +56,10 @@ function getServiceVersion(): string {
 
 /**
  * Parses a comma-separated string of key=value pairs into a headers object.
- * 
+ *
  * @param headersString - A comma-separated string of headers in the format "key1=value1,key2=value2".
  * @returns An object mapping header names to their values.
- * 
+ *
  * @example
  * parseHeaders("authorization=Bearer token,content-type=application/json")
  * // Returns: { authorization: "Bearer token", "content-type": "application/json" }
@@ -70,7 +72,7 @@ export function parseHeaders(headersString: string): Record<string, string> {
   const headers: Record<string, string> = {};
   if (!headersString) return headers;
 
-  headersString.split(',').forEach(header => {
+  headersString.split(',').forEach((header) => {
     // Split only on the first '=' to handle values containing '='
     const firstEqualIndex = header.indexOf('=');
     if (firstEqualIndex === -1) return;
@@ -99,7 +101,7 @@ function parseResourceAttributes(resourceAttributesString: string): Record<strin
   const attributes: Record<string, string> = {};
   if (!resourceAttributesString) return attributes;
 
-  resourceAttributesString.split(',').forEach(pair => {
+  resourceAttributesString.split(',').forEach((pair) => {
     const firstEqualIndex = pair.indexOf('=');
     if (firstEqualIndex === -1) return;
 
@@ -144,16 +146,16 @@ function createResource(defaultAttributes: Record<string, string | number> = {})
 
 /**
  * Gets or creates the singleton OpenTelemetry LoggerProvider instance.
- * 
+ *
  * Creates a LoggerProvider configured with:
  * - Resource attributes (auto-detected + custom service info)
  * - OTLP HTTP exporter for sending logs to a collector
  * - Batch log record processor for efficient transmission
- * 
+ *
  * Respects standard OTEL environment variables:
  * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  * - OTEL_SERVICE_NAME: Service name (can be overridden by config)
- * 
+ *
  * @returns The LoggerProvider instance if OTEL_LOGGING_ENABLED is true, otherwise null.
  */
 export function getLoggerProvider(): LoggerProvider | null {
@@ -180,9 +182,7 @@ export function getLoggerProvider(): LoggerProvider | null {
   const resource = createResource(defaultAttributes);
 
   const exporter = new OTLPLogExporter({
-    url: otelConfig.endpoint.endsWith('/v1/logs') 
-      ? otelConfig.endpoint 
-      : `${otelConfig.endpoint}/v1/logs`,
+    url: otelConfig.endpoint.endsWith('/v1/logs') ? otelConfig.endpoint : `${otelConfig.endpoint}/v1/logs`,
     headers: parseHeaders(otelConfig.headers),
   });
 
@@ -197,16 +197,16 @@ export function getLoggerProvider(): LoggerProvider | null {
 
 /**
  * Gets or creates the singleton OpenTelemetry MeterProvider instance.
- * 
+ *
  * Creates a MeterProvider configured with:
  * - Resource attributes (auto-detected + custom service info)
  * - OTLP HTTP exporter for sending metrics to a collector
  * - Periodic metric reader for scheduled metric export
- * 
+ *
  * Respects standard OTEL environment variables:
  * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  * - OTEL_SERVICE_NAME: Service name (can be overridden by config)
- * 
+ *
  * @returns The MeterProvider instance if OTEL_METRICS_ENABLED is true, otherwise null.
  */
 export function getMeterProvider(): MeterProvider | null {
@@ -257,24 +257,24 @@ export function getMeterProvider(): MeterProvider | null {
 
 /**
  * Gracefully shuts down the OpenTelemetry LoggerProvider and MeterProvider.
- * 
+ *
  * Ensures all buffered log records and metrics are flushed to the collector before the application exits.
  * Should be called during application shutdown (e.g., on SIGTERM/SIGINT).
- * 
+ *
  * @returns A promise that resolves when shutdown is complete.
  */
 export async function shutdown(): Promise<void> {
   const promises: Promise<void>[] = [];
-  
+
   if (loggerProvider) {
     promises.push(loggerProvider.shutdown());
     loggerProvider = null;
   }
-  
+
   if (meterProvider) {
     promises.push(meterProvider.shutdown());
     meterProvider = null;
   }
-  
+
   await Promise.all(promises);
 }

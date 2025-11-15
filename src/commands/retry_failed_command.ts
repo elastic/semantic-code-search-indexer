@@ -45,11 +45,13 @@ export const retryFailedCommand = new Command('queue:retry-failed')
         SET status = 'pending', retry_count = 0
         WHERE status = 'failed'
       `);
-      
+
       const info = updateStmt.run();
 
-      logger.info(`Successfully reset ${info.changes} documents. They will be picked up by the worker on its next run.`);
-      
+      logger.info(
+        `Successfully reset ${info.changes} documents. They will be picked up by the worker on its next run.`
+      );
+
       db.close();
     } catch (error) {
       logger.error(`Failed to connect to or update the database at ${dbPath}.`, { error });

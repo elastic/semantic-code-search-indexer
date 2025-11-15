@@ -69,7 +69,9 @@ describe('parseHeaders', () => {
   });
 
   it('should handle complex real-world header strings', () => {
-    const result = parseHeaders('Authorization=ApiKey VnVhQ2ZHY0JDZGJrUW0tZTVoT3k6dWkybHAyYXhUTm1zeWFrdzl0dk5udw==,x-elastic-product-origin=kibana');
+    const result = parseHeaders(
+      'Authorization=ApiKey VnVhQ2ZHY0JDZGJrUW0tZTVoT3k6dWkybHAyYXhUTm1zeWFrdzl0dk5udw==,x-elastic-product-origin=kibana'
+    );
     expect(result).toEqual({
       Authorization: 'ApiKey VnVhQ2ZHY0JDZGJrUW0tZTVoT3k6dWkybHAyYXhUTm1zeWFrdzl0dk5udw==',
       'x-elastic-product-origin': 'kibana',
@@ -150,7 +152,7 @@ describe('OTel Provider', () => {
     const { getLoggerProvider } = await import('../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
-    
+
     const logger = provider!.getLogger('test-logger');
     expect(logger).toBeDefined();
     expect(logger.emit).toBeDefined();
@@ -161,7 +163,7 @@ describe('OTel Provider', () => {
     const { getLoggerProvider, shutdown } = await import('../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
-    
+
     await expect(shutdown()).resolves.not.toThrow();
   });
 
@@ -176,12 +178,12 @@ describe('OTel Provider', () => {
     const { getLoggerProvider } = await import('../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
-    
+
     // Access the resource attributes through the provider's _sharedState
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resource = (provider as any)._sharedState.resource;
     const attributes = resource.attributes;
-    
+
     // Verify git.indexer.* attributes are NOT present
     expect(attributes['git.indexer.branch']).toBeUndefined();
     expect(attributes['git.indexer.remote.url']).toBeUndefined();
@@ -194,12 +196,12 @@ describe('OTel Provider', () => {
     const { getLoggerProvider } = await import('../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
-    
+
     // Access the resource attributes through the provider's _sharedState
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resource = (provider as any)._sharedState.resource;
     const attributes = resource.attributes;
-    
+
     // Verify standard attributes are still present
     expect(attributes['service.name']).toBeDefined();
     // The detectors add various attributes - just verify we have some
@@ -295,7 +297,7 @@ describe('MeterProvider', () => {
     const { getMeterProvider } = await import('../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).not.toBeNull();
-    
+
     const meter = provider!.getMeter('test-meter');
     expect(meter).toBeDefined();
   });
@@ -305,7 +307,7 @@ describe('MeterProvider', () => {
     const { getMeterProvider, shutdown } = await import('../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).not.toBeNull();
-    
+
     await expect(shutdown()).resolves.not.toThrow();
   });
 
@@ -319,14 +321,13 @@ describe('MeterProvider', () => {
     process.env.OTEL_LOGGING_ENABLED = 'true';
     process.env.OTEL_METRICS_ENABLED = 'true';
     const { getLoggerProvider, getMeterProvider, shutdown } = await import('../src/utils/otel_provider');
-    
+
     const loggerProvider = getLoggerProvider();
     const meterProvider = getMeterProvider();
-    
+
     expect(loggerProvider).not.toBeNull();
     expect(meterProvider).not.toBeNull();
-    
+
     await expect(shutdown()).resolves.not.toThrow();
   });
 });
-

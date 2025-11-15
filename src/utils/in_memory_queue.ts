@@ -19,7 +19,7 @@ export class InMemoryQueue implements IQueue {
   async dequeue(count: number): Promise<QueuedDocument[]> {
     const items = this.queue.splice(0, count);
     return Promise.resolve(
-      items.map(doc => ({
+      items.map((doc) => ({
         id: doc.chunk_hash, // Using chunk_hash as a mock message ID
         document: doc,
       }))
@@ -35,7 +35,7 @@ export class InMemoryQueue implements IQueue {
 
   async requeue(documents: QueuedDocument[]): Promise<void> {
     // Add the documents back to the front of the queue for immediate retry.
-    const originalDocs = documents.map(d => d.document);
+    const originalDocs = documents.map((d) => d.document);
     this.queue.unshift(...originalDocs);
     logger.warn(`Requeued ${documents.length} documents. Queue size: ${this.queue.length}`);
     return Promise.resolve();

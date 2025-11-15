@@ -109,7 +109,7 @@ describe('IndexerWorker', () => {
 
     expect(requeueSpy).toHaveBeenCalled();
     expect(commitSpy).not.toHaveBeenCalled();
-    
+
     // Verify the document that was requeued has the correct content
     const requeuedDocs = requeueSpy.mock.calls[0][0];
     expect(requeuedDocs).toHaveLength(1);

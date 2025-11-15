@@ -1,4 +1,3 @@
-
 import { LanguageConfiguration } from '../utils/parser';
 
 export const gradleConfig: LanguageConfiguration = {

@@ -17,7 +17,9 @@ async function startReindexProducer(repoConfigs: string[], concurrency: number) 
   for (const repoConfig of repoConfigs) {
     const [repoPath, esIndex, token] = repoConfig.split(':');
     if (!repoPath || !esIndex) {
-      logger.error(`Invalid repository configuration format: "${repoConfig}". Expected "path:index[:token]". Skipping.`);
+      logger.error(
+        `Invalid repository configuration format: "${repoConfig}". Expected "path:index[:token]". Skipping.`
+      );
       continue;
     }
     const repoName = path.basename(repoPath);
@@ -27,9 +29,7 @@ async function startReindexProducer(repoConfigs: string[], concurrency: number) 
     let gitBranch = 'unknown';
     try {
       // Use execFileSync to prevent shell injection from special characters in directory paths
-      gitBranch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: repoPath })
-        .toString()
-        .trim();
+      gitBranch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: repoPath }).toString().trim();
     } catch {
       logger.warn(`Could not extract git branch for ${repoName}. Using 'unknown'.`);
     }

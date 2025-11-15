@@ -1,4 +1,3 @@
-
 import { incrementalIndex } from '../src/commands/incremental_index_command';
 import * as elasticsearch from '../src/utils/elasticsearch';
 import simpleGit from 'simple-git';
@@ -42,12 +41,15 @@ describe('incrementalIndex', () => {
       requeue: jest.fn(),
     };
 
-    mockedSqliteQueue.mockImplementation(() => ({
-      ...workQueue,
-      initialize: jest.fn(),
-      close: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any));
+    mockedSqliteQueue.mockImplementation(
+      () =>
+        ({
+          ...workQueue,
+          initialize: jest.fn(),
+          close: jest.fn(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any
+    );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockedSimpleGit.mockReturnValue(gitInstance as any);
 
@@ -87,13 +89,14 @@ describe('incrementalIndex', () => {
     ].join('\n');
 
     const git = {
-        revparse: jest.fn()
-          .mockResolvedValueOnce('main') // gitBranch
-          .mockResolvedValueOnce('/test/repo') // gitRoot
-          .mockResolvedValueOnce('new-commit-hash'), // newCommitHash
-        remote: jest.fn().mockResolvedValue('https://github.com/test/repo.git'),
-        pull: jest.fn().mockResolvedValue(undefined),
-        diff: jest.fn().mockResolvedValue(gitDiffOutput),
+      revparse: jest
+        .fn()
+        .mockResolvedValueOnce('main') // gitBranch
+        .mockResolvedValueOnce('/test/repo') // gitRoot
+        .mockResolvedValueOnce('new-commit-hash'), // newCommitHash
+      remote: jest.fn().mockResolvedValue('https://github.com/test/repo.git'),
+      pull: jest.fn().mockResolvedValue(undefined),
+      diff: jest.fn().mockResolvedValue(gitDiffOutput),
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockedSimpleGit.mockReturnValue(git as any);
@@ -115,7 +118,7 @@ describe('incrementalIndex', () => {
 
     // New file from rename: not deleted, just indexed.
     expect(mockedElasticsearch.deleteDocumentsByFilePath).not.toHaveBeenCalledWith('src/new_file.ts', undefined);
-    
+
     // Copied file: original is untouched, new file is indexed.
     expect(mockedElasticsearch.deleteDocumentsByFilePath).not.toHaveBeenCalledWith('src/copied_file.ts', undefined);
     expect(mockedElasticsearch.deleteDocumentsByFilePath).not.toHaveBeenCalledWith('src/original_file.ts', undefined);
@@ -126,7 +129,7 @@ describe('incrementalIndex', () => {
     // Verify that workers are created for the correct files to be indexed
     expect(mockedWorker).toHaveBeenCalledTimes(4);
 
-    const indexedFiles = postedMessages.map(msg => msg.relativePath);
+    const indexedFiles = postedMessages.map((msg) => msg.relativePath);
     expect(indexedFiles).toHaveLength(4);
     expect(indexedFiles).toContain('src/new_file.ts');
     expect(indexedFiles).toContain('src/copied_file.ts');

@@ -1,4 +1,3 @@
-
 import { Command } from 'commander';
 import { LanguageParser } from '../utils/parser';
 import * as fs from 'fs';
@@ -18,7 +17,7 @@ export const dumpTreeCommand = new Command('dump-tree')
 
       const fileContent = fs.readFileSync(absolutePath, 'utf-8');
       const fileExtension = path.extname(absolutePath);
-      
+
       const languageParser = new LanguageParser();
       const langConfig = languageParser.fileSuffixMap.get(fileExtension);
 
@@ -32,7 +31,6 @@ export const dumpTreeCommand = new Command('dump-tree')
 
       const tree = parser.parse(fileContent);
       console.log(tree.rootNode.toString());
-
     } catch (error) {
       console.error('An error occurred:', error);
       process.exit(1);

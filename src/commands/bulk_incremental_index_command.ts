@@ -1,4 +1,3 @@
-
 import { Command } from 'commander';
 import { incrementalIndex } from './incremental_index_command';
 import { worker } from './worker_command';
@@ -19,7 +18,9 @@ async function startProducer(repoConfigs: string[], concurrency: number) {
   for (const repoConfig of repoConfigs) {
     const [repoPath, esIndex, token] = repoConfig.split(':');
     if (!repoPath || !esIndex) {
-      logger.error(`Invalid repository configuration format: "${repoConfig}". Expected "path:index[:token]". Skipping.`);
+      logger.error(
+        `Invalid repository configuration format: "${repoConfig}". Expected "path:index[:token]". Skipping.`
+      );
       continue;
     }
     const repoName = path.basename(repoPath);
@@ -59,7 +60,7 @@ async function startProducer(repoConfigs: string[], concurrency: number) {
   }
 
   logger.info('All repositories processed. Producer service finished.');
-  
+
   // Flush OpenTelemetry logs before exiting
   await shutdown();
 }
