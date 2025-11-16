@@ -35,12 +35,12 @@ describe('elasticsearchConfig', () => {
       expect(elasticsearchConfig.inferenceId).toBe('new-inference-id');
     });
 
-    it('defaults to .elser-2-elastic when neither is set', async () => {
+    it('defaults to .elser-2-elasticsearch when neither is set', async () => {
       delete process.env.ELASTICSEARCH_INFERENCE_ID;
       delete process.env.ELASTICSEARCH_MODEL;
       const { elasticsearchConfig } = await import('../src/config');
       
-      expect(elasticsearchConfig.inferenceId).toBe('.elser-2-elastic');
+      expect(elasticsearchConfig.inferenceId).toBe('.elser-2-elasticsearch');
     });
   });
 });
