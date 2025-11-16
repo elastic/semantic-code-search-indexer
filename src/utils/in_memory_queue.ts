@@ -40,4 +40,24 @@ export class InMemoryQueue implements IQueue {
     logger.warn(`Requeued ${documents.length} documents. Queue size: ${this.queue.length}`);
     return Promise.resolve();
   }
+
+  async clear(): Promise<void> {
+    const count = this.queue.length;
+    this.queue = [];
+    this.enqueueCompleted = false;
+    logger.info(`Cleared ${count} items from in-memory queue`);
+    return Promise.resolve();
+  }
+
+  private enqueueCompleted = false;
+
+  async markEnqueueCompleted(): Promise<void> {
+    this.enqueueCompleted = true;
+    logger.info('Marked enqueue as completed (in-memory)');
+    return Promise.resolve();
+  }
+
+  isEnqueueCompleted(): boolean {
+    return this.enqueueCompleted;
+  }
 }

@@ -10,4 +10,7 @@ export interface IQueue {
   dequeue(count: number): Promise<QueuedDocument[]>;
   commit(documents: QueuedDocument[]): Promise<void>;
   requeue(documents: QueuedDocument[]): Promise<void>;
+  clear(): Promise<void>;
+  markEnqueueCompleted(): Promise<void>;
+  isEnqueueCompleted(): boolean;
 }

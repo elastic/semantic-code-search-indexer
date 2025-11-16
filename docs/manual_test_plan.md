@@ -4,9 +4,10 @@ This document provides instructions for manually testing the end-to-end function
 
 ## Part 1: Standalone Mode Verification
 
-This test verifies the complete producer-consumer flow using the local file system queue.
+This test verifies the complete indexing flow using the local SQLite queue.
 
 ### Prerequisites
+
 - A local Elasticsearch instance running and accessible.
 - A git repository cloned locally to use as a data source (e.g., `.repos/semantic-code-search-mcp-server`).
 
@@ -21,31 +22,9 @@ This test verifies the complete producer-consumer flow using the local file syst
       ```bash
       npm run index -- .repos/semantic-code-search-mcp-server --clean
       ```
-    - **Expected Result:** The command should complete, logging that it found and processed files. The `.queue` directory should now exist and be populated.
+    - **Expected Result:** The command should complete, logging that it scanned files, enqueued chunks to the SQLite queue, processed them, and indexed them to Elasticsearch. The queue should be empty when finished.
 
-2.  **Verify Producer Output:**
-    - Check the contents of the pending queue directory:
-      ```bash
-      ls -l .queue/pending
-      ```
-    - **Expected Result:** The directory should contain multiple `.json` files, each representing a batch of documents.
-
-3.  **Run the Consumer Worker:**
-    - Start the indexer worker process:
-      ```bash
-      npm run index-worker
-      ```
-    - **Expected Result:** The worker will start and log messages indicating it is dequeueing, processing, and committing batches. It will eventually time out and exit after the queue is empty.
-
-4.  **Verify Queue is Empty:**
-    - After the worker has finished, check the queue directories again:
-      ```bash
-      ls -l .queue/pending
-      ls -l .queue/processing
-      ```
-    - **Expected Result:** Both directories should be empty.
-
-5.  **Verify Data in Elasticsearch:**
+2.  **Verify Data in Elasticsearch:**
     - Use a tool like Kibana Dev Tools or `curl` to query the Elasticsearch index and confirm that documents have been indexed.
       ```bash
       curl -u elastic:changeme "http://localhost:9200/code-chunks/_count"
@@ -55,7 +34,12 @@ This test verifies the complete producer-consumer flow using the local file syst
 ### Failure Simulation (Standalone)
 
 1.  **Reset the Test:**
-    - Repeat steps 1 and 2 from the section above to populate the queue.
+    - Delete the queue directory and Elasticsearch index:
+      ```bash
+      rm -rf .queue
+      npm run index -- .repos/semantic-code-search-mcp-server --clean
+      ```
+    - This ensures a clean starting state for the failure test.
 
 2.  **Stop Elasticsearch:**
     - If you are running Elasticsearch in Docker, stop the container:
@@ -63,31 +47,34 @@ This test verifies the complete producer-consumer flow using the local file syst
       docker stop <your-es-container-name>
       ```
 
-3.  **Run the Worker:**
-    - Start the worker:
+3.  **Run the Indexer:**
+    - Start the indexer:
       ```bash
-      npm run index-worker
+      npm run index -- .repos/semantic-code-search-mcp-server
       ```
-    - **Expected Result:** The worker will start, dequeue a batch, and log errors indicating it cannot connect to Elasticsearch. It will then requeue the batch.
+    - **Expected Result:** The indexer will scan files and enqueue chunks. When the worker attempts to index them, it will log errors indicating it cannot connect to Elasticsearch. Failed batches will be requeued with incremented retry counts in the SQLite queue.
 
 4.  **Verify Requeue:**
-    - Check the queue directories.
+    - Check the queue status:
       ```bash
-      ls -l .queue/pending
-      ls -l .queue/processing
+      npm run queue:monitor
       ```
-    - **Expected Result:** The `.queue/processing` directory should be empty, and the `.queue/pending` directory should contain files with a `_retry-1.json` suffix.
+    - **Expected Result:** You should see documents in the queue with `failed` or `pending` status and non-zero retry counts.
 
 5.  **Restart Elasticsearch and Verify Recovery:**
     - Restart the Elasticsearch container.
-    - The worker (which is still running) should now successfully connect, process the retried batches, and finish emptying the queue.
-    - **Expected Result:** The queue directories should eventually become empty, and the data should be indexed in Elasticsearch.
+    - Run the indexer again to process the failed items:
+      ```bash
+      npm run index -- .repos/semantic-code-search-mcp-server
+      ```
+    - **Expected Result:** The indexer should successfully process the retried batches and empty the queue. Verify with `npm run queue:monitor` that the queue is empty, and query Elasticsearch to confirm the data was indexed.
 
 ## Part 2: GCP Mode Verification
 
 This test verifies the flow using Google Cloud Pub/Sub and a deployed Cloud Function.
 
 ### Prerequisites
+
 - All steps in `docs/gcp_deployment_guide.md` have been completed.
 - The Cloud Function has been successfully deployed.
 
@@ -96,12 +83,12 @@ This test verifies the flow using Google Cloud Pub/Sub and a deployed Cloud Func
 1.  **Configure for GCP:**
     - Ensure your `.env` file has `APP_MODE="gcp"` and all GCP/Elasticsearch variables are set correctly.
 
-2.  **Run the Producer:**
+2.  **Run the Indexer:**
     - Run the indexer to send messages to the Pub/Sub topic:
       ```bash
       npm run index -- .repos/semantic-code-search-mcp-server --clean
       ```
-    - **Expected Result:** The command should complete successfully, logging that it has enqueued documents.
+    - **Expected Result:** The command should complete successfully, logging that it has enqueued documents to Pub/Sub.
 
 3.  **Verify Pub/Sub Messages:**
     - Check the message count in your Pub/Sub subscription in the GCP Console or via `gcloud`:
@@ -122,7 +109,7 @@ This test verifies the flow using Google Cloud Pub/Sub and a deployed Cloud Func
 ### Failure Simulation (GCP)
 
 1.  **Reset the Test:**
-    - Purge the Pub/Sub topic if necessary and re-run the producer (Step 2 above).
+    - Purge the Pub/Sub topic if necessary and re-run the indexer (Step 2 above).
 
 2.  **Simulate Failure:**
     - Go to the Cloud Function's configuration in the GCP Console.

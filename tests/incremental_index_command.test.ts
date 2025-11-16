@@ -39,6 +39,9 @@ describe('incrementalIndex', () => {
       dequeue: jest.fn(),
       commit: jest.fn(),
       requeue: jest.fn(),
+      clear: jest.fn(),
+      markEnqueueCompleted: jest.fn(),
+      isEnqueueCompleted: jest.fn().mockReturnValue(true),
     };
 
     mockedSqliteQueue.mockImplementation(
@@ -102,7 +105,7 @@ describe('incrementalIndex', () => {
     mockedSimpleGit.mockReturnValue(git as any);
     mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
 
-    await incrementalIndex('/test/repo');
+    await incrementalIndex('/test/repo', { queueDir: '.test-queue' });
 
     // Renamed file: old path is deleted
     expect(mockedElasticsearch.deleteDocumentsByFilePath).toHaveBeenCalledWith('src/old_file.ts', undefined);

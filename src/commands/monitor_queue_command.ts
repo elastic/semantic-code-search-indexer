@@ -1,15 +1,13 @@
 import { Command, Option } from 'commander';
-import { appConfig } from '../config';
 import Database from 'better-sqlite3';
-import path from 'path';
 import { createLogger } from '../utils/logger';
+import { resolveRepoName, getQueueDbPath } from '../utils/queue_helper';
 import moment from 'moment';
 
 async function monitorQueue(options?: { repoName?: string }) {
-  const logger = options?.repoName ? createLogger({ name: options.repoName, branch: 'unknown' }) : createLogger();
-
-  const queueDir = options?.repoName ? path.join(appConfig.queueBaseDir, options.repoName) : appConfig.queueDir;
-  const dbPath = path.join(queueDir, 'queue.db');
+  const repoName = resolveRepoName(options?.repoName);
+  const logger = createLogger({ name: repoName, branch: 'unknown' });
+  const dbPath = getQueueDbPath(repoName);
   const db = new Database(dbPath, { readonly: true });
 
   logger.info('--- Queue Monitor ---');
@@ -55,10 +53,5 @@ async function monitorQueue(options?: { repoName?: string }) {
 
 export const monitorQueueCommand = new Command('queue:monitor')
   .description('Display statistics about the document queue')
-  .addOption(
-    new Option(
-      '--repo-name <repoName>',
-      'Optional: The name of the repository to monitor. If not provided, monitors the default queue.'
-    )
-  )
+  .addOption(new Option('--repo-name <repoName>', 'Repository name (auto-detects if only one repo exists)'))
   .action(monitorQueue);
