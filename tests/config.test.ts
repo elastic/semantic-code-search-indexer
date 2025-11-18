@@ -1,4 +1,10 @@
 // tests/config.test.ts
+
+// Mock dotenv to prevent loading .env file during tests
+jest.mock('dotenv', () => ({
+  config: jest.fn(),
+}));
+
 describe('elasticsearchConfig', () => {
   const originalEnv = process.env;
 

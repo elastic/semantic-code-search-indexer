@@ -17,6 +17,7 @@ import {
   METRIC_STATUS_FAILURE,
   LANGUAGE_UNKNOWN,
 } from '../utils/constants';
+import { index } from './index_command';
 
 interface IncrementalIndexOptions {
   queueDir: string;
@@ -52,7 +53,14 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
   const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
 
   if (!lastCommitHash) {
-    logger.warn('No previous commit hash found. Please run a full index first.', { gitBranch });
+    logger.info('No previous commit hash found. Running full index first.', { gitBranch });
+    await index(directory, false, {
+      queueDir: options?.queueDir,
+      elasticsearchIndex: options?.elasticsearchIndex,
+      repoName: options?.repoName,
+      branch: options?.branch,
+    });
+    logger.info('Full index complete. Incremental indexing is now available for future runs.');
     return;
   }
 
