@@ -28,7 +28,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "release-scsi-${{ github.ref }}"
+  group: "release-scsi-${{ github.sha }}"
   cancel-in-progress: true
 jobs:
   docker:
@@ -41,6 +41,7 @@ jobs:
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # ratchet:docker/setup-buildx-action@v3
 
       - name: Login to Docker registry
+        if: ${{ github.event.pull_request.head.repo.full_name == 'elastic/semantic-code-search-indexer' || github.ref == 'refs/heads/main' }}
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # ratchet:docker/login-action@v3
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
@@ -64,7 +65,7 @@ jobs:
         with:
           context: .
           platforms: linux/amd64
-          push: true
+          push: ${{ github.event.pull_request.head.repo.full_name == 'elastic/semantic-code-search-indexer' || github.ref == 'refs/heads/main' }}
           sbom: true
           provenance: mode=max
           labels: ${{ steps.meta.outputs.labels }}
