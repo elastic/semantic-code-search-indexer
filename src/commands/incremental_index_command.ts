@@ -1,5 +1,4 @@
-import { Command } from 'commander';
-import { getLastIndexedCommit, updateLastIndexedCommit, deleteDocumentsByFilePath } from '../utils/elasticsearch';
+import { getLastIndexedCommit, deleteDocumentsByFilePath } from '../utils/elasticsearch';
 import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
 import { indexingConfig, appConfig } from '../config';
 import path from 'path';
@@ -18,17 +17,16 @@ import {
   LANGUAGE_UNKNOWN,
 } from '../utils/constants';
 
-interface IncrementalIndexOptions {
+export interface IncrementalIndexOptions {
   queueDir: string;
-  elasticsearchIndex: string;
+  elasticsearchIndex?: string;
   token?: string;
   repoName?: string;
   branch?: string;
 }
 
-async function getQueue(options?: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
-  const queueDir = options?.queueDir ?? appConfig.queueDir;
-  const queuePath = path.join(queueDir, 'queue.db');
+async function getQueue(options: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
+  const queuePath = path.join(options.queueDir, 'queue.db');
   const queue = new SqliteQueue({
     dbPath: queuePath,
     repoName,
@@ -38,7 +36,7 @@ async function getQueue(options?: IncrementalIndexOptions, repoName?: string, br
   return queue;
 }
 
-export async function incrementalIndex(directory: string, options?: IncrementalIndexOptions) {
+export async function incrementalIndex(directory: string, options: IncrementalIndexOptions) {
   const repoName = options?.repoName ?? path.basename(path.resolve(directory));
 
   const git = simpleGit(directory);
@@ -47,7 +45,10 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
   const logger = createLogger({ name: repoName, branch: gitBranch });
   const metrics = createMetrics({ name: repoName, branch: gitBranch });
 
-  logger.info('Starting incremental indexing process (Producer)', { directory, ...options });
+  logger.info('Starting incremental indexing process', {
+    directory,
+    ...options,
+  });
 
   const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
 
@@ -80,7 +81,9 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
     if (error instanceof Error) {
       logger.error('Failed to pull latest changes.', { error: error.message });
     } else {
-      logger.error('Failed to pull latest changes with an unknown error.', { error });
+      logger.error('Failed to pull latest changes with an unknown error.', {
+        error,
+      });
     }
     return;
   }
@@ -210,7 +213,10 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
                   );
                 }
 
-                logger.warn('Failed to parse file', { file: message.filePath, error: message.error });
+                logger.warn('Failed to parse file', {
+                  file: message.filePath,
+                  error: message.error,
+                });
               }
               worker.terminate();
               resolve();
@@ -222,28 +228,27 @@ export async function incrementalIndex(directory: string, options?: IncrementalI
               reject(err);
             });
             const relativePath = file;
-            worker.postMessage({ filePath: absolutePath, gitBranch, relativePath });
+            worker.postMessage({
+              filePath: absolutePath,
+              gitBranch,
+              relativePath,
+            });
           })
       );
     });
 
     await producerQueue.onIdle();
 
-    logger.info('--- Incremental Producer Summary (Additions/Modifications) ---');
+    logger.info('--- Incremental Indexing Summary (Additions/Modifications) ---');
     logger.info(`Successfully processed: ${successCount} files`);
     logger.info(`Failed to parse:      ${failureCount} files`);
   }
 
   const newCommitHash = await git.revparse(['HEAD']);
-  await updateLastIndexedCommit(gitBranch, newCommitHash, options?.elasticsearchIndex);
 
   logger.info('---');
   logger.info(`New HEAD commit hash: ${newCommitHash}`);
   logger.info('---');
   logger.info('Incremental file parsing and enqueueing complete.');
+  logger.info('Note: Commit hash will be updated after worker completes successfully.');
 }
-
-export const incrementalIndexCommand = new Command('incremental-index')
-  .description('Incrementally index a directory')
-  .argument('[directory]', 'The directory to index', '.')
-  .action(incrementalIndex);

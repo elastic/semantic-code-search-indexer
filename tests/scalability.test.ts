@@ -53,7 +53,13 @@ describe('SqliteQueue Scalability', () => {
     // --- Enqueue Phase ---
     const enqueueStartTime = Date.now();
     for (let i = 0; i < totalDocuments; i += batchSize) {
-      const batch = Array(batchSize).fill(MOCK_CHUNK);
+      // Create unique chunks with different chunk_hash to avoid deduplication
+      const batch = Array(batchSize)
+        .fill(null)
+        .map((_, idx) => ({
+          ...MOCK_CHUNK,
+          chunk_hash: `test-chunk-${i + idx}`,
+        }));
       await queue.enqueue(batch);
       enqueuedCount += batch.length;
     }

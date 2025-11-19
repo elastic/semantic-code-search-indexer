@@ -1,22 +1,15 @@
 import { Command, Option } from 'commander';
-import path from 'path';
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger';
-import { appConfig } from '../config';
+import { resolveRepoName, getQueueDbPath } from '../utils/queue_helper';
 
 export const retryFailedCommand = new Command('queue:retry-failed')
   .description('Reset all "failed" documents in a queue back to "pending" to be retried.')
-  .addOption(
-    new Option(
-      '--repo-name <repoName>',
-      'The name of the repository for which to retry failed documents.'
-    ).makeOptionMandatory()
-  )
+  .addOption(new Option('--repo-name <repoName>', 'Repository name (auto-detects if only one repo exists)'))
   .action(async (options) => {
-    const { repoName } = options;
+    const repoName = resolveRepoName(options.repoName);
     const logger = createLogger({ name: repoName, branch: 'unknown' });
-    const queueDir = path.join(appConfig.queueBaseDir, repoName);
-    const dbPath = path.join(queueDir, 'queue.db');
+    const dbPath = getQueueDbPath(repoName);
 
     logger.info(`Connecting to queue database at: ${dbPath}`);
 

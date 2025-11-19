@@ -1,27 +1,25 @@
-import { Command, Option } from 'commander';
 import { IndexerWorker } from '../utils/indexer_worker';
-import { appConfig, indexingConfig } from '../config';
+import { indexingConfig } from '../config';
 import { createLogger } from '../utils/logger';
 import { SqliteQueue } from '../utils/sqlite_queue';
 import path from 'path';
 
-interface WorkerOptions {
+export interface WorkerOptions {
   queueDir: string;
-  elasticsearchIndex: string;
+  elasticsearchIndex?: string;
   repoName?: string;
   branch?: string;
+  token?: string;
 }
 
-export async function worker(concurrency: number = 1, watch: boolean = false, options?: WorkerOptions) {
+export async function worker(concurrency: number = 1, watch: boolean = false, options: WorkerOptions) {
   const repoInfo =
     options?.repoName && options?.branch ? { name: options.repoName, branch: options.branch } : undefined;
   const logger = createLogger(repoInfo);
 
   logger.info('Starting indexer worker process', { concurrency, ...options });
 
-  const queuePath = options?.queueDir
-    ? path.join(options.queueDir, 'queue.db')
-    : path.join(appConfig.queueDir, 'queue.db');
+  const queuePath = path.join(options.queueDir, 'queue.db');
   const queue = new SqliteQueue({
     dbPath: queuePath,
     repoName: options?.repoName,
@@ -41,14 +39,3 @@ export async function worker(concurrency: number = 1, watch: boolean = false, op
 
   await indexerWorker.start();
 }
-
-export const workerCommand = new Command('worker')
-  .description('Start a single indexer worker')
-  .addOption(new Option('--concurrency <number>', 'Number of parallel workers to run').default(1))
-  .addOption(new Option('--watch', 'Run the worker in watch mode'))
-  .addOption(new Option('--repoName <name>', 'Name of the repository being indexed'))
-  .addOption(new Option('--branch <branch>', 'Branch of the repository being indexed'))
-  .action(async (options) => {
-    const concurrency = parseInt(options.concurrency, 10);
-    await worker(concurrency, options.watch, options);
-  });

@@ -2,9 +2,9 @@
 
 This guide outlines how to deploy the semantic code indexer on a Google Cloud Platform (GCP) VM as a periodic, multi-repository service.
 
-The setup consists of a single main component managed by `systemd`:
+The setup consists of a single main component managed by cron:
 
-1.  **A periodic producer timer (`indexer-producer.timer`):** This timer triggers a "one-shot" service that, for each configured repository, scans for changes, enqueues them, and then immediately processes the queue to update the search index.
+1.  **A periodic cron job:** This job triggers the indexer which, for each configured repository, scans for changes, enqueues them, and then immediately processes the queue to update the search index.
 
 ## Creating a GCP VM with gcloud
 
@@ -85,8 +85,6 @@ git --version
 
 The application's configuration is managed by a `.env` file. Create this file in the root of the project directory (`/opt/semantic-code-search-indexer/.env`).
 
-The `REPOSITORIES_TO_INDEX` variable is a space-separated list. Each item is a string containing the **absolute path** to a repository, the name of the **Elasticsearch index**, and an optional **GitHub token**, separated by colons (`:`).
-
 ```bash
 # /opt/semantic-code-search-indexer/.env
 
@@ -110,42 +108,70 @@ OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
 
 # Application Configuration
 # Base directory where all queue databases will be stored.
+# Each repository gets its own SQLite queue at QUEUE_BASE_DIR/<repo-name>/queue.db
 QUEUE_BASE_DIR="/var/lib/indexer/queues"
 
-# Space-separated list of "repository_path:elasticsearch_index_name:token" pairs.
-REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index:ghp_YourToken"
+# Optional: Space-separated list of repositories to index
+# Used as fallback when no repositories are provided as CLI arguments
+# Format: "repo1 repo2" or "repo1:index1 repo2:index2"
+REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index"
 ```
 
 ## 2. Scheduling with Cron
 
-We will use `cron`, a standard time-based job scheduler, to run the indexer periodically. The project includes a shell script at `scripts/bulk_incremental_index.sh` which is designed to be called by the cron job.
+We will use `cron`, a standard time-based job scheduler, to run the indexer periodically. The unified `npm run index` command handles both scanning and indexing in a single operation.
 
-1.  **Make the Script Executable:**
-    Ensure the provided script has execute permissions.
-    ```bash
-    chmod +x /opt/semantic-code-search-indexer/scripts/bulk_incremental_index.sh
-    ```
+**⚠️ Upgrading from a previous version?** See the migration guide:
 
-2.  **Open the Crontab:**
+📖 **[scripts/migrations/2025-11-16-unified-index-command/UPGRADE_GUIDE.md](../scripts/migrations/2025-11-16-unified-index-command/UPGRADE_GUIDE.md)**
+
+**Quick migration:**
+```bash
+cd scripts/migrations/2025-11-16-unified-index-command
+./migrate.sh  # Handles queues + cron + backups
+```
+
+1.  **Open the Crontab:**
     Open the crontab file for the current user for editing.
+
     ```bash
     crontab -e
     ```
 
-3.  **Add the Cron Job:**
-    Add the following line to the end of the file. This configuration will run the indexer every 10 minutes.
+2.  **Add the Cron Job:**
+    Add the following line to the end of the file. This configuration will run the indexer every 10 minutes for multiple repositories.
 
     ```cron
-    */10 * * * * /usr/bin/flock -n /tmp/bulk_indexer.lock /opt/semantic-code-search-indexer/scripts/bulk_incremental_index.sh >> /opt/semantic-code-search-indexer/bulk_incremental_index.log 2>&1
+    */10 * * * * cd /opt/semantic-code-search-indexer && /usr/bin/flock -n /tmp/indexer.lock npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index --pull --concurrency 4 --token ghp_YourToken >> /opt/semantic-code-search-indexer/indexer.log 2>&1
     ```
 
-    **Command Breakdown:**
-    *   `*/10 * * * *`: The schedule, meaning "at every 10th minute."
-    *   `/usr/bin/flock -n /tmp/bulk_indexer.lock`: This is a crucial command for reliability. It ensures that only one instance of the script can run at a time. If a previous run is still active, the new one will not start, preventing resource contention and potential data corruption.
-    *   `/opt/semantic-code-search-indexer/scripts/bulk_incremental_index.sh`: The absolute path to the script that executes the indexing process.
-    *   `>> /opt/semantic-code-search-indexer/bulk_incremental_index.log 2>&1`: This redirects all output (both standard output and standard error) to a log file within the project directory. You must ensure this file is writable by the user running the cron job.
+    **Alternative using REPOSITORIES_TO_INDEX env var:**
 
-4.  **Save and Exit:**
+    ```cron
+    */10 * * * * cd /opt/semantic-code-search-indexer && /usr/bin/flock -n /tmp/indexer.lock npm run index -- --pull --concurrency 4 --token ghp_YourToken >> /opt/semantic-code-search-indexer/indexer.log 2>&1
+    ```
+
+    (Repositories are read from `REPOSITORIES_TO_INDEX` in `.env` file)
+
+    **Command Breakdown:**
+    - `*/10 * * * *`: The schedule, meaning "at every 10th minute."
+    - `cd /opt/semantic-code-search-indexer`: Change to the project directory.
+    - `/usr/bin/flock -n /tmp/indexer.lock`: This is a crucial command for reliability. It ensures that only one instance of the indexer can run at a time. If a previous run is still active, the new one will not start, preventing resource contention and potential data corruption.
+    - `npm run index -- <repos...>`: The unified index command that handles both scanning and indexing in one pass.
+    - `/var/lib/indexer/repos/repo-one:repo-one-index`: Repository path with custom index name.
+    - `--pull`: Git pull before indexing to get latest changes.
+    - `--concurrency 4`: Number of parallel workers (adjust based on VM resources).
+    - `--token ghp_YourToken`: GitHub token for private repositories (optional).
+    - `>> /opt/semantic-code-search-indexer/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file within the project directory. You must ensure this file is writable by the user running the cron job.
+
+    **For watch mode (continuous indexing):**
+    If you prefer to run the indexer as a long-running process that watches for changes, use the `--watch` flag and run it as a systemd service instead of a cron job:
+
+    ```bash
+    npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index --watch --concurrency 4
+    ```
+
+3.  **Save and Exit:**
     Save the file and exit your editor. `cron` will automatically install the new job.
 
 ## 3. Deploy and Run
@@ -154,13 +180,15 @@ We will use `cron`, a standard time-based job scheduler, to run the indexer peri
 
 2.  **Check the Status:**
     You can check that your cron job is installed by running:
+
     ```bash
     crontab -l
     ```
 
     After the next 10-minute interval, you can check the log file for output:
+
     ```bash
-    tail -f /opt/semantic-code-search-indexer/bulk_incremental_index.log
+    tail -f /opt/semantic-code-search-indexer/indexer.log
     ```
 
 ## 4. Monitoring and Observability
@@ -226,10 +254,12 @@ For production monitoring, deploy an OpenTelemetry Collector to receive logs and
 ### Elasticsearch Data Streams
 
 The indexer exports telemetry to the following Elasticsearch data streams:
+
 - **Logs**: `logs-semanticcode.otel-default`
 - **Metrics**: `metrics-semanticcode.otel-default`
 
 These follow Elasticsearch's data stream naming conventions:
+
 - `logs-*` / `metrics-*`: Type prefix
 - `semanticcode.otel`: Dataset identifier
 - `default`: Namespace
@@ -242,6 +272,7 @@ All logs and metrics include `repo.name` and `repo.branch` attributes, enabling 
     Navigate to Kibana → Discover
 
 2.  **Filter by Repository:**
+
     ```
     repo.name: "kibana" AND repo.branch: "main"
     ```
@@ -262,16 +293,16 @@ All logs and metrics include `repo.name` and `repo.branch` attributes, enabling 
 ### Alerting
 
 Set up alerts in Kibana for:
+
 - **High failure rate**: `indexer.batch.failed` / `indexer.batch.processed` > 0.1
 - **Queue backlog**: `queue.size.pending` > 10000
 - **Stale processing**: No `parser.files.processed` metrics in last hour
 
 ### Key Metrics to Monitor
 
-| Metric | What to Watch | Alert Threshold |
-|--------|---------------|-----------------|
-| `parser.files.processed` | Files indexed per minute | < 10/min may indicate issues |
-| `queue.size.pending` | Documents waiting to be indexed | > 10000 indicates backlog |
-| `indexer.batch.failed` | Failed batch operations | > 5% failure rate |
-| `indexer.batch.duration` | Indexing performance | P95 > 30s may indicate ES issues |
-
+| Metric                   | What to Watch                   | Alert Threshold                  |
+| ------------------------ | ------------------------------- | -------------------------------- |
+| `parser.files.processed` | Files indexed per minute        | < 10/min may indicate issues     |
+| `queue.size.pending`     | Documents waiting to be indexed | > 10000 indicates backlog        |
+| `indexer.batch.failed`   | Failed batch operations         | > 5% failure rate                |
+| `indexer.batch.duration` | Indexing performance            | P95 > 30s may indicate ES issues |

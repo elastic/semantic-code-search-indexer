@@ -4,7 +4,9 @@ import os from 'os';
 import fs from 'fs';
 
 // Don't override existing environment variables (important for tests)
-dotenv.config({ quiet: true, override: false });
+// In test mode, try to load .env.test (if it exists), otherwise skip .env to avoid interference
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: envFile, override: false, quiet: true });
 
 // Helper to find the project root by looking for package.json
 function findProjectRoot(startPath: string): string {
@@ -58,7 +60,6 @@ export const indexingConfig = {
 };
 
 export const appConfig = {
-  queueDir: path.resolve(projectRoot, process.env.QUEUE_DIR || '.queue'),
   queueBaseDir: path.resolve(projectRoot, process.env.QUEUE_BASE_DIR || '.queues'),
   githubToken: process.env.GITHUB_TOKEN,
 };

@@ -1,4 +1,2 @@
-// Set environment variables for tests
+// Set NODE_ENV before any imports so config.ts loads .env.test
 process.env.NODE_ENV = 'test';
-process.env.OTEL_LOGGING_ENABLED = 'false';
-process.env.ELASTICSEARCH_ENDPOINT = 'http://localhost:9200';
