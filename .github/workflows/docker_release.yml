@@ -28,7 +28,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "release-scsi-${{ github.ref }}"
+  group: "release-scsi-${{ github.sha }}"
   cancel-in-progress: true
 jobs:
   docker:
