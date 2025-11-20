@@ -13,37 +13,27 @@ export const bashConfig: LanguageConfiguration = {
   parser: bash,
 
   queries: [
-    // Function definitions
     '(function_definition) @function',
 
-    // Declaration commands (export, readonly, local, declare)
-    // NOTE: This captures the full declaration including any variable_assignment inside
+    // Declaration commands: export, readonly, local, declare
     '(declaration_command) @declaration',
 
-    // Variable assignments (standalone, not part of declaration_command)
-    // NOTE: Assignments within declaration_command are captured by the @declaration query above
+    // Standalone variable assignments (not within declaration_command)
     '(variable_assignment) @variable',
 
-    // Commands and pipelines
     '(command) @command',
     '(pipeline) @pipeline',
 
-    // Control structures
     '(if_statement) @if',
     '(for_statement) @for',
     '(while_statement) @while',
     '(case_statement) @case',
 
-    // Comments
     '(comment) @comment',
-
-    // Redirections
     '(file_redirect) @redirect',
-
-    // Command substitution
     '(command_substitution) @substitution',
 
-    // Documentation patterns - comments before functions
+    // Documentation pattern: comments before functions
     `
     (
       (comment)+ @doc
@@ -52,7 +42,7 @@ export const bashConfig: LanguageConfiguration = {
     ) @function_with_doc
     `,
 
-    // Documentation patterns - comments before variable assignments
+    // Documentation pattern: comments before variable assignments
     `
     (
       (comment)+ @doc
@@ -63,40 +53,30 @@ export const bashConfig: LanguageConfiguration = {
   ],
 
   importQueries: [
-    // Source statements: source file.sh or . file.sh
+    // Source statements: 'source file.sh' or '. file.sh'
     '(command name: (command_name (word) @source_cmd (#match? @source_cmd "^(source|\\.)$")) argument: (word) @import.path)',
     '(command name: (command_name (word) @source_cmd (#match? @source_cmd "^(source|\\.)$")) argument: (string (string_content) @import.path))',
   ],
 
   symbolQueries: [
-    // Function names
     '(function_definition name: (word) @function.name)',
-
-    // Variable names (assignments)
     '(variable_assignment name: (variable_name) @variable.name)',
-
-    // Exported variables
+    // Variables in declaration_command (export/readonly/local/declare)
     '(declaration_command (variable_assignment name: (variable_name) @variable.name))',
-
-    // Command names (function calls)
     '(command name: (command_name (word) @function.call))',
-
-    // Variable usage (expansions)
     '(simple_expansion (variable_name) @variable.usage)',
     '(expansion (variable_name) @variable.usage)',
-
-    // Array subscript usage (e.g., ${arr[@]}, ${arr[0]})
+    // Array subscripts: ${arr[@]}, ${arr[0]}
     '(subscript name: (variable_name) @variable.usage)',
   ],
 
   exportQueries: [
-    // NOTE: This captures ALL declaration_command statements (export/readonly/local/declare).
-    // Tree-sitter cannot distinguish them in queries because the keyword is an unnamed node.
-    // Parser.ts filters these to only include 'export' declarations via post-processing.
+    // Captures ALL declaration_command (export/readonly/local/declare)
+    // Tree-sitter can't distinguish them (keyword is unnamed node)
+    // Parser.ts filters to only actual exports
     '(declaration_command (variable_assignment name: (variable_name) @export.name))',
 
-    // NOTE: Captures 'export -f funcname' statements.
-    // Parser.ts filters to ensure only 'export -f' declarations are included.
+    // Captures 'export -f funcname' - parser.ts verifies -f flag
     '(declaration_command (word) @flag (variable_name) @export.name)',
   ],
 };

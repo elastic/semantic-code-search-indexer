@@ -4,6 +4,7 @@ import { CodeChunk } from '../src/utils/elasticsearch';
 import path from 'path';
 import { indexingConfig } from '../src/config';
 import fs from 'fs';
+import os from 'os';
 
 const MOCK_TIMESTAMP = '[TIMESTAMP]';
 
@@ -435,7 +436,7 @@ Content 2`;
     const testScript = `export EXPORTED_VAR="exported"
 readonly READONLY_VAR="readonly"
 local LOCAL_VAR="local"`;
-    const tempFile = path.join(__dirname, 'temp_bash_export_test.sh');
+    const tempFile = path.join(os.tmpdir(), `temp_bash_export_test_${process.pid}_${Date.now()}.sh`);
     fs.writeFileSync(tempFile, testScript);
 
     try {
@@ -457,7 +458,7 @@ local LOCAL_VAR="local"`;
     const testScript = `arr=(one two three)
 echo \${arr[@]}
 echo \${arr[0]}`;
-    const tempFile = path.join(__dirname, 'temp_bash_array_test.sh');
+    const tempFile = path.join(os.tmpdir(), `temp_bash_array_test_${process.pid}_${Date.now()}.sh`);
     fs.writeFileSync(tempFile, testScript);
 
     try {
@@ -477,7 +478,7 @@ echo \${arr[0]}`;
     echo "test"
 }
 export -f my_func`;
-    const tempFile = path.join(__dirname, 'temp_bash_export_f_test.sh');
+    const tempFile = path.join(os.tmpdir(), `temp_bash_export_f_test_${process.pid}_${Date.now()}.sh`);
     fs.writeFileSync(tempFile, testScript);
 
     try {

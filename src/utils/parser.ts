@@ -715,18 +715,17 @@ export class LanguageParser {
             }
           }
 
-          // For Bash, filter declaration_command to only include 'export' statements
-          // Tree-sitter-bash cannot distinguish export/readonly/local/declare in queries
-          // because the keyword is an unnamed node, so we filter in post-processing
+          // Bash: filter declaration_command to only actual exports
+          // Tree-sitter can't distinguish export/readonly/local/declare (unnamed node)
           if (langConfig.name === 'bash') {
-            // Find the declaration_command node
-            // For 'export VAR=value': variable_name -> variable_assignment -> declaration_command
-            // For 'export -f funcname': variable_name -> declaration_command (direct parent)
             const nameCapture = match.captures.find((c) => c.name === EXPORT_CAPTURE_NAMES.NAME);
             if (nameCapture) {
+              // Navigate to declaration_command node:
+              // 'export VAR=value': variable_name -> variable_assignment -> declaration_command
+              // 'export -f funcname': variable_name -> declaration_command
               let declNode = nameCapture.node.parent;
 
-              // Handle variable assignment case (export VAR=value)
+              // Handle variable assignment case: variable_name -> variable_assignment -> declaration_command
               if (declNode?.type === 'variable_assignment') {
                 declNode = declNode.parent;
               }
@@ -736,9 +735,9 @@ export class LanguageParser {
                 if (firstChild) {
                   // Only accept 'export' keyword, reject readonly/local/declare
                   if (firstChild.type !== 'export') {
-                    continue; // Skip this export - not an actual export statement
+                    continue; // Skip - not an actual export statement
                   }
-                  // For 'export -f funcname', verify the -f flag is present
+                  // For 'export -f funcname', verify -f flag is present
                   if (match.captures.some((c) => c.name === 'flag')) {
                     const wordNode = Array.from({ length: declNode.childCount }, (_, i) => declNode.child(i)).find(
                       (child) => child?.type === 'word'
