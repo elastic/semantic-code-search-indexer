@@ -29,9 +29,17 @@ dist
 Thumbs.db
 
 # Test files
+tests/
 coverage
 *.test.js
-test/
+*.test.ts
+vitest.config.ts
+.test-queues/
+.test-queues-pid/
+.test-enqueue-resume/
+.scalability-test-queue/
+.test-queue/
+.test-repo/
 
 # Documentation
 README.md
@@ -54,7 +62,8 @@ temp/
 # Development files
 .eslintrc*
 .prettierrc*
-jest.config.js
+vitest.config.ts
+eslint.config.js
 
 # CI/CD
 .github/

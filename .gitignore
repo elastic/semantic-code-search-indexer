@@ -13,3 +13,11 @@ matches.json
 .queue/
 .queues/
 .idea
+
+# Test queue directories
+.test-queues/
+.test-queues-pid/
+.test-enqueue-resume/
+.scalability-test-queue/
+.test-queue/
+.test-repo/

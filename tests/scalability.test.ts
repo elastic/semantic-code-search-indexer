@@ -2,6 +2,7 @@ import { SqliteQueue } from '../src/utils/sqlite_queue';
 import { CodeChunk } from '../src/utils/elasticsearch';
 import path from 'path';
 import fs from 'fs';
+import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 
 const MOCK_CHUNK: CodeChunk = {
   type: 'code',

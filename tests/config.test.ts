@@ -1,9 +1,10 @@
-// tests/config.test.ts
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+
 describe('elasticsearchConfig', () => {
   const originalEnv = process.env;
 
-  beforeEach(() => {
-    jest.resetModules();
+  beforeEach(async () => {
+    vi.resetModules();
     process.env = { ...originalEnv };
   });
 

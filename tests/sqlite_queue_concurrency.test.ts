@@ -3,6 +3,7 @@ import { CodeChunk } from '../src/utils/elasticsearch';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('SqliteQueue Concurrency', () => {
   let queue: SqliteQueue;

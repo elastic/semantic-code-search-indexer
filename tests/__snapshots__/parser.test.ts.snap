@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`LanguageParser should parse C fixtures correctly 1`] = `
+exports[`LanguageParser > should parse C fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "d3139b187138b0a2b1fd9b889746cb293f2dfc1ec526153bb345b1617eca9ef4",
@@ -1032,7 +1032,7 @@ return 0;",
 ]
 `;
 
-exports[`LanguageParser should parse C++ fixtures correctly 1`] = `
+exports[`LanguageParser > should parse C++ fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "1d16dd7f0fd2b47dbbb09527ae4ea4cf8928e30e888d1e41b019357d2797e247",
@@ -2612,7 +2612,7 @@ return 0;",
 ]
 `;
 
-exports[`LanguageParser should parse Go fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Go fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "fd68edbadc1535917a1bca6848f45e93c6588249f923c24958981b6c28f2a045",
@@ -2898,7 +2898,7 @@ fmt.Println("private")",
 ]
 `;
 
-exports[`LanguageParser should parse Gradle fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Gradle fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "14110e05d784ac5713d3433f9a03b2b56b8d57dbacea269ac848ac5e89f43672",
@@ -2927,7 +2927,7 @@ apply plugin: 'java'
 ]
 `;
 
-exports[`LanguageParser should parse Handlebars fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Handlebars fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "61df66d98e9a0be833927914091c3502e00208e6c255dbbc7431f219b8231806",
@@ -3104,10 +3104,10 @@ processors:
 ]
 `;
 
-exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
+exports[`LanguageParser > should parse JSON fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "b594d03aef54d63a6a43c1d54061091758fd16e6d8d4c26fb6c740ee8729f717",
+    "chunk_hash": "0b09f5433be8c8c384a98272266af02b7291be5af2de159f09e9dd55ab7b54bb",
     "content": "{
   "name": "code-indexer",
   "version": "1.0.0",
@@ -3116,7 +3116,7 @@ exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "vitest run"
   },
   "keywords": [
     "code",
@@ -3130,7 +3130,7 @@ exports[`LanguageParser should parse JSON fixtures correctly 1`] = `
     "endLine": 15,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
+    "git_file_hash": "141171aab783a33c011ac721eea8eafa7bb3211b",
     "language": "json",
     "semantic_text": "filePath: tests/fixtures/json.json
 directoryPath: tests/fixtures
@@ -3143,7 +3143,7 @@ directoryPath: tests/fixtures
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "vitest run"
   },
   "keywords": [
     "code",
@@ -3155,7 +3155,7 @@ directoryPath: tests/fixtures
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "9b4196e8baade3c8b606ac3e0e994e3f95fb9551b0c00f55aaaf6a11010849cd",
+    "chunk_hash": "b0d703f6718baa213abae8b4366fd1309c6bcd08b0bfd60b22df409ecd8d2069",
     "content": "    "indexer",
     "semantic",
     "search"
@@ -3168,9 +3168,9 @@ directoryPath: tests/fixtures
     "tree-sitter-javascript": "^0.19.0"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.3",
-    "jest": "^27.4.5",
-    "ts-jest": "^27.1.2",",
+    "@types/node": "^18.11.18",
+    "typescript": "^4.9.4",
+    "vitest": "^4.0.13",",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
     "directoryName": "fixtures",
@@ -3178,7 +3178,7 @@ directoryPath: tests/fixtures
     "endLine": 27,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
+    "git_file_hash": "141171aab783a33c011ac721eea8eafa7bb3211b",
     "language": "json",
     "semantic_text": "filePath: tests/fixtures/json.json
 directoryPath: tests/fixtures
@@ -3195,20 +3195,19 @@ directoryPath: tests/fixtures
     "tree-sitter-javascript": "^0.19.0"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.3",
-    "jest": "^27.4.5",
-    "ts-jest": "^27.1.2",",
+    "@types/node": "^18.11.18",
+    "typescript": "^4.9.4",
+    "vitest": "^4.0.13",",
     "startLine": 13,
     "type": "doc",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1f2abb6bd6df174eef8f7435551dd750078185559f4c3b5f9c8478021beb188b",
-    "content": "    "@types/jest": "^27.0.3",
-    "jest": "^27.4.5",
-    "ts-jest": "^27.1.2",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.4"
+    "chunk_hash": "46e051ad0214efd19292b23f412a67096c0b3a6cebf0f14a3cb123e7c4882842",
+    "content": "    "@types/node": "^18.11.18",
+    "typescript": "^4.9.4",
+    "vitest": "^4.0.13",
+    "ts-node": "^10.4.0"
   }
 }
 ",
@@ -3216,19 +3215,18 @@ directoryPath: tests/fixtures
     "directoryDepth": 2,
     "directoryName": "fixtures",
     "directoryPath": "tests/fixtures",
-    "endLine": 32,
+    "endLine": 31,
     "filePath": "tests/fixtures/json.json",
     "git_branch": "main",
-    "git_file_hash": "4ad6f3dbdbc9446975f8757d8116a5ab3b631142",
+    "git_file_hash": "141171aab783a33c011ac721eea8eafa7bb3211b",
     "language": "json",
     "semantic_text": "filePath: tests/fixtures/json.json
 directoryPath: tests/fixtures
 
-    "@types/jest": "^27.0.3",
-    "jest": "^27.4.5",
-    "ts-jest": "^27.1.2",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.4"
+    "@types/node": "^18.11.18",
+    "typescript": "^4.9.4",
+    "vitest": "^4.0.13",
+    "ts-node": "^10.4.0"
   }
 }
 ",
@@ -3239,7 +3237,7 @@ directoryPath: tests/fixtures
 ]
 `;
 
-exports[`LanguageParser should parse Java fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Java fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "c7bf8cb907acb4b0d6e6fddaf47d772c5f0336e85f853a81815767441d7dff94",
@@ -3477,7 +3475,7 @@ private void privateMethod() {
 ]
 `;
 
-exports[`LanguageParser should parse JavaScript fixtures correctly 1`] = `
+exports[`LanguageParser > should parse JavaScript fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "bfbce26d696921c2281b7e4c2eebed78128ac63be763d2b09fa054793a790934",
@@ -4041,7 +4039,7 @@ export default MyClass;",
 ]
 `;
 
-exports[`LanguageParser should parse Markdown fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Markdown fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "ed09ca2736773c6ceb4e8e5499e71d1a80fd6a4a346efff7a88a2d6c3ff27274",
@@ -4128,7 +4126,7 @@ This is another paragraph.
 ]
 `;
 
-exports[`LanguageParser should parse Properties fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Properties fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "621a201da38f18e6e3a964aa931de8dca5f29be30ca781c80145d0df560e114d",
@@ -4196,7 +4194,7 @@ key=value",
 ]
 `;
 
-exports[`LanguageParser should parse Python fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Python fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "de2abade832c8e350a1bdc98cfcdb1e202ac4749c5fc51a4a970d41736b6df5c",
@@ -4459,7 +4457,7 @@ MY_CONSTANT = 42",
 ]
 `;
 
-exports[`LanguageParser should parse Text fixtures correctly 1`] = `
+exports[`LanguageParser > should parse Text fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "9be104294df7d5a59c328241d49ac062e2c7b9660636e7f511e3a1dc3d919377",
@@ -4484,7 +4482,7 @@ This is a text file.",
 ]
 `;
 
-exports[`LanguageParser should parse YAML fixtures correctly 1`] = `
+exports[`LanguageParser > should parse YAML fixtures correctly 1`] = `
 [
   {
     "chunk_hash": "6fc1577d54d9234a3de72ea7fd5d56fb5670435ea20e2fa1aaf71646814d1138",

@@ -3,6 +3,7 @@ import { CodeChunk } from '../src/utils/elasticsearch';
 import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('SqliteQueue - PID Tracking', () => {
   const testDbDir = path.join(__dirname, '.test-queues-pid');

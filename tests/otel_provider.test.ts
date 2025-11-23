@@ -1,5 +1,5 @@
-// tests/otel_provider.test.ts
 import { parseHeaders } from '../src/utils/otel_provider';
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 
 describe('parseHeaders', () => {
   it('should parse simple key=value pairs', () => {
@@ -84,7 +84,7 @@ describe('OTel Provider', () => {
 
   beforeEach(() => {
     // Clear the module cache to ensure fresh imports
-    jest.resetModules();
+    vi.resetModules();
     process.env = { ...originalEnv };
     // Ensure NODE_ENV is not 'test' for these tests
     delete process.env.NODE_ENV;
@@ -105,7 +105,7 @@ describe('OTel Provider', () => {
   });
 
   it.skip('should return null when OTEL_LOGGING_ENABLED is not set', async () => {
-    // This test is skipped because jest.resetModules() doesn't properly clear
+    // This test is skipped because vi.resetModules() doesn't properly clear
     // the config module's cached values when using dynamic imports.
     // The behavior is tested by the 'false' case above.
     delete process.env.OTEL_LOGGING_ENABLED;
@@ -238,8 +238,8 @@ describe('MeterProvider', () => {
     } catch {
       // Module might not be loaded yet
     }
-    jest.resetModules();
-    jest.clearAllMocks();
+    vi.resetModules();
+    vi.clearAllMocks();
     process.env = { ...originalEnv };
     delete process.env.NODE_ENV;
   });
@@ -258,7 +258,7 @@ describe('MeterProvider', () => {
   });
 
   it.skip('should return null when OTEL_METRICS_ENABLED is not set and OTEL_LOGGING_ENABLED is false', async () => {
-    // This test is skipped because jest.resetModules() doesn't properly clear
+    // This test is skipped because vi.resetModules() doesn't properly clear
     // the config module's cached values when using dynamic imports.
     // The behavior is tested by the 'false' case above.
     process.env.OTEL_LOGGING_ENABLED = 'false';

@@ -1,9 +1,9 @@
-// tests/parser.test.ts
 import { LanguageParser } from '../src/utils/parser';
 import { CodeChunk } from '../src/utils/elasticsearch';
 import path from 'path';
 import { indexingConfig } from '../src/config';
 import fs from 'fs';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 const MOCK_TIMESTAMP = '[TIMESTAMP]';
 
