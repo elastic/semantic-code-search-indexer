@@ -1,7 +1,8 @@
-import { SqliteQueue } from '../src/utils/sqlite_queue';
-import { CodeChunk } from '../src/utils/elasticsearch';
+import { SqliteQueue } from '../../src/utils/sqlite_queue';
+import { CodeChunk } from '../../src/utils/elasticsearch';
 import path from 'path';
 import fs from 'fs';
+import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 
 const MOCK_CHUNK_1: CodeChunk = {
   type: 'code',

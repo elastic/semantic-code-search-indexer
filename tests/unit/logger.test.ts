@@ -1,19 +1,19 @@
-// tests/logger.test.ts
-import { createLogger, logger } from '../src/utils/logger';
+import { createLogger, logger } from '../../src/utils/logger';
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 describe('Logger', () => {
   const originalEnv = process.env;
-  let consoleLogSpy: jest.SpyInstance;
+  let consoleLogSpy: Mock;
 
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     process.env = { ...originalEnv };
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
     process.env = originalEnv;
-    consoleLogSpy.mockRestore();
   });
 
   describe('console output', () => {

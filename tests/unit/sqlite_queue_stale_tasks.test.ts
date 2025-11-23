@@ -1,8 +1,9 @@
-import { SqliteQueue } from '../src/utils/sqlite_queue';
-import { CodeChunk } from '../src/utils/elasticsearch';
+import { SqliteQueue } from '../../src/utils/sqlite_queue';
+import { CodeChunk } from '../../src/utils/elasticsearch';
 import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('SqliteQueue - Stale Task Recovery', () => {
   const testDbDir = path.join(__dirname, '.test-queues');

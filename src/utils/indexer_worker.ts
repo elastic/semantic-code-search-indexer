@@ -55,18 +55,18 @@ export class IndexerWorker {
 
     while (this.isRunning) {
       // Backpressure: Only dequeue a new batch if we have a free worker slot.
-      if (this.consumerQueue.size >= this.concurrency) {
+      // Check both pending (waiting) and active (running) tasks
+      const totalActiveTasks = this.consumerQueue.size + this.consumerQueue.pending;
+      if (totalActiveTasks >= this.concurrency) {
         // Wait for the next task to complete, which signals a slot is free.
-        await new Promise((resolve) => this.consumerQueue.once('next', resolve));
+        await new Promise<void>((resolve) => this.consumerQueue.once('next', resolve));
         continue;
       }
 
       const documentBatch = await this.queue.dequeue(this.batchSize);
 
       if (documentBatch.length > 0) {
-        this.logger.info(
-          `Dequeued batch of ${documentBatch.length} documents. Active tasks: ${this.consumerQueue.size + 1}`
-        );
+        this.logger.info(`Dequeued batch of ${documentBatch.length} documents. Active tasks: ${totalActiveTasks + 1}`);
         // Add the task to the queue. Do not await.
         // p-queue will manage running it concurrently.
         this.consumerQueue.add(() => this.processBatch(documentBatch));

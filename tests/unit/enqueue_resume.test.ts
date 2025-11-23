@@ -1,7 +1,8 @@
-import { SqliteQueue } from '../src/utils/sqlite_queue';
-import { CodeChunk } from '../src/utils/elasticsearch';
+import { SqliteQueue } from '../../src/utils/sqlite_queue';
+import { CodeChunk } from '../../src/utils/elasticsearch';
 import path from 'path';
 import fs from 'fs';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('Enqueue Completion Tracking', () => {
   const testQueueDir = path.join(__dirname, '.test-enqueue-resume');

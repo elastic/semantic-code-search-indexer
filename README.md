@@ -595,3 +595,23 @@ To generate the dense vectors for your codebase, you must run a full, clean inde
 ```bash
 npm run index -- .repos/your-repo --clean
 ```
+
+---
+
+## Testing
+
+```bash
+npm test                        # Run unit tests (fast, no dependencies)
+npm run test:integration        # Run integration tests (single run with full ES setup/teardown)
+```
+
+For comprehensive testing documentation, including:
+- Unit test strategies and watch modes
+- Integration test workflows (single run vs. persistent ES for iteration)
+- Interactive UI debugging mode (`test:ui`)
+- Troubleshooting common issues
+- Contributing guidelines
+
+See the **[Developer Guide](docs/DEVELOPER_GUIDE.md)**.
+
+---

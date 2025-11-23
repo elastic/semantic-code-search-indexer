@@ -1,7 +1,8 @@
-import { resolveRepoName, getQueueDir, getQueueDbPath } from '../src/utils/queue_helper';
-import { appConfig } from '../src/config';
+import { resolveRepoName, getQueueDir, getQueueDbPath } from '../../src/utils/queue_helper';
+import { appConfig } from '../../src/config';
 import fs from 'fs';
 import path from 'path';
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 
 describe('queue_helper', () => {
   const testQueueBaseDir = path.join(__dirname, '.test-queues');
@@ -38,14 +39,12 @@ describe('queue_helper', () => {
       fs.mkdirSync(repoDir, { recursive: true });
       fs.writeFileSync(path.join(repoDir, 'queue.db'), '');
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = resolveRepoName();
 
       expect(result).toBe('test-repo');
       expect(consoleSpy).toHaveBeenCalledWith('Auto-detected repository: test-repo');
-
-      consoleSpy.mockRestore();
     });
 
     it('SHOULD exit with error if multiple repos exist and none specified', () => {
@@ -56,38 +55,32 @@ describe('queue_helper', () => {
       fs.writeFileSync(path.join(repo1Dir, 'queue.db'), '');
       fs.writeFileSync(path.join(repo2Dir, 'queue.db'), '');
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
       resolveRepoName();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith('Multiple repositories found: repo1, repo2');
       expect(consoleErrorSpy).toHaveBeenCalledWith('Please specify which repository with --repo-name');
       expect(exitSpy).toHaveBeenCalledWith(1);
-
-      consoleErrorSpy.mockRestore();
-      exitSpy.mockRestore();
     });
 
     it('SHOULD exit with error if no repos exist', () => {
       fs.mkdirSync(testQueueBaseDir, { recursive: true });
 
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
       resolveRepoName();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith('No repositories found in .queues/');
       expect(consoleErrorSpy).toHaveBeenCalledWith('Have you run "npm run index <repo>" yet?');
       expect(exitSpy).toHaveBeenCalledWith(1);
-
-      consoleErrorSpy.mockRestore();
-      exitSpy.mockRestore();
     });
 
     it('SHOULD exit with error if .queues directory does not exist', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const exitSpy = jest.spyOn(process, 'exit').mockImplementation((code) => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
         throw new Error(`process.exit(${code})`);
       });
 
@@ -96,9 +89,6 @@ describe('queue_helper', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith('.queues/ directory not found');
       expect(consoleErrorSpy).toHaveBeenCalledWith('Have you run "npm run index <repo>" yet?');
       expect(exitSpy).toHaveBeenCalledWith(1);
-
-      consoleErrorSpy.mockRestore();
-      exitSpy.mockRestore();
     });
   });
 

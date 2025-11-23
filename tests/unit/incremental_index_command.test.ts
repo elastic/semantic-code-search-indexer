@@ -1,85 +1,90 @@
-import { incrementalIndex } from '../src/commands/incremental_index_command';
-import * as elasticsearch from '../src/utils/elasticsearch';
+import { incrementalIndex } from '../../src/commands/incremental_index_command';
+import * as elasticsearch from '../../src/utils/elasticsearch';
 import simpleGit from 'simple-git';
-import { IQueue } from '../src/utils/queue';
-import { SqliteQueue } from '../src/utils/sqlite_queue';
+import { IQueue } from '../../src/utils/queue';
+import { SqliteQueue } from '../../src/utils/sqlite_queue';
 import { Worker } from 'worker_threads';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
-jest.mock('simple-git');
-jest.mock('../src/utils/elasticsearch');
-jest.mock('../src/utils/sqlite_queue');
-jest.mock('worker_threads');
+vi.mock('simple-git');
+vi.mock('../../src/utils/elasticsearch');
 
-const mockedSimpleGit = simpleGit as jest.Mock;
-const mockedElasticsearch = elasticsearch as jest.Mocked<typeof elasticsearch>;
-const mockedSqliteQueue = SqliteQueue as jest.MockedClass<typeof SqliteQueue>;
-const mockedWorker = Worker as jest.MockedClass<typeof Worker>;
+vi.mock('../../src/utils/sqlite_queue', () => {
+  const MockSqliteQueue = vi.fn();
+  return {
+    SqliteQueue: MockSqliteQueue,
+  };
+});
+
+vi.mock('worker_threads', () => {
+  const MockWorker = vi.fn();
+  return {
+    Worker: MockWorker,
+  };
+});
+
+const mockedSimpleGit = vi.mocked(simpleGit);
+const mockedElasticsearch = vi.mocked(elasticsearch, true);
+const mockedSqliteQueue = vi.mocked(SqliteQueue);
+const mockedWorker = vi.mocked(Worker);
 
 describe('incrementalIndex', () => {
-  let workQueue: jest.Mocked<IQueue>;
+  let workQueue: IQueue;
   const gitInstance = {
-    revparse: jest.fn().mockResolvedValue('main'),
-    remote: jest.fn().mockResolvedValue('https://github.com/test/repo.git'),
-    pull: jest.fn().mockResolvedValue(undefined),
-    diff: jest.fn().mockResolvedValue(''),
-    add: jest.fn().mockReturnThis(),
-    commit: jest.fn().mockReturnThis(),
-    push: jest.fn().mockReturnThis(),
-  };
+    revparse: vi.fn().mockResolvedValue('main'),
+    remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
+    pull: vi.fn().mockResolvedValue(undefined),
+    diff: vi.fn().mockResolvedValue(''),
+    add: vi.fn().mockReturnThis(),
+    commit: vi.fn().mockReturnThis(),
+    push: vi.fn().mockReturnThis(),
+  } as unknown as ReturnType<typeof simpleGit>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let postedMessages: any[];
+  let postedMessages: Array<{ relativePath: string }>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     postedMessages = [];
 
     workQueue = {
-      enqueue: jest.fn(),
-      dequeue: jest.fn(),
-      commit: jest.fn(),
-      requeue: jest.fn(),
-      clear: jest.fn(),
-      markEnqueueCompleted: jest.fn(),
-      isEnqueueCompleted: jest.fn().mockReturnValue(true),
+      enqueue: vi.fn(),
+      dequeue: vi.fn(),
+      commit: vi.fn(),
+      requeue: vi.fn(),
+      clear: vi.fn(),
+      markEnqueueCompleted: vi.fn(),
+      isEnqueueCompleted: vi.fn().mockReturnValue(true),
     };
 
-    mockedSqliteQueue.mockImplementation(
-      () =>
-        ({
-          ...workQueue,
-          initialize: jest.fn(),
-          close: jest.fn(),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as any
-    );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockedSimpleGit.mockReturnValue(gitInstance as any);
+    mockedSqliteQueue.mockImplementation(function () {
+      return {
+        ...workQueue,
+        initialize: vi.fn(),
+        close: vi.fn(),
+      };
+    });
+
+    mockedSimpleGit.mockReturnValue(gitInstance);
 
     mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('dummy-commit-hash');
 
-    // Mock the worker implementation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    mockedWorker.mockImplementation(((path: string | URL) => {
+    mockedWorker.mockImplementation(function () {
       const worker = {
-        on: jest.fn((event, cb) => {
+        on: vi.fn((event, cb) => {
           if (event === 'message') {
-            // Immediately call the callback with a success message
-            // to simulate the worker finishing its job.
             setTimeout(() => cb({ status: 'success', data: [] }), 0);
           }
+          return worker;
         }),
-        postMessage: jest.fn((message) => {
+        postMessage: vi.fn((message) => {
           postedMessages.push(message);
         }),
-        terminate: jest.fn(),
-        ref: jest.fn(),
-        unref: jest.fn(),
+        terminate: vi.fn(),
+        ref: vi.fn(),
+        unref: vi.fn(),
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return worker as any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any);
+      return worker;
+    });
   });
 
   it('should handle file renames and copies correctly', async () => {
@@ -92,17 +97,16 @@ describe('incrementalIndex', () => {
     ].join('\n');
 
     const git = {
-      revparse: jest
+      revparse: vi
         .fn()
         .mockResolvedValueOnce('main') // gitBranch
         .mockResolvedValueOnce('/test/repo') // gitRoot
         .mockResolvedValueOnce('new-commit-hash'), // newCommitHash
-      remote: jest.fn().mockResolvedValue('https://github.com/test/repo.git'),
-      pull: jest.fn().mockResolvedValue(undefined),
-      diff: jest.fn().mockResolvedValue(gitDiffOutput),
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockedSimpleGit.mockReturnValue(git as any);
+      remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
+      pull: vi.fn().mockResolvedValue(undefined),
+      diff: vi.fn().mockResolvedValue(gitDiffOutput),
+    } as unknown as ReturnType<typeof simpleGit>;
+    mockedSimpleGit.mockReturnValue(git);
     mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
 
     await incrementalIndex('/test/repo', { queueDir: '.test-queue' });

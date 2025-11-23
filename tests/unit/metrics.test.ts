@@ -1,5 +1,5 @@
-// tests/metrics.test.ts
-import { createMetrics, createAttributes } from '../src/utils/metrics';
+import { createMetrics, createAttributes } from '../../src/utils/metrics';
+import { describe, it, expect } from 'vitest';
 
 describe('Metrics', () => {
   describe('basic functionality', () => {

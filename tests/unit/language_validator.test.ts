@@ -1,6 +1,6 @@
-// tests/language_validator.test.ts
-import { validateLanguageConfiguration, validateLanguageConfigurations } from '../src/utils/language_validator';
-import { LanguageConfiguration } from '../src/utils/parser';
+import { validateLanguageConfiguration, validateLanguageConfigurations } from '../../src/utils/language_validator';
+import { LanguageConfiguration } from '../../src/utils/parser';
+import { describe, it, expect } from 'vitest';
 
 describe('validateLanguageConfiguration', () => {
   const validConfig: LanguageConfiguration = {

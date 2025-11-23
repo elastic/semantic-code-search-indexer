@@ -1,15 +1,12 @@
-// tests/languages.test.ts
-import { parseLanguageNames, languageConfigurations, LanguageName } from '../src/languages';
+import { parseLanguageNames, languageConfigurations, LanguageName } from '../../src/languages';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 describe('parseLanguageNames', () => {
-  let consoleWarnSpy: jest.SpyInstance;
+  let consoleWarnSpy: Mock;
 
   beforeEach(() => {
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-  });
-
-  afterEach(() => {
-    consoleWarnSpy.mockRestore();
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   it('should return all languages when no argument is provided', () => {

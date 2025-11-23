@@ -1,10 +1,10 @@
-// tests/parser.test.ts
-import { LanguageParser } from '../src/utils/parser';
-import { CodeChunk } from '../src/utils/elasticsearch';
+import { LanguageParser } from '../../src/utils/parser';
+import { CodeChunk } from '../../src/utils/elasticsearch';
 import path from 'path';
-import { indexingConfig } from '../src/config';
+import { indexingConfig } from '../../src/config';
 import fs from 'fs';
 import os from 'os';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 const MOCK_TIMESTAMP = '[TIMESTAMP]';
 
@@ -44,7 +44,7 @@ describe('LanguageParser', () => {
   };
 
   it('should parse TypeScript usage fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/usage.ts');
+    const filePath = path.resolve(__dirname, '../fixtures/usage.ts');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/usage.ts');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
     expect(allSymbols).toEqual(
@@ -63,20 +63,20 @@ describe('LanguageParser', () => {
   });
 
   it('should parse JavaScript fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/javascript.js');
+    const filePath = path.resolve(__dirname, '../fixtures/javascript.js');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/javascript.js');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Markdown fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
+    const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   describe('Configurable Markdown Delimiter', () => {
     it('should parse Markdown with default paragraph delimiter', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
+      const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
 
       // Should create 4 chunks with paragraph-based splitting
@@ -89,7 +89,7 @@ describe('LanguageParser', () => {
       indexingConfig.markdownChunkDelimiter = '\\n---\\n';
 
       try {
-        const filePath = path.resolve(__dirname, 'fixtures/markdown_sections.md');
+        const filePath = path.resolve(__dirname, '../fixtures/markdown_sections.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown_sections.md');
 
         // Should create 3 chunks (split by ---)
@@ -135,7 +135,7 @@ More content
 Part 3
 Final content`;
 
-        const tempFile = path.join(__dirname, 'fixtures', 'temp_custom_delimiter.md');
+        const tempFile = path.join(__dirname, '../fixtures', 'temp_custom_delimiter.md');
         fs.writeFileSync(tempFile, testContent);
 
         const result = parser.parseFile(tempFile, 'main', 'temp_custom_delimiter.md');
@@ -161,7 +161,7 @@ Final content`;
 
       try {
         // Use a file without --- delimiters
-        const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
+        const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
 
         // Should create 1 chunk (entire file)
@@ -185,7 +185,7 @@ Final content`;
 
 Content 2`;
 
-        const tempFile = path.join(__dirname, 'fixtures', 'temp_empty_chunks.md');
+        const tempFile = path.join(__dirname, '../fixtures', 'temp_empty_chunks.md');
         fs.writeFileSync(tempFile, testContent);
 
         const result = parser.parseFile(tempFile, 'main', 'temp_empty_chunks.md');
@@ -206,49 +206,49 @@ Content 2`;
   });
 
   it('should parse YAML fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
+    const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Java fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/java.java');
+    const filePath = path.resolve(__dirname, '../fixtures/java.java');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Go fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/go.go');
+    const filePath = path.resolve(__dirname, '../fixtures/go.go');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/go.go');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Python fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/python.py');
+    const filePath = path.resolve(__dirname, '../fixtures/python.py');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python.py');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse JSON fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/json.json');
+    const filePath = path.resolve(__dirname, '../fixtures/json.json');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Gradle fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/gradle.gradle');
+    const filePath = path.resolve(__dirname, '../fixtures/gradle.gradle');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/gradle.gradle');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Properties fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/properties.properties');
+    const filePath = path.resolve(__dirname, '../fixtures/properties.properties');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should extract symbols from Properties fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/properties.properties');
+    const filePath = path.resolve(__dirname, '../fixtures/properties.properties');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/properties.properties');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
     expect(allSymbols).toEqual(
@@ -260,25 +260,25 @@ Content 2`;
   });
 
   it('should parse Text fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/text.txt');
+    const filePath = path.resolve(__dirname, '../fixtures/text.txt');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse Handlebars fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/handlebars.hbs');
+    const filePath = path.resolve(__dirname, '../fixtures/handlebars.hbs');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/handlebars.hbs');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should parse C fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/c.c');
+    const filePath = path.resolve(__dirname, '../fixtures/c.c');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/c.c');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should extract symbols from C fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/c.c');
+    const filePath = path.resolve(__dirname, '../fixtures/c.c');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/c.c');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
     expect(allSymbols).toEqual(
@@ -299,7 +299,7 @@ Content 2`;
   });
 
   it('should extract content from Handlebars fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/handlebars.hbs');
+    const filePath = path.resolve(__dirname, '../fixtures/handlebars.hbs');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/handlebars.hbs');
 
     // Verify exactly one chunk was created (whole file approach)
@@ -324,7 +324,7 @@ Content 2`;
   });
 
   it('should recognize .hbs file extension', () => {
-    const hbsFile = path.resolve(__dirname, 'fixtures/handlebars.hbs');
+    const hbsFile = path.resolve(__dirname, '../fixtures/handlebars.hbs');
     const result = parser.parseFile(hbsFile, 'main', 'tests/fixtures/handlebars.hbs');
     expect(result.chunks.length).toBeGreaterThan(0);
     expect(result.chunks[0].language).toBe('handlebars');
@@ -358,13 +358,13 @@ Content 2`;
   });
 
   it('should parse C++ fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/cpp.cpp');
+    const filePath = path.resolve(__dirname, '../fixtures/cpp.cpp');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/cpp.cpp');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should extract symbols from C++ fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/cpp.cpp');
+    const filePath = path.resolve(__dirname, '../fixtures/cpp.cpp');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/cpp.cpp');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
 
@@ -493,7 +493,7 @@ export -f my_func`;
   });
 
   it('should filter out chunks larger than maxChunkSizeBytes', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/large_file.json');
+    const filePath = path.resolve(__dirname, '../fixtures/large_file.json');
     const originalMaxChunkSizeBytes = indexingConfig.maxChunkSizeBytes;
     indexingConfig.maxChunkSizeBytes = 50;
 
@@ -510,7 +510,7 @@ export -f my_func`;
   });
 
   it('should extract directory information correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
+    const filePath = path.resolve(__dirname, '../fixtures/typescript.ts');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
 
     expect(result.chunks.length).toBeGreaterThan(0);
@@ -524,7 +524,7 @@ export -f my_func`;
   });
 
   it('should handle root-level files correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
+    const filePath = path.resolve(__dirname, '../fixtures/typescript.ts');
     const result = parser.parseFile(filePath, 'main', 'typescript.ts');
 
     expect(result.chunks.length).toBeGreaterThan(0);
@@ -538,7 +538,7 @@ export -f my_func`;
   });
 
   it('should handle nested directory paths correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
+    const filePath = path.resolve(__dirname, '../fixtures/typescript.ts');
     const result = parser.parseFile(filePath, 'main', 'src/utils/helpers/typescript.ts');
 
     expect(result.chunks.length).toBeGreaterThan(0);
@@ -560,7 +560,7 @@ export -f my_func`;
       indexingConfig.chunkOverlapLines = 2;
 
       try {
-        const filePath = path.resolve(__dirname, 'fixtures/json.json');
+        const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
         // json.json has 32 lines. With 10-line chunks and 2-line overlap (step=8):
@@ -589,7 +589,7 @@ export -f my_func`;
       indexingConfig.chunkOverlapLines = 1;
 
       try {
-        const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
+        const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
 
         // yaml.yml has 8 lines. With 5-line chunks and 1-line overlap (step=4):
@@ -619,7 +619,7 @@ export -f my_func`;
       indexingConfig.defaultChunkLines = 15;
 
       try {
-        const filePath = path.resolve(__dirname, 'fixtures/json.json');
+        const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
         // All chunks should be skipped due to size limit
@@ -640,7 +640,7 @@ Second paragraph starts here.
 
 Third paragraph.`;
 
-      const tempFile = path.join(__dirname, 'fixtures', 'temp_paragraphs.txt');
+      const tempFile = path.join(__dirname, '../fixtures', 'temp_paragraphs.txt');
       fs.writeFileSync(tempFile, testContent);
 
       try {
@@ -679,7 +679,7 @@ Line 16
 Line 17
 Line 18`;
 
-      const tempFile = path.join(__dirname, 'fixtures', 'temp_no_paragraphs.txt');
+      const tempFile = path.join(__dirname, '../fixtures', 'temp_no_paragraphs.txt');
       fs.writeFileSync(tempFile, testContent);
 
       try {
@@ -702,7 +702,7 @@ Line 18`;
 
   describe('Line Number Calculation', () => {
     it('should calculate correct line numbers for Markdown files', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/markdown.md');
+      const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
 
       // First chunk should start at line 1 (heading)
@@ -723,7 +723,7 @@ Line 18`;
     });
 
     it('should calculate correct line numbers for YAML multi-document files', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/yaml.yml');
+      const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
 
       // With line-based chunking, the entire YAML file (8 lines) fits in one chunk (default 15 lines)
@@ -746,7 +746,7 @@ First paragraph
 
 Third paragraph`;
 
-      const testFilePath = path.resolve(__dirname, 'fixtures/duplicate_test.txt');
+      const testFilePath = path.resolve(__dirname, '../fixtures/duplicate_test.txt');
       fs.writeFileSync(testFilePath, testContent);
 
       try {
@@ -779,7 +779,7 @@ Third paragraph`;
     });
 
     it('should calculate correct line numbers for JSON files', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/json.json');
+      const filePath = path.resolve(__dirname, '../fixtures/json.json');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
       // With line-based chunking (default 15 lines per chunk, 3 line overlap), json.json (32 lines) will be split into chunks
@@ -795,7 +795,7 @@ Third paragraph`;
     });
 
     it('should calculate correct line numbers for text files', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/text.txt');
+      const filePath = path.resolve(__dirname, '../fixtures/text.txt');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
 
       // Single line text file
@@ -805,7 +805,7 @@ Third paragraph`;
     });
 
     it('should calculate correct line numbers for repeated paragraphs', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/repeated_paragraphs.txt');
+      const filePath = path.resolve(__dirname, '../fixtures/repeated_paragraphs.txt');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/repeated_paragraphs.txt');
 
       expect(result.chunks).toHaveLength(3);
@@ -825,7 +825,7 @@ Third paragraph`;
 
   describe('Export Detection', () => {
     it('should extract TypeScript exports correctly', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/typescript.ts');
+      const filePath = path.resolve(__dirname, '../fixtures/typescript.ts');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/typescript.ts');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -844,7 +844,7 @@ Third paragraph`;
     });
 
     it('should extract JavaScript exports correctly', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/javascript.js');
+      const filePath = path.resolve(__dirname, '../fixtures/javascript.js');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/javascript.js');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -861,7 +861,7 @@ Third paragraph`;
     });
 
     it('should extract Python exports correctly', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/python.py');
+      const filePath = path.resolve(__dirname, '../fixtures/python.py');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python.py');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -877,7 +877,7 @@ Third paragraph`;
     });
 
     it('should respect Python __all__ when present', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/python_with_all.py');
+      const filePath = path.resolve(__dirname, '../fixtures/python_with_all.py');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_with_all.py');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -899,7 +899,7 @@ Third paragraph`;
     });
 
     it('should handle Python __all__ with trailing commas and multiline', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/python_all_edge_cases.py');
+      const filePath = path.resolve(__dirname, '../fixtures/python_all_edge_cases.py');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_all_edge_cases.py');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -919,7 +919,7 @@ Third paragraph`;
     });
 
     it('should handle Python empty __all__', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/python_empty_all.py');
+      const filePath = path.resolve(__dirname, '../fixtures/python_empty_all.py');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_empty_all.py');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -934,7 +934,7 @@ Third paragraph`;
     });
 
     it('should handle Python multiple __all__ assignments', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/python_multiple_all.py');
+      const filePath = path.resolve(__dirname, '../fixtures/python_multiple_all.py');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_multiple_all.py');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -949,7 +949,7 @@ Third paragraph`;
     });
 
     it('should handle Python __all__ with mixed valid and invalid items', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/python_all_mixed_valid.py');
+      const filePath = path.resolve(__dirname, '../fixtures/python_all_mixed_valid.py');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/python_all_mixed_valid.py');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -969,7 +969,7 @@ Third paragraph`;
     });
 
     it('should extract Java public exports correctly', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/java.java');
+      const filePath = path.resolve(__dirname, '../fixtures/java.java');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/java.java');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -987,7 +987,7 @@ Third paragraph`;
     });
 
     it('should extract Go capitalized exports correctly', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/go.go');
+      const filePath = path.resolve(__dirname, '../fixtures/go.go');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/go.go');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
@@ -1006,7 +1006,7 @@ Third paragraph`;
     });
 
     it('should handle re-exports and mixed export styles', () => {
-      const filePath = path.resolve(__dirname, 'fixtures/exports_edge_cases.ts');
+      const filePath = path.resolve(__dirname, '../fixtures/exports_edge_cases.ts');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/exports_edge_cases.ts');
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
