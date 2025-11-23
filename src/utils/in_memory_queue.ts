@@ -52,7 +52,7 @@ export class InMemoryQueue implements IQueue {
     for (const doc of documents) {
       // Cast to access retryCount (it exists on our internal type)
       const internalDoc = doc as InMemoryQueuedDocument;
-      const currentRetryCount = internalDoc.retryCount || 0;
+      const currentRetryCount = internalDoc.retryCount;
 
       if (currentRetryCount + 1 >= MAX_RETRIES) {
         docsFailed.push(doc);

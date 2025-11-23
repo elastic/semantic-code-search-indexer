@@ -9,6 +9,8 @@ describe('parseLanguageNames', () => {
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
+  // Note: Vitest's restoreMocks:true automatically restores spies after each test
+
   it('should return all languages when no argument is provided', () => {
     const result = parseLanguageNames();
     const expected = Object.keys(languageConfigurations) as LanguageName[];

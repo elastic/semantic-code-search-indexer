@@ -8,7 +8,7 @@ export default defineConfig({
     setupFiles: ['./tests/integration-setup.ts'], // Use separate setup for integration tests
     include: ['tests/integration/**/*.test.ts'],
     // Pool configuration
-    pool: 'forks', // Use forks for better isolation
+    pool: 'forks', // Use forks for integration tests to ensure process-level isolation
     // Integration tests can run in parallel locally, serially in CI
     fileParallelism: process.env.CI ? false : true,
     maxWorkers: process.env.CI ? 1 : undefined, // Single worker in CI, auto-detect locally

@@ -14,6 +14,7 @@ describe('Logger', () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    // Note: Vitest's restoreMocks:true automatically restores spies
   });
 
   describe('console output', () => {

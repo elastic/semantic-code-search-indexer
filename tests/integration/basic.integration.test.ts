@@ -38,7 +38,7 @@ describe('Integration Test - Full Indexing Pipeline', () => {
 
     // Copy fixtures to test repo
     const fixturesDir = path.resolve(__dirname, '../fixtures');
-    execSync(`cp -r ${fixturesDir}/* ${testRepoPath}/`, { stdio: 'ignore' });
+    fs.cpSync(fixturesDir, testRepoPath, { recursive: true });
 
     // Initialize as git repo
     execSync('git init', { cwd: testRepoPath, stdio: 'ignore' });

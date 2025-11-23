@@ -68,6 +68,9 @@ describe('incrementalIndex', () => {
 
     mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('dummy-commit-hash');
 
+    // Note: Using function() instead of arrow function because the 'on' handler
+    // needs to return a reference to the worker object itself (for chaining).
+    // Arrow functions with () => ({...}) can't create the self-reference.
     mockedWorker.mockImplementation(function () {
       const worker = {
         on: vi.fn((event, cb) => {
