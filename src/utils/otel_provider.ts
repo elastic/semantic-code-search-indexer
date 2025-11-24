@@ -128,13 +128,14 @@ function parseResourceAttributes(resourceAttributesString: string): Record<strin
  * @returns A Resource instance with all detected and custom attributes
  */
 function createResource(defaultAttributes: Record<string, string | number> = {}): Resource {
-  // Start with default attributes
-  let resource = new Resource(defaultAttributes);
+  // Start with SDK defaults (telemetry.sdk.*, etc.) but exclude service.name
+  // which defaults to "unknown_service:node"
+  let resource = Resource.default();
 
-  // Merge with SDK defaults (telemetry.sdk.*, service.name, etc.)
-  resource = resource.merge(Resource.default());
+  // Merge with our custom default attributes (includes service.name from config)
+  resource = resource.merge(new Resource(defaultAttributes));
 
-  // Parse and merge OTEL_RESOURCE_ATTRIBUTES if present
+  // Parse and merge OTEL_RESOURCE_ATTRIBUTES if present (highest priority)
   const otelResourceAttributes = process.env.OTEL_RESOURCE_ATTRIBUTES;
   if (otelResourceAttributes) {
     const envAttributes = parseResourceAttributes(otelResourceAttributes);
