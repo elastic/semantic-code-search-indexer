@@ -331,13 +331,13 @@ Content 2`;
   });
 
   it('should parse C fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/c.c');
+    const filePath = path.resolve(__dirname, '../fixtures/c.c');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/c.c');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should extract symbols from C fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/c.c');
+    const filePath = path.resolve(__dirname, '../fixtures/c.c');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/c.c');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
     expect(allSymbols).toEqual(
@@ -388,13 +388,13 @@ Content 2`;
   });
 
   it('should parse Bash fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/bash.sh');
+    const filePath = path.resolve(__dirname, '../fixtures/bash.sh');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/bash.sh');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
   it('should extract symbols from Bash fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/bash.sh');
+    const filePath = path.resolve(__dirname, '../fixtures/bash.sh');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/bash.sh');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
     expect(allSymbols).toEqual(
@@ -421,7 +421,7 @@ Content 2`;
   });
 
   it('should extract imports from Bash fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, 'fixtures/bash.sh');
+    const filePath = path.resolve(__dirname, '../fixtures/bash.sh');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/bash.sh');
     const allImports = result.chunks.flatMap((chunk) => chunk.imports);
     expect(allImports).toEqual(
