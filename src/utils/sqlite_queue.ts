@@ -9,6 +9,7 @@ import { QUEUE_STATUS_PENDING, QUEUE_STATUS_PROCESSING, QUEUE_STATUS_FAILED, CHU
 
 export const MAX_RETRIES = 3;
 const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const WAL_CHECKPOINT_INTERVAL = 100; // Checkpoint every ~100 commits (10% probability per commit)
 
 /**
  * Check if a process with the given PID is currently running.
@@ -40,10 +41,18 @@ export interface SqliteQueueOptions {
   branch?: string;
 }
 
+// Cache TTL for queue stats - prevents blocking event loop with frequent SQL queries
+const STATS_CACHE_TTL_MS = 5000; // 5 seconds
+
 export class SqliteQueue implements IQueue {
   private db: Database.Database;
   private logger: ReturnType<typeof createLogger>;
   private metrics: Metrics;
+  private commitCount = 0;
+
+  // Cache for queue stats to prevent blocking event loop during OTEL metrics export
+  private cachedStats = { pending: 0, processing: 0, failed: 0 };
+  private statsCacheTime = 0;
 
   constructor(options: SqliteQueueOptions) {
     const { dbPath, repoName, branch } = options;
@@ -57,7 +66,12 @@ export class SqliteQueue implements IQueue {
   }
 
   async initialize(): Promise<void> {
+    // SQLite performance optimizations
     this.db.exec('PRAGMA journal_mode = WAL;');
+    this.db.exec('PRAGMA synchronous = NORMAL;'); // Safe for WAL mode, faster than FULL
+    this.db.exec('PRAGMA cache_size = -64000;'); // 64MB cache (negative = KB)
+    this.db.exec('PRAGMA temp_store = MEMORY;'); // Temp tables in memory
+    this.db.exec('PRAGMA mmap_size = 268435456;'); // 256MB memory-mapped I/O
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS queue (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,8 +84,9 @@ export class SqliteQueue implements IQueue {
         worker_pid INTEGER
       );
     `);
-    this.db.exec('CREATE INDEX IF NOT EXISTS idx_status ON queue (status);');
-    this.db.exec('CREATE INDEX IF NOT EXISTS idx_batch_id ON queue (batch_id);');
+    // Compound index for efficient dequeue: WHERE status + ORDER BY created_at
+    // This single index covers all status-based queries and provides sorted access by created_at
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_status_created ON queue (status, created_at);');
 
     // Create metadata table for tracking enqueue completion
     this.db.exec(`
@@ -123,10 +138,20 @@ export class SqliteQueue implements IQueue {
 
   /**
    * Gets current queue statistics by status.
+   * Results are cached for STATS_CACHE_TTL_MS to prevent blocking the event loop
+   * during frequent OTEL metrics exports.
    *
    * @returns Object with counts for pending, processing, and failed documents
    */
   private getQueueStats(): { pending: number; processing: number; failed: number } {
+    const now = Date.now();
+
+    // Return cached stats if still valid
+    if (now - this.statsCacheTime < STATS_CACHE_TTL_MS) {
+      return this.cachedStats;
+    }
+
+    // Refresh cache
     const stmt = this.db.prepare(`
       SELECT status, COUNT(*) as count
       FROM queue
@@ -134,18 +159,19 @@ export class SqliteQueue implements IQueue {
     `);
     const rows = stmt.all() as { status: string; count: number }[];
 
-    const stats = { pending: 0, processing: 0, failed: 0 };
+    this.cachedStats = { pending: 0, processing: 0, failed: 0 };
     for (const row of rows) {
       if (row.status === QUEUE_STATUS_PENDING) {
-        stats.pending = row.count;
+        this.cachedStats.pending = row.count;
       } else if (row.status === QUEUE_STATUS_PROCESSING) {
-        stats.processing = row.count;
+        this.cachedStats.processing = row.count;
       } else if (row.status === QUEUE_STATUS_FAILED) {
-        stats.failed = row.count;
+        this.cachedStats.failed = row.count;
       }
     }
 
-    return stats;
+    this.statsCacheTime = now;
+    return this.cachedStats;
   }
 
   async enqueue(documents: CodeChunk[]): Promise<void> {
@@ -175,7 +201,7 @@ export class SqliteQueue implements IQueue {
     // This prevents race conditions when multiple workers dequeue concurrently
     const updateStmt = this.db.prepare(`
       UPDATE queue
-      SET 
+      SET
         status = '${QUEUE_STATUS_PROCESSING}',
         processing_started_at = CURRENT_TIMESTAMP,
         worker_pid = ?
@@ -216,6 +242,19 @@ export class SqliteQueue implements IQueue {
     // Record commit and delete metrics
     this.metrics.queue?.documentsCommitted.add(result.changes, createAttributes(this.metrics));
     this.metrics.queue?.documentsDeleted.add(result.changes, createAttributes(this.metrics));
+
+    // Periodic WAL checkpoint to prevent unbounded WAL growth
+    // PASSIVE mode won't block - it just checkpoints what it can
+    this.commitCount++;
+    if (this.commitCount % WAL_CHECKPOINT_INTERVAL === 0) {
+      try {
+        this.db.exec('PRAGMA wal_checkpoint(PASSIVE);');
+        this.logger.info('WAL checkpoint completed');
+      } catch (error) {
+        // Non-fatal - checkpoint will happen eventually
+        this.logger.warn('WAL checkpoint failed', { error });
+      }
+    }
   }
 
   async requeue(documents: QueuedDocument[]): Promise<void> {
@@ -375,12 +414,12 @@ export class SqliteQueue implements IQueue {
   }
 
   /**
-   * Clear all pending and processing items from the queue
-   * Used when doing a clean reindex to start fresh
+   * Clear all items from the queue (pending, processing, and failed)
+   * Used when doing a clean reindex to start completely fresh
    */
   async clear(): Promise<void> {
-    this.logger.info('Clearing queue (removing all pending and processing items)');
-    const result = this.db.prepare("DELETE FROM queue WHERE status IN ('pending', 'processing')").run();
+    this.logger.info('Clearing queue (removing all items including failed)');
+    const result = this.db.prepare('DELETE FROM queue').run();
     this.logger.info(`Cleared ${result.changes} items from queue`);
 
     // Also clear the enqueue_completed flag
@@ -393,7 +432,7 @@ export class SqliteQueue implements IQueue {
   async markEnqueueCompleted(): Promise<void> {
     this.db
       .prepare(
-        `INSERT OR REPLACE INTO queue_metadata (key, value, updated_at) 
+        `INSERT OR REPLACE INTO queue_metadata (key, value, updated_at)
          VALUES ('enqueue_completed', 'true', CURRENT_TIMESTAMP)`
       )
       .run();

@@ -22,3 +22,9 @@ matches.json
 .scalability-test-queue/
 .test-queue/
 .test-repo/
+
+# Queue test artifacts
+.queue-*
+.perf-test-queue/
+.pragma-test-queue/
+.checkpoint-test-queue/

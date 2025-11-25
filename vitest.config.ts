@@ -12,7 +12,7 @@ export default defineConfig({
       // Integration tests are run separately via npm run test:integration
     ],
     // Pool configuration
-    pool: 'threads', // Use threads instead of forks for better memory efficiency
+    pool: 'forks', // Use threads instead of forks for better memory efficiency
     // Run tests in parallel locally for speed, serially in CI for stability
     fileParallelism: process.env.CI ? false : true,
     maxWorkers: process.env.CI ? 1 : undefined, // Single worker in CI, auto-detect locally
