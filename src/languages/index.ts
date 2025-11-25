@@ -13,6 +13,7 @@ import { textConfig } from './text';
 import { handlebarsConfig } from './handlebars';
 import { cConfig } from './c';
 import { cppConfig } from './cpp';
+import { bashConfig } from './bash';
 import { LanguageConfiguration } from '../utils/parser';
 import {
   validateLanguageConfiguration,
@@ -35,6 +36,7 @@ export const languageConfigurations = {
   handlebars: handlebarsConfig,
   c: cConfig,
   cpp: cppConfig,
+  bash: bashConfig,
 } as const;
 
 /**

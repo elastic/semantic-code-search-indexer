@@ -13,3 +13,4 @@ matches.json
 .queue/
 .queues/
 .idea
+.scalability-test-queue

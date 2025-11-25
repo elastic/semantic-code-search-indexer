@@ -715,6 +715,42 @@ export class LanguageParser {
             }
           }
 
+          // Bash: filter declaration_command to only actual exports
+          // Tree-sitter can't distinguish export/readonly/local/declare (unnamed node)
+          if (langConfig.name === 'bash') {
+            const nameCapture = match.captures.find((c) => c.name === EXPORT_CAPTURE_NAMES.NAME);
+            if (nameCapture) {
+              // Navigate to declaration_command node:
+              // 'export VAR=value': variable_name -> variable_assignment -> declaration_command
+              // 'export -f funcname': variable_name -> declaration_command
+              let declNode = nameCapture.node.parent;
+
+              // Handle variable assignment case: variable_name -> variable_assignment -> declaration_command
+              if (declNode?.type === 'variable_assignment') {
+                declNode = declNode.parent;
+              }
+
+              if (declNode && declNode.type === 'declaration_command') {
+                const firstChild = declNode.child(0);
+                if (firstChild) {
+                  // Only accept 'export' keyword, reject readonly/local/declare
+                  if (firstChild.type !== 'export') {
+                    continue; // Skip - not an actual export statement
+                  }
+                  // For 'export -f funcname', verify -f flag is present
+                  if (match.captures.some((c) => c.name === 'flag')) {
+                    const wordNode = Array.from({ length: declNode.childCount }, (_, i) => declNode.child(i)).find(
+                      (child) => child?.type === 'word'
+                    );
+                    if (!wordNode || wordNode.text !== '-f') {
+                      continue; // Skip - not 'export -f'
+                    }
+                  }
+                }
+              }
+            }
+          }
+
           const line = match.captures[0].node.startPosition.row + 1;
           if (!exportsByLine[line]) {
             exportsByLine[line] = [];

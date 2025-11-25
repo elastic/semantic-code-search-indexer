@@ -2,6 +2,7 @@ import { parseRepoArg, hasQueueItems, ensureRepoCloned, indexCommand } from '../
 import { appConfig } from '../src/config';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import Database from 'better-sqlite3';
 import * as gitHelper from '../src/utils/git_helper';
 import { logger } from '../src/utils/logger';
@@ -22,7 +23,8 @@ jest.mock('child_process', () => {
 });
 
 describe('index_command', () => {
-  const testQueuesDir = path.join(__dirname, '.test-queues');
+  // Use unique test directory in system temp to avoid parallel test conflicts
+  const testQueuesDir = path.join(os.tmpdir(), `index-command-test-${process.pid}-${Date.now()}`);
 
   beforeEach(() => {
     // Clean up test directories
@@ -218,17 +220,20 @@ describe('index_command', () => {
 
         const db = new Database(path.join(queueDir, 'queue.db'));
 
-        // Create queue table
-        db.exec(`
-          CREATE TABLE IF NOT EXISTS queue (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            status TEXT DEFAULT 'pending'
-          )
-        `);
+        try {
+          // Create queue table
+          db.exec(`
+            CREATE TABLE IF NOT EXISTS queue (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              status TEXT DEFAULT 'pending'
+            )
+          `);
 
-        // Insert a pending item
-        db.prepare('INSERT INTO queue (status) VALUES (?)').run('pending');
-        db.close();
+          // Insert a pending item
+          db.prepare('INSERT INTO queue (status) VALUES (?)').run('pending');
+        } finally {
+          db.close();
+        }
 
         // Mock appConfig to use test directory
         Object.defineProperty(appConfig, 'queueBaseDir', {
@@ -237,7 +242,7 @@ describe('index_command', () => {
           configurable: true,
         });
 
-        const result = hasQueueItems('test-repo');
+        const result = hasQueueItems(path.basename(queueDir));
 
         expect(result).toBe(true);
       });
@@ -248,15 +253,18 @@ describe('index_command', () => {
 
         const db = new Database(path.join(queueDir, 'queue.db'));
 
-        db.exec(`
-          CREATE TABLE IF NOT EXISTS queue (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            status TEXT DEFAULT 'pending'
-          )
-        `);
+        try {
+          db.exec(`
+            CREATE TABLE IF NOT EXISTS queue (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              status TEXT DEFAULT 'pending'
+            )
+          `);
 
-        db.prepare('INSERT INTO queue (status) VALUES (?)').run('processing');
-        db.close();
+          db.prepare('INSERT INTO queue (status) VALUES (?)').run('processing');
+        } finally {
+          db.close();
+        }
 
         Object.defineProperty(appConfig, 'queueBaseDir', {
           value: testQueuesDir,
@@ -264,7 +272,7 @@ describe('index_command', () => {
           configurable: true,
         });
 
-        const result = hasQueueItems('test-repo2');
+        const result = hasQueueItems(path.basename(queueDir));
 
         expect(result).toBe(true);
       });
@@ -277,14 +285,17 @@ describe('index_command', () => {
 
         const db = new Database(path.join(queueDir, 'queue.db'));
 
-        // Create empty queue table
-        db.exec(`
-          CREATE TABLE IF NOT EXISTS queue (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            status TEXT DEFAULT 'pending'
-          )
-        `);
-        db.close();
+        try {
+          // Create empty queue table
+          db.exec(`
+            CREATE TABLE IF NOT EXISTS queue (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              status TEXT DEFAULT 'pending'
+            )
+          `);
+        } finally {
+          db.close();
+        }
 
         Object.defineProperty(appConfig, 'queueBaseDir', {
           value: testQueuesDir,
@@ -292,7 +303,7 @@ describe('index_command', () => {
           configurable: true,
         });
 
-        const result = hasQueueItems('empty-repo');
+        const result = hasQueueItems(path.basename(queueDir));
 
         expect(result).toBe(false);
       });
@@ -303,16 +314,19 @@ describe('index_command', () => {
 
         const db = new Database(path.join(queueDir, 'queue.db'));
 
-        db.exec(`
-          CREATE TABLE IF NOT EXISTS queue (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            status TEXT DEFAULT 'pending'
-          )
-        `);
+        try {
+          db.exec(`
+            CREATE TABLE IF NOT EXISTS queue (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              status TEXT DEFAULT 'pending'
+            )
+          `);
 
-        db.prepare('INSERT INTO queue (status) VALUES (?)').run('completed');
-        db.prepare('INSERT INTO queue (status) VALUES (?)').run('failed');
-        db.close();
+          db.prepare('INSERT INTO queue (status) VALUES (?)').run('completed');
+          db.prepare('INSERT INTO queue (status) VALUES (?)').run('failed');
+        } finally {
+          db.close();
+        }
 
         Object.defineProperty(appConfig, 'queueBaseDir', {
           value: testQueuesDir,
@@ -320,7 +334,7 @@ describe('index_command', () => {
           configurable: true,
         });
 
-        const result = hasQueueItems('completed-repo');
+        const result = hasQueueItems(path.basename(queueDir));
 
         expect(result).toBe(false);
       });
@@ -342,7 +356,7 @@ describe('index_command', () => {
   });
 
   describe('ensureRepoCloned', () => {
-    const testRepoPath = path.join(__dirname, '.test-repo');
+    const testRepoPath = path.join(os.tmpdir(), `test-repo-${process.pid}-${Date.now()}`);
 
     beforeEach(() => {
       // Clean up test repo
