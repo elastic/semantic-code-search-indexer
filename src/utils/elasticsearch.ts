@@ -18,7 +18,7 @@ import { logger } from './logger';
 export let client: Client;
 
 const baseOptions: Partial<ClientOptions> = {
-  requestTimeout: 90000, // 90 seconds
+  requestTimeout: parseInt(process.env.ELASTICSEARCH_REQUEST_TIMEOUT || '90000', 10),
 };
 
 if (elasticsearchConfig.cloudId) {
@@ -121,10 +121,12 @@ export async function createIndex(index?: string): Promise<void> {
           startLine: { type: 'integer' },
           endLine: { type: 'integer' },
           content: { type: 'text' },
-          semantic_text: {
-            type: 'semantic_text',
-            inference_id: elserInferenceId,
-          },
+          ...(process.env.DISABLE_SEMANTIC_TEXT !== 'true' && {
+            semantic_text: {
+              type: 'semantic_text',
+              inference_id: elserInferenceId,
+            },
+          }),
           code_vector: {
             type: 'dense_vector',
             dims: 768, // Based on microsoft/codebert-base
@@ -261,30 +263,37 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
     bulkOptions.pipeline = codeSimilarityPipeline;
   }
 
-  const bulkResponse = await client.bulk(bulkOptions);
+  try {
+    logger.info(`Indexing ${chunks.length} chunks to ${indexName}...`);
+    const bulkResponse = await client.bulk(bulkOptions);
+    logger.info(`Bulk operation completed for ${chunks.length} chunks`);
 
-  if (bulkResponse.errors) {
-    const erroredDocuments: ErroredDocument[] = [];
-    // The `action` object from the Elasticsearch bulk response has a dynamic structure
-    // (e.g., { index: { ... } }, { create: { ... } }) which is difficult to type
-    // statically without overly complex type guards.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    bulkResponse.items.forEach((action: any, i: number) => {
-      const operation = Object.keys(action)[0];
-      if (action[operation].error) {
-        erroredDocuments.push({
-          status: action[operation].status,
-          error: action[operation].error,
-          operation: operations[i * 2] as { index: { _index: string } },
-          document: operations[i * 2 + 1] as CodeChunk,
-        });
-      }
-    });
-    logger.error('Errors during bulk indexing:', { errors: JSON.stringify(erroredDocuments, null, 2) });
-    throw new Error(
-      `Bulk indexing failed: ${erroredDocuments.length} of ${chunks.length} documents had errors. ` +
-        `First error: ${JSON.stringify(erroredDocuments[0]?.error)}`
-    );
+    if (bulkResponse.errors) {
+      const erroredDocuments: ErroredDocument[] = [];
+      // The `action` object from the Elasticsearch bulk response has a dynamic structure
+      // (e.g., { index: { ... } }, { create: { ... } }) which is difficult to type
+      // statically without overly complex type guards.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      bulkResponse.items.forEach((action: any, i: number) => {
+        const operation = Object.keys(action)[0];
+        if (action[operation].error) {
+          erroredDocuments.push({
+            status: action[operation].status,
+            error: action[operation].error,
+            operation: operations[i * 2] as { index: { _index: string } },
+            document: operations[i * 2 + 1] as CodeChunk,
+          });
+        }
+      });
+      logger.error('Errors during bulk indexing:', { errors: JSON.stringify(erroredDocuments, null, 2) });
+      throw new Error(
+        `Bulk indexing failed: ${erroredDocuments.length} of ${chunks.length} documents had errors. ` +
+          `First error: ${JSON.stringify(erroredDocuments[0]?.error)}`
+      );
+    }
+  } catch (error) {
+    logger.error('Exception during bulk indexing:', { error });
+    throw error;
   }
 }
 

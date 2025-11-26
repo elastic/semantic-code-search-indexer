@@ -1,10 +1,10 @@
-// tests/scaffold_language_command.test.ts
 import path from 'path';
 import { vol } from 'memfs';
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 
 // Mock fs module
-jest.mock('fs');
-jest.mock('fs/promises');
+vi.mock('fs');
+vi.mock('fs/promises');
 
 describe('scaffold_language_command', () => {
   const languagesDir = path.join(process.cwd(), 'src', 'languages');
@@ -57,12 +57,12 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
     });
 
     // Clear console mocks
-    jest.spyOn(console, 'log').mockImplementation();
-    jest.spyOn(console, 'error').mockImplementation();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vol.reset();
   });
 
   describe('template file generation', () => {

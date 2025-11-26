@@ -1,24 +1,25 @@
-import { parseRepoArg, hasQueueItems, ensureRepoCloned, indexCommand } from '../src/commands/index_command';
-import { appConfig } from '../src/config';
+import { parseRepoArg, hasQueueItems, ensureRepoCloned, indexCommand } from '../../src/commands/index_command';
+import { appConfig } from '../../src/config';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import Database from 'better-sqlite3';
-import * as gitHelper from '../src/utils/git_helper';
-import { logger } from '../src/utils/logger';
-import * as workerModule from '../src/commands/worker_command';
-import * as fullIndexModule from '../src/commands/full_index_producer';
-import * as incrementalModule from '../src/commands/incremental_index_command';
-import * as elasticsearchModule from '../src/utils/elasticsearch';
+import * as gitHelper from '../../src/utils/git_helper';
+import { logger } from '../../src/utils/logger';
+import * as workerModule from '../../src/commands/worker_command';
+import * as fullIndexModule from '../../src/commands/full_index_producer';
+import * as incrementalModule from '../../src/commands/incremental_index_command';
+import * as elasticsearchModule from '../../src/utils/elasticsearch';
 import { execFileSync } from 'child_process';
-import * as otelProvider from '../src/utils/otel_provider';
+import * as otelProvider from '../../src/utils/otel_provider';
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 
 // Mock child_process but keep all other functions
-jest.mock('child_process', () => {
-  const actual = jest.requireActual('child_process');
+vi.mock('child_process', async () => {
+  const actual = await vi.importActual('child_process');
   return {
     ...actual,
-    execFileSync: jest.fn(),
+    execFileSync: vi.fn(),
   };
 });
 
@@ -370,7 +371,7 @@ describe('index_command', () => {
       if (fs.existsSync(testRepoPath)) {
         fs.rmSync(testRepoPath, { recursive: true });
       }
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     describe('WHEN repository already exists', () => {
@@ -378,8 +379,8 @@ describe('index_command', () => {
         // Create test repo directory
         fs.mkdirSync(testRepoPath, { recursive: true });
 
-        const cloneOrPullRepoSpy = jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
-        const loggerInfoSpy = jest.spyOn(logger, 'info');
+        const cloneOrPullRepoSpy = vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        const loggerInfoSpy = vi.spyOn(logger, 'info');
 
         await ensureRepoCloned('https://github.com/test/repo.git', testRepoPath);
 
@@ -390,7 +391,7 @@ describe('index_command', () => {
 
     describe('WHEN repository does not exist', () => {
       it('SHOULD call cloneOrPullRepo with correct parameters', async () => {
-        const cloneOrPullRepoSpy = jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        const cloneOrPullRepoSpy = vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
 
         await ensureRepoCloned('https://github.com/test/repo.git', testRepoPath);
 
@@ -398,7 +399,7 @@ describe('index_command', () => {
       });
 
       it('SHOULD pass token to cloneOrPullRepo when provided', async () => {
-        const cloneOrPullRepoSpy = jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        const cloneOrPullRepoSpy = vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
 
         await ensureRepoCloned('https://github.com/test/repo.git', testRepoPath, 'ghp_token123');
 
@@ -410,7 +411,7 @@ describe('index_command', () => {
       });
 
       it('SHOULD handle SSH URLs correctly', async () => {
-        const cloneOrPullRepoSpy = jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        const cloneOrPullRepoSpy = vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
 
         await ensureRepoCloned('git@github.com:test/repo.git', testRepoPath);
 
@@ -421,33 +422,33 @@ describe('index_command', () => {
 
   describe('indexRepos with watch mode', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       // Mock execFileSync to return a branch name
-      (execFileSync as jest.Mock).mockReturnValue(Buffer.from('main\n'));
+      vi.mocked(execFileSync).mockReturnValue(Buffer.from('main\n'));
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     describe('WHEN watch mode is enabled with multiple repos', () => {
       it('SHOULD warn that only the first repo will be watched', async () => {
-        const loggerWarnSpy = jest.spyOn(logger, 'warn');
+        const loggerWarnSpy = vi.spyOn(logger, 'warn');
 
         // Mock all the dependencies to prevent actual execution
-        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-        jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
-        jest.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
 
         // Mock the worker and indexing functions
-        jest.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
-        jest.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-        jest.spyOn(incrementalModule, 'incrementalIndex').mockResolvedValue(undefined);
-        jest.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-        jest.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(incrementalModule, 'incrementalIndex').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
 
         // Mock shutdown
-        jest.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
         // Execute the command with multiple repos and watch flag
         await indexCommand.parseAsync([
@@ -468,19 +469,19 @@ describe('index_command', () => {
 
     describe('WHEN watch mode is enabled with single repo', () => {
       it('SHOULD not warn about multiple repos', async () => {
-        const loggerWarnSpy = jest.spyOn(logger, 'warn');
+        const loggerWarnSpy = vi.spyOn(logger, 'warn');
 
         // Mock all the dependencies
-        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-        jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
-        jest.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
 
-        jest.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
-        jest.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-        jest.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-        jest.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
 
-        jest.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
         // Execute with single repo
         await indexCommand.parseAsync(['node', 'test', '/path/to/repo1', '--watch']);
@@ -492,18 +493,18 @@ describe('index_command', () => {
 
     describe('WHEN processing multiple repos with watch mode', () => {
       it('SHOULD pass watch=true only to first repo worker', async () => {
-        const workerSpy = jest.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        const workerSpy = vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
 
         // Mock all dependencies
-        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-        jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
-        jest.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
 
-        jest.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-        jest.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-        jest.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
 
-        jest.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
         // Execute with multiple repos and watch
         await indexCommand.parseAsync(['node', 'test', '/path/to/repo1', '/path/to/repo2', '--watch']);
@@ -535,19 +536,19 @@ describe('index_command', () => {
 
     describe('WHEN watch mode is enabled', () => {
       it('SHOULD log which repo is being watched', async () => {
-        const loggerInfoSpy = jest.spyOn(logger, 'info');
+        const loggerInfoSpy = vi.spyOn(logger, 'info');
 
         // Mock all dependencies
-        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-        jest.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
-        jest.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
 
-        jest.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
-        jest.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-        jest.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-        jest.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
 
-        jest.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
         // Execute with watch mode
         await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--watch']);

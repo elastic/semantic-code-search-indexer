@@ -1,6 +1,8 @@
-import * as elasticsearch from '../src/utils/elasticsearch';
-import { CodeChunk } from '../src/utils/elasticsearch';
+import * as elasticsearch from '../../src/utils/elasticsearch';
+import { CodeChunk } from '../../src/utils/elasticsearch';
 import { Client } from '@elastic/elasticsearch';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 const MOCK_CHUNK: CodeChunk = {
   type: 'code',
@@ -21,15 +23,10 @@ const MOCK_CHUNK: CodeChunk = {
 };
 
 describe('indexCodeChunks', () => {
-  let mockBulk: jest.SpyInstance;
+  let mockBulk: Mock;
 
   beforeEach(() => {
-    // Spy on the client.bulk method
-    mockBulk = jest.spyOn(elasticsearch.client, 'bulk');
-  });
-
-  afterEach(() => {
-    mockBulk.mockRestore();
+    mockBulk = vi.spyOn(elasticsearch.client, 'bulk');
   });
 
   it('should not throw when bulk indexing succeeds', async () => {
@@ -103,7 +100,7 @@ describe('indexCodeChunks', () => {
 
     try {
       await elasticsearch.indexCodeChunks(chunks);
-      fail('Expected indexCodeChunks to throw an error');
+      expect.fail('Expected indexCodeChunks to throw an error');
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
       if (error instanceof Error) {
@@ -164,7 +161,7 @@ describe('indexCodeChunks', () => {
 
     try {
       await elasticsearch.indexCodeChunks(chunks);
-      fail('Expected indexCodeChunks to throw an error');
+      expect.fail('Expected indexCodeChunks to throw an error');
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
       if (error instanceof Error) {
@@ -240,7 +237,7 @@ describe('Elasticsearch Client Configuration', () => {
         expect(config.endpoint).toBeTruthy();
       } else {
         // At least one should be set for the client to initialize
-        fail('Neither cloudId nor endpoint is configured');
+        expect.fail('Neither cloudId nor endpoint is configured');
       }
     });
 

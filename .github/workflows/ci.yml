@@ -43,14 +43,12 @@ jobs:
       - name: Test
         env:
           CI: true
-        run: npm test -- --ci
-  
+        run: npm test
+
   integration_tests:
-    if: ${{ github.event.pull_request.head.repo.full_name == 'elastic/semantic-code-search-indexer' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
 
     strategy:
       fail-fast: false
@@ -58,18 +56,6 @@ jobs:
         node-version: [20.x, 22.x]
 
     steps:
-      - name: Get token
-        id: get_token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.ELASTIC_OBSERVABILITY_APP_ID }}
-          private-key: ${{ secrets.ELASTIC_OBSERVABILITY_APP_PEM }}
-          permission-contents: read
-          repositories: |
-            observability-test-environments
-            oblt-cli
-            semantic-code-search-indexer
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -85,29 +71,14 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Setup Git
-        uses: elastic/oblt-actions/git/setup@f740c3cbf5827083fd638a6b80bcd27d0f903d37 # v1
-        with:
-          github-token: ${{ steps.get_token.outputs.token }}
-
-      - name: "Setup oblt-cli"
-        uses: elastic/oblt-actions/oblt-cli/setup@dbb6b183abcf22f595ad943862358d25a929c129 # ratchet:elastic/oblt-actions/oblt-cli/setup@v1
-        with:
-          github-token: ${{ steps.get_token.outputs.token }}
-          slack-channel: '#observablt-bots'
-          username: 'obltmachine'
-
-      - name: Authenticate to Google Cloud
-        uses: "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" # ratchet:google-github-actions/auth@v3
-        with:
-          project_id: ${{ vars.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_ID }}
-
-      - name: "Pull test cluster credentials"
-        run: oblt-cli cluster secrets env --cluster-name test-oblt --output-file .env.test
+      - name: Setup Elasticsearch for integration tests
+        run: npm run test:integration:setup
 
       - name: Run integration tests
         env:
           CI: true
-          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
-        run: npm run test:integration -- --ci
+        run: npm run test:integration:run
+
+      - name: Teardown Elasticsearch
+        if: always()
+        run: npm run test:integration:teardown

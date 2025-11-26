@@ -36,8 +36,8 @@ interface RepoInfo {
  */
 function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?: RepoInfo) {
   // Silent mode: skip console output in test environment
-  if (process.env.NODE_ENV !== 'test') {
-    // Always output text to console (unless in test mode)
+  if (process.env.NODE_ENV !== 'test' || process.env.FORCE_LOGGING === 'true') {
+    // Always output text to console (unless in test mode without FORCE_LOGGING)
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] [${level}] ${message}`);
   }

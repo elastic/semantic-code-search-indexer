@@ -1,13 +1,14 @@
-import { retryFailedCommand } from '../src/commands/retry_failed_command';
-import { SqliteQueue } from '../src/utils/sqlite_queue';
-import { CodeChunk } from '../src/utils/elasticsearch';
-import { appConfig } from '../src/config';
+import { retryFailedCommand } from '../../src/commands/retry_failed_command';
+import { SqliteQueue } from '../../src/utils/sqlite_queue';
+import { CodeChunk } from '../../src/utils/elasticsearch';
+import { appConfig } from '../../src/config';
 import path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 
 // Mock the config to use a temporary directory
-jest.mock('../src/config', () => ({
+vi.mock('../../src/config', () => ({
   appConfig: {
     queueBaseDir: './.test-queues',
   },
@@ -23,17 +24,17 @@ jest.mock('../src/config', () => ({
 }));
 
 // Mock the logger to prevent console output during tests
-jest.mock('../src/utils/logger', () => ({
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+vi.mock('../../src/utils/logger', () => ({
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   })),
   logger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
   },
 }));
 

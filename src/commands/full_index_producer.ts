@@ -102,7 +102,19 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   const allFiles = await glob(globPattern, {
     cwd: gitRoot,
   });
-  const files = ig.filter(allFiles);
+
+  // Normalize to relative paths - glob may return absolute paths despite cwd
+  // Use fs.realpathSync to resolve symlinks (e.g., /tmp -> /private/tmp on macOS)
+  const realGitRoot = fs.realpathSync(gitRoot);
+  const relativeFiles = allFiles.map((f) => {
+    if (path.isAbsolute(f)) {
+      const realPath = fs.realpathSync(f);
+      return path.relative(realGitRoot, realPath);
+    }
+    return f;
+  });
+
+  const files = ig.filter(relativeFiles);
 
   logger.info(`Found ${files.length} files to process.`);
 

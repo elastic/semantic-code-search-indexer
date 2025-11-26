@@ -1,16 +1,15 @@
-// tests/languages.test.ts
-import { parseLanguageNames, languageConfigurations, LanguageName } from '../src/languages';
+import { parseLanguageNames, languageConfigurations, LanguageName } from '../../src/languages';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 describe('parseLanguageNames', () => {
-  let consoleWarnSpy: jest.SpyInstance;
+  let consoleWarnSpy: Mock;
 
   beforeEach(() => {
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
-  afterEach(() => {
-    consoleWarnSpy.mockRestore();
-  });
+  // Note: Vitest's restoreMocks:true automatically restores spies after each test
 
   it('should return all languages when no argument is provided', () => {
     const result = parseLanguageNames();
