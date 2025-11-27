@@ -270,6 +270,7 @@ async function indexRepos(
       token: config.token,
       repoName: config.repoName,
       branch: gitBranch,
+      concurrency,
     };
 
     try {

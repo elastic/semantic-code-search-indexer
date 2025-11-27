@@ -23,6 +23,7 @@ export interface IncrementalIndexOptions {
   token?: string;
   repoName?: string;
   branch?: string;
+  concurrency?: number;
 }
 
 async function getQueue(options: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
@@ -136,10 +137,17 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     toDelete: filesToDelete.length,
   });
 
-  for (const file of filesToDelete) {
-    await deleteDocumentsByFilePath(file, options?.elasticsearchIndex);
-    logger.info('Deleted documents for file', { file });
-  }
+  const { cpuCores } = indexingConfig;
+  const deletionConcurrency = options?.concurrency || cpuCores;
+  const deletionQueue = new PQueue({ concurrency: deletionConcurrency });
+  await Promise.all(
+    filesToDelete.map((file) =>
+      deletionQueue.add(async () => {
+        await deleteDocumentsByFilePath(file, options?.elasticsearchIndex);
+        logger.info('Deleted documents for file', { file });
+      })
+    )
+  );
 
   if (filesToIndex.length === 0) {
     logger.info('No new or modified files to process.');
@@ -148,7 +156,6 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
 
     let successCount = 0;
     let failureCount = 0;
-    const { cpuCores } = indexingConfig;
     const producerQueue = new PQueue({ concurrency: cpuCores });
     const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
 
