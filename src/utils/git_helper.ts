@@ -12,15 +12,15 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
   if (fs.existsSync(repoPath)) {
     logger.info(`Repository already exists at ${repoPath}. Pulling latest changes...`);
     try {
-      const remoteUrlRaw = await git.cwd(repoPath).remote(['get-url', 'origin']);
-      if (token && remoteUrlRaw) {
-        const remoteUrl = remoteUrlRaw.trim();
-        const hasBasicAuth = remoteUrl.includes('oauth2:');
-        if (!hasBasicAuth) {
-          const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`).trim();
+      // Inject token into remote URL if provided (replaces existing token if present)
+      if (token) {
+        const remoteUrlRaw = await git.cwd(repoPath).remote(['get-url', 'origin']);
+        if (remoteUrlRaw) {
+          const remoteUrl = remoteUrlRaw.trim();
+          // Remove existing oauth2 auth if present, then inject new token
+          const urlWithoutAuth = remoteUrl.replace(/https:\/\/oauth2:[^@]+@/, 'https://');
+          const newRemoteUrl = urlWithoutAuth.replace('https://', `https://oauth2:${token}@`);
           await git.cwd(repoPath).remote(['set-url', 'origin', newRemoteUrl]);
-        } else {
-          await git.cwd(repoPath).remote(['set-url', 'origin', remoteUrl]);
         }
       }
       await git.cwd(repoPath).pull();
@@ -56,16 +56,30 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
 /**
  * Pull latest changes in a repository
  */
-export async function pullRepo(repoPath: string, branch?: string): Promise<void> {
+export async function pullRepo(repoPath: string, branch?: string, token?: string): Promise<void> {
   logger.info(`Pulling latest changes in ${repoPath}...`);
 
   const git = simpleGit(repoPath);
 
   try {
+    // Inject token into remote URL if provided (replaces existing token if present)
+    if (token) {
+      const remoteUrlRaw = await git.remote(['get-url', 'origin']);
+      if (remoteUrlRaw) {
+        const remoteUrl = remoteUrlRaw.trim();
+        // Remove existing oauth2 auth if present, then inject new token
+        const urlWithoutAuth = remoteUrl.replace(/https:\/\/oauth2:[^@]+@/, 'https://');
+        const newRemoteUrl = urlWithoutAuth.replace('https://', `https://oauth2:${token}@`);
+        await git.remote(['set-url', 'origin', newRemoteUrl]);
+      }
+    }
+
     if (branch) {
       await git.checkout(branch);
+      await git.pull('origin', branch);
+    } else {
+      await git.pull('origin');
     }
-    await git.pull();
     logger.info('Repository updated successfully.');
   } catch (error) {
     logger.error(`Error pulling repository: ${error}`);

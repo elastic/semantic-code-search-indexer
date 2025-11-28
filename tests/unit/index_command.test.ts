@@ -28,6 +28,18 @@ describe('index_command', () => {
   const testQueuesDir = path.join(os.tmpdir(), `index-command-test-${process.pid}-${Date.now()}`);
 
   beforeEach(() => {
+    // Reset process.exitCode to prevent leakage between tests
+    process.exitCode = 0;
+
+    // Reset Commander options to prevent leakage between tests
+    // Commander caches parsed options, so we need to reset them
+    indexCommand.setOptionValue('pull', undefined);
+    indexCommand.setOptionValue('clean', undefined);
+    indexCommand.setOptionValue('watch', undefined);
+    indexCommand.setOptionValue('token', undefined);
+    indexCommand.setOptionValue('branch', undefined);
+    indexCommand.setOptionValue('concurrency', '1');
+
     // Clean up test directories
     if (fs.existsSync(testQueuesDir)) {
       fs.rmSync(testQueuesDir, { recursive: true });
@@ -556,6 +568,282 @@ describe('index_command', () => {
         // Verify watch-specific logging
         expect(loggerInfoSpy).toHaveBeenCalledWith(expect.stringContaining('watch mode enabled'));
         expect(loggerInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Watching queue for my-repo'));
+      });
+    });
+  });
+
+  describe('--pull flag behavior', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(execFileSync).mockReturnValue(Buffer.from('main\n'));
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    describe('WHEN --pull flag is provided', () => {
+      it('SHOULD call pullRepo with correct parameters', async () => {
+        const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull']);
+
+        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, undefined);
+      });
+
+      it('SHOULD pass token to pullRepo when provided', async () => {
+        const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull', '--token', 'ghp_test123']);
+
+        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, 'ghp_test123');
+      });
+
+      it('SHOULD pass branch to pullRepo when provided', async () => {
+        const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await indexCommand.parseAsync([
+          'node',
+          'test',
+          '/path/to/my-repo',
+          '--pull',
+          '--branch',
+          'develop',
+          '--token',
+          'ghp_branch_test',
+        ]);
+
+        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', 'develop', 'ghp_branch_test');
+      });
+
+      it('SHOULD NOT pass pull option to incrementalIndex (pull already done before indexing)', async () => {
+        const incrementalIndexSpy = vi.spyOn(incrementalModule, 'incrementalIndex').mockResolvedValue(undefined);
+
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue('abc123');
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull']);
+
+        expect(incrementalIndexSpy).toHaveBeenCalled();
+        const options = incrementalIndexSpy.mock.calls[0][1];
+        expect(options).not.toHaveProperty('pull');
+      });
+    });
+
+    describe('WHEN pull fails for single repo', () => {
+      it('SHOULD throw error immediately', async () => {
+        const pullError = new Error('Failed to pull: network error');
+        vi.spyOn(gitHelper, 'pullRepo').mockRejectedValue(pullError);
+
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull'])).rejects.toThrow(
+          'Failed to pull: network error'
+        );
+      });
+    });
+
+    describe('WHEN pull fails for multi-repo', () => {
+      it('SHOULD skip failed repo, continue processing, and set exitCode 1 at end', async () => {
+        // Stateful mock: first repo pull fails, second succeeds
+        vi.spyOn(gitHelper, 'pullRepo').mockImplementation(async (repoPath) => {
+          if (repoPath.includes('pull-repo1')) {
+            throw new Error('Pull failed: network error');
+          }
+          return Promise.resolve();
+        });
+
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr.includes('pull-repo1') || pathStr.includes('pull-repo2')) {
+            return true;
+          }
+          return originalExistsSync(p);
+        });
+
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        const workerSpy = vi.spyOn(workerModule, 'worker');
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/pull-repo1', '/path/to/pull-repo2', '--pull']);
+
+        // Second repo should have been processed (worker called once)
+        expect(workerSpy).toHaveBeenCalledTimes(1);
+        // Should set exitCode to 1 at the end
+        expect(process.exitCode).toBe(1);
+      });
+    });
+  });
+
+  describe('clone error handling', () => {
+    describe('WHEN clone fails for single repo', () => {
+      it('SHOULD throw error immediately', async () => {
+        // Stateful mock: always reject for this test
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockImplementation(async () => {
+          throw new Error('Authentication failed');
+        });
+
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr.includes('.repos')) {
+            return false;
+          }
+          return originalExistsSync(p);
+        });
+
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await expect(indexCommand.parseAsync(['node', 'test', 'https://github.com/org/repo.git'])).rejects.toThrow(
+          'Authentication failed'
+        );
+      });
+    });
+  });
+
+  describe('clone error handling - multi-repo', () => {
+    it('WHEN clone fails for first repo SHOULD skip failed repo, continue processing, and set exitCode 1 at end', async () => {
+      // Use unique repo names to avoid conflicts with other tests
+      const failedRepo = 'clone-fail-repo';
+      const successRepo = 'clone-success-repo';
+
+      // Stateful mock: track clone attempts and successes
+      const cloneAttempts = new Map<string, boolean>(); // repoPath -> succeeded
+      vi.spyOn(gitHelper, 'cloneOrPullRepo').mockImplementation(async (_url, repoPath) => {
+        if (repoPath.includes(failedRepo)) {
+          cloneAttempts.set(repoPath, false);
+          throw new Error('Authentication failed');
+        }
+        cloneAttempts.set(repoPath, true);
+      });
+
+      // Stateful mock: return false before clone, true after successful clone
+      const originalExistsSync = fs.existsSync;
+      vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+        const pathStr = p.toString();
+        // For .repos paths, check if clone succeeded
+        if (pathStr.includes(`.repos/${failedRepo}`)) {
+          return cloneAttempts.get(pathStr) === true;
+        }
+        if (pathStr.includes(`.repos/${successRepo}`)) {
+          return cloneAttempts.get(pathStr) === true;
+        }
+        return originalExistsSync(p);
+      });
+
+      // Mock execFileSync for git branch detection
+      vi.mocked(execFileSync).mockReturnValue(Buffer.from('main\n'));
+
+      vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+      vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+      vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+      const workerSpy = vi.spyOn(workerModule, 'worker');
+
+      await indexCommand.parseAsync([
+        'node',
+        'test',
+        `https://github.com/org/${failedRepo}.git`,
+        `https://github.com/org/${successRepo}.git`,
+      ]);
+
+      // Second repo should have been processed (worker called once)
+      expect(workerSpy).toHaveBeenCalledTimes(1);
+      // Should set exitCode to 1 at the end
+      expect(process.exitCode).toBe(1);
+    });
+  });
+
+  describe('missing repo error handling', () => {
+    describe('WHEN single repo path does not exist', () => {
+      it('SHOULD throw immediately', async () => {
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr.includes('nonexistent')) {
+            return false;
+          }
+          return originalExistsSync(p);
+        });
+
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await expect(indexCommand.parseAsync(['node', 'test', '/path/to/nonexistent'])).rejects.toThrow(
+          'Repository not found at'
+        );
+      });
+    });
+
+    describe('WHEN multi-repo and one path does not exist', () => {
+      it('SHOULD skip missing repo, continue processing, and set exitCode 1', async () => {
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr.includes('missing-repo')) {
+            return false;
+          }
+          if (pathStr.includes('existing-repo')) {
+            return true;
+          }
+          return originalExistsSync(p);
+        });
+
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        const workerSpy = vi.spyOn(workerModule, 'worker');
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/missing-repo', '/path/to/existing-repo']);
+
+        // Second repo should have been processed
+        expect(workerSpy).toHaveBeenCalledTimes(1);
+        expect(process.exitCode).toBe(1);
       });
     });
   });
