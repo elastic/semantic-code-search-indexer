@@ -1,6 +1,7 @@
 import { getLastIndexedCommit, deleteDocumentsByFilePath } from '../utils/elasticsearch';
 import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
 import { indexingConfig, appConfig } from '../config';
+import { pullRepo } from '../utils/git_helper';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
@@ -23,6 +24,7 @@ export interface IncrementalIndexOptions {
   token?: string;
   repoName?: string;
   branch?: string;
+  pull?: boolean;
 }
 
 async function getQueue(options: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
@@ -59,33 +61,9 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
 
   logger.info(`Last indexed commit hash: ${lastCommitHash}`, { gitBranch });
 
-  logger.info('Pulling latest changes from remote', { gitBranch });
-  try {
+  if (options?.pull) {
     const token = options?.token || appConfig.githubToken;
-    if (token) {
-      const remoteUrlRaw = await git.remote(['get-url', 'origin']);
-      if (remoteUrlRaw) {
-        const remoteUrl = remoteUrlRaw.trim();
-        const hasBasicAuth = remoteUrl.includes('oauth2:');
-        if (!hasBasicAuth) {
-          const newRemoteUrl = remoteUrl.replace('https://', `https://oauth2:${token}@`).trim();
-          await git.remote(['set-url', 'origin', newRemoteUrl]);
-        } else {
-          await git.remote(['set-url', 'origin', remoteUrl]);
-        }
-      }
-    }
-    await git.pull('origin', gitBranch);
-    logger.info('Pull complete.');
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      logger.error('Failed to pull latest changes.', { error: error.message });
-    } else {
-      logger.error('Failed to pull latest changes with an unknown error.', {
-        error,
-      });
-    }
-    return;
+    await pullRepo(directory, gitBranch, token);
   }
 
   const gitRoot = await git.revparse(['--show-toplevel']);

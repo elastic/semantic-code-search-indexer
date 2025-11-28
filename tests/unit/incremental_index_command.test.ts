@@ -1,5 +1,6 @@
 import { incrementalIndex } from '../../src/commands/incremental_index_command';
 import * as elasticsearch from '../../src/utils/elasticsearch';
+import * as gitHelper from '../../src/utils/git_helper';
 import simpleGit from 'simple-git';
 import { IQueue } from '../../src/utils/queue';
 import { SqliteQueue } from '../../src/utils/sqlite_queue';
@@ -8,6 +9,7 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('simple-git');
 vi.mock('../../src/utils/elasticsearch');
+vi.mock('../../src/utils/git_helper');
 
 vi.mock('../../src/utils/sqlite_queue', () => {
   const MockSqliteQueue = vi.fn();
@@ -25,6 +27,7 @@ vi.mock('worker_threads', () => {
 
 const mockedSimpleGit = vi.mocked(simpleGit);
 const mockedElasticsearch = vi.mocked(elasticsearch, true);
+const mockedGitHelper = vi.mocked(gitHelper, true);
 const mockedSqliteQueue = vi.mocked(SqliteQueue);
 const mockedWorker = vi.mocked(Worker);
 
@@ -145,5 +148,128 @@ describe('incrementalIndex', () => {
     expect(indexedFiles).toContain('src/copied_file.ts');
     expect(indexedFiles).toContain('src/added_file.ts');
     expect(indexedFiles).toContain('src/modified_file.ts');
+  });
+
+  describe('pull option behavior', () => {
+    beforeEach(() => {
+      mockedGitHelper.pullRepo.mockResolvedValue(undefined);
+    });
+
+    describe('WHEN pull option is true', () => {
+      it('SHOULD call pullRepo with correct parameters', async () => {
+        const git = {
+          revparse: vi
+            .fn()
+            .mockResolvedValueOnce('main')
+            .mockResolvedValueOnce('/test/repo')
+            .mockResolvedValueOnce('new-commit-hash'),
+          remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
+          pull: vi.fn().mockResolvedValue(undefined),
+          diff: vi.fn().mockResolvedValue(''),
+        } as unknown as ReturnType<typeof simpleGit>;
+        mockedSimpleGit.mockReturnValue(git);
+        mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
+
+        await incrementalIndex('/test/repo', {
+          queueDir: '.test-queue',
+          pull: true,
+          token: 'ghp_test123',
+          branch: 'main',
+        });
+
+        expect(mockedGitHelper.pullRepo).toHaveBeenCalledWith('/test/repo', 'main', 'ghp_test123');
+      });
+
+      it('SHOULD use appConfig.githubToken when token option is not provided', async () => {
+        const git = {
+          revparse: vi
+            .fn()
+            .mockResolvedValueOnce('main')
+            .mockResolvedValueOnce('/test/repo')
+            .mockResolvedValueOnce('new-commit-hash'),
+          remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
+          pull: vi.fn().mockResolvedValue(undefined),
+          diff: vi.fn().mockResolvedValue(''),
+        } as unknown as ReturnType<typeof simpleGit>;
+        mockedSimpleGit.mockReturnValue(git);
+        mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
+
+        await incrementalIndex('/test/repo', {
+          queueDir: '.test-queue',
+          pull: true,
+        });
+
+        // pullRepo should be called (token will be undefined or from appConfig)
+        expect(mockedGitHelper.pullRepo).toHaveBeenCalled();
+      });
+    });
+
+    describe('WHEN pull option is false or undefined', () => {
+      it('SHOULD NOT call pullRepo when pull is false', async () => {
+        const git = {
+          revparse: vi
+            .fn()
+            .mockResolvedValueOnce('main')
+            .mockResolvedValueOnce('/test/repo')
+            .mockResolvedValueOnce('new-commit-hash'),
+          remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
+          pull: vi.fn().mockResolvedValue(undefined),
+          diff: vi.fn().mockResolvedValue(''),
+        } as unknown as ReturnType<typeof simpleGit>;
+        mockedSimpleGit.mockReturnValue(git);
+        mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
+
+        await incrementalIndex('/test/repo', {
+          queueDir: '.test-queue',
+          pull: false,
+        });
+
+        expect(mockedGitHelper.pullRepo).not.toHaveBeenCalled();
+      });
+
+      it('SHOULD NOT call pullRepo when pull is undefined', async () => {
+        const git = {
+          revparse: vi
+            .fn()
+            .mockResolvedValueOnce('main')
+            .mockResolvedValueOnce('/test/repo')
+            .mockResolvedValueOnce('new-commit-hash'),
+          remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
+          pull: vi.fn().mockResolvedValue(undefined),
+          diff: vi.fn().mockResolvedValue(''),
+        } as unknown as ReturnType<typeof simpleGit>;
+        mockedSimpleGit.mockReturnValue(git);
+        mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
+
+        await incrementalIndex('/test/repo', {
+          queueDir: '.test-queue',
+        });
+
+        expect(mockedGitHelper.pullRepo).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('WHEN pullRepo fails', () => {
+      it('SHOULD propagate the error', async () => {
+        const pullError = new Error('Failed to pull: network error');
+        mockedGitHelper.pullRepo.mockRejectedValue(pullError);
+
+        const git = {
+          revparse: vi.fn().mockResolvedValueOnce('main'),
+          remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
+          pull: vi.fn().mockResolvedValue(undefined),
+          diff: vi.fn().mockResolvedValue(''),
+        } as unknown as ReturnType<typeof simpleGit>;
+        mockedSimpleGit.mockReturnValue(git);
+        mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
+
+        await expect(
+          incrementalIndex('/test/repo', {
+            queueDir: '.test-queue',
+            pull: true,
+          })
+        ).rejects.toThrow('Failed to pull: network error');
+      });
+    });
   });
 });
