@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { IndexerWorker } from '../../src/utils/indexer_worker';
 import { InMemoryQueue } from '../../src/utils/in_memory_queue';
 import * as elasticsearch from '../../src/utils/elasticsearch';
-import { CodeChunk } from '../../src/utils/elasticsearch';
+import { CodeChunk, BulkIndexResult } from '../../src/utils/elasticsearch';
 import { logger } from '../../src/utils/logger';
 
 vi.mock('../../src/utils/elasticsearch', async () => {
@@ -11,6 +11,18 @@ vi.mock('../../src/utils/elasticsearch', async () => {
     ...actual,
     indexCodeChunks: vi.fn(),
   };
+});
+
+// Helper to create a successful bulk result
+const successResult = (chunks: CodeChunk[]): BulkIndexResult => ({
+  succeeded: chunks,
+  failed: [],
+});
+
+// Helper to create a failed bulk result
+const failedResult = (chunks: CodeChunk[], error: unknown = { type: 'test_error' }): BulkIndexResult => ({
+  succeeded: [],
+  failed: chunks.map((chunk) => ({ chunk, error })),
 });
 
 const MOCK_CHUNK: CodeChunk = {
@@ -64,7 +76,7 @@ describe('IndexerWorker', () => {
     await queue.enqueue([MOCK_CHUNK]);
     const commitSpy = vi.spyOn(queue, 'commit');
 
-    vi.mocked(elasticsearch.indexCodeChunks).mockResolvedValue(undefined);
+    vi.mocked(elasticsearch.indexCodeChunks).mockResolvedValue(successResult([MOCK_CHUNK]));
 
     await concurrentWorker.start();
 
@@ -87,15 +99,15 @@ describe('IndexerWorker', () => {
     const requeueSpy = vi.spyOn(queue, 'requeue');
     const commitSpy = vi.spyOn(queue, 'commit');
 
-    // Make indexing fail once, then stop the worker to prevent infinite loop
+    // Make indexing fail once, then succeed
     let callCount = 0;
-    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async () => {
+    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async (chunks) => {
       callCount++;
       if (callCount === 1) {
-        throw new Error('ES Error');
+        return failedResult(chunks);
       }
       // On subsequent calls (after requeue), succeed to let worker finish
-      return undefined;
+      return successResult(chunks);
     });
 
     await concurrentWorker.start();
@@ -125,11 +137,12 @@ describe('IndexerWorker', () => {
     let currentConcurrent = 0;
     let maxConcurrent = 0;
 
-    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async () => {
+    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async (inputChunks) => {
       currentConcurrent++;
       maxConcurrent = Math.max(maxConcurrent, currentConcurrent);
       await new Promise((resolve) => setTimeout(resolve, 10));
       currentConcurrent--;
+      return successResult(inputChunks);
     });
 
     await concurrentWorker.start();
@@ -158,11 +171,12 @@ describe('IndexerWorker', () => {
     let concurrentCount = 0;
     const concurrencySnapshots: number[] = [];
 
-    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async () => {
+    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async (inputChunks) => {
       concurrentCount++;
       concurrencySnapshots.push(concurrentCount);
       await new Promise((resolve) => setTimeout(resolve, 10));
       concurrentCount--;
+      return successResult(inputChunks);
     });
 
     await concurrentWorker.start();
@@ -190,14 +204,12 @@ describe('IndexerWorker', () => {
 
     // Make it fail once, then succeed
     let callCount = 0;
-    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async () => {
+    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async (chunks) => {
       callCount++;
       if (callCount === 1) {
-        throw new Error(
-          'Bulk indexing failed: 1 of 1 documents had errors. First error: {"type":"mapper_parsing_exception"}'
-        );
+        return failedResult(chunks, { type: 'mapper_parsing_exception' });
       }
-      return undefined;
+      return successResult(chunks);
     });
 
     await concurrentWorker.start();
@@ -226,9 +238,9 @@ describe('IndexerWorker', () => {
     const requeueSpy = vi.spyOn(queue, 'requeue');
 
     // Always fail to test retry limit
-    vi.mocked(elasticsearch.indexCodeChunks).mockRejectedValue(
-      new Error('Bulk indexing failed: 1 of 1 documents had errors')
-    );
+    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async (chunks) => {
+      return failedResult(chunks);
+    });
 
     await concurrentWorker.start();
 
@@ -261,12 +273,12 @@ describe('IndexerWorker', () => {
 
     // Fail once, then succeed
     let callCount = 0;
-    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async () => {
+    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async (chunks) => {
       callCount++;
       if (callCount === 1) {
-        throw new Error('Bulk indexing failed: 2 of 2 documents had errors');
+        return failedResult(chunks);
       }
-      return undefined;
+      return successResult(chunks);
     });
 
     await concurrentWorker.start();
@@ -274,5 +286,64 @@ describe('IndexerWorker', () => {
     expect(requeueSpy).toHaveBeenCalled();
     const requeuedDocs = requeueSpy.mock.calls[0][0];
     expect(requeuedDocs).toHaveLength(2);
+  });
+
+  // Partial failure - only failed docs requeued
+  it('should only requeue failed documents on partial bulk failure', async () => {
+    const goodChunk: CodeChunk = {
+      ...MOCK_CHUNK,
+      chunk_hash: 'good_chunk',
+      content: 'const good = true;',
+    };
+    const badChunk: CodeChunk = {
+      ...MOCK_CHUNK,
+      chunk_hash: 'bad_chunk',
+      content: 'const bad = false;',
+    };
+
+    concurrentWorker = new IndexerWorker({
+      queue,
+      batchSize: 10,
+      concurrency: 1,
+      watch: false,
+      logger,
+      elasticsearchIndex: testIndex,
+    });
+
+    await queue.enqueue([goodChunk, badChunk]);
+    const requeueSpy = vi.spyOn(queue, 'requeue');
+    const commitSpy = vi.spyOn(queue, 'commit');
+
+    // First call: partial failure (good succeeds, bad fails)
+    // Second call: bad chunk succeeds on retry
+    let callCount = 0;
+    vi.mocked(elasticsearch.indexCodeChunks).mockImplementation(async (chunks) => {
+      callCount++;
+      if (callCount === 1) {
+        // Partial failure: good succeeds, bad fails
+        return {
+          succeeded: chunks.filter((c) => c.chunk_hash === 'good_chunk'),
+          failed: chunks
+            .filter((c) => c.chunk_hash === 'bad_chunk')
+            .map((chunk) => ({ chunk, error: { type: 'mapper_parsing_exception' } })),
+        };
+      }
+      // On retry, all succeed
+      return successResult(chunks);
+    });
+
+    await concurrentWorker.start();
+
+    // Good chunk should be committed immediately
+    expect(commitSpy).toHaveBeenCalled();
+    const firstCommit = commitSpy.mock.calls[0][0];
+    expect(firstCommit).toHaveLength(1);
+    expect(firstCommit[0].document.chunk_hash).toBe('good_chunk');
+
+    // Only bad chunk should be requeued
+    expect(requeueSpy).toHaveBeenCalled();
+    const requeuedDocs = requeueSpy.mock.calls[0][0];
+    expect(requeuedDocs).toHaveLength(1);
+    expect(requeuedDocs[0].document.chunk_hash).toBe('bad_chunk');
   });
 });

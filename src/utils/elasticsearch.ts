@@ -3,6 +3,8 @@ import {
   ClusterHealthResponse,
   QueryDslQueryContainer,
   BulkOperationContainer,
+  BulkOperationType,
+  BulkResponseItem,
 } from '@elastic/elasticsearch/lib/api/types';
 import { elasticsearchConfig, indexingConfig } from '../config';
 export { elasticsearchConfig };
@@ -229,26 +231,32 @@ export interface CodeChunk {
   updated_at: string;
 }
 
-interface ErroredDocument {
-  status: number;
-  // The structure of the error object from the Elasticsearch client can be complex and varied, making it difficult to type statically.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: any;
-  operation: { index: { _index: string } };
-  document: CodeChunk;
+/**
+ * Result of a bulk indexing operation, separating succeeded and failed documents.
+ */
+export interface BulkIndexResult {
+  /** Documents that were successfully indexed */
+  succeeded: CodeChunk[];
+  /** Documents that failed to index with their errors */
+  failed: { chunk: CodeChunk; error: unknown }[];
 }
 
 /**
  * Indexes an array of code chunks into Elasticsearch.
  *
  * This function uses the Elasticsearch bulk API to efficiently index a large
- * number of documents at once.
+ * number of documents at once. Returns a result object with succeeded and failed
+ * documents to allow granular handling of partial failures.
+ *
+ * On complete failures (network errors, cluster unavailable), returns all chunks
+ * as failed rather than throwing.
  *
  * @param chunks An array of `CodeChunk` objects to index.
+ * @returns A `BulkIndexResult` with succeeded and failed documents.
  */
-export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Promise<void> {
+export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Promise<BulkIndexResult> {
   if (chunks.length === 0) {
-    return;
+    return { succeeded: [], failed: [] };
   }
 
   const indexName = index || defaultIndexName;
@@ -268,32 +276,42 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
     const bulkResponse = await client.bulk(bulkOptions);
     logger.info(`Bulk operation completed for ${chunks.length} chunks`);
 
-    if (bulkResponse.errors) {
-      const erroredDocuments: ErroredDocument[] = [];
-      // The `action` object from the Elasticsearch bulk response has a dynamic structure
-      // (e.g., { index: { ... } }, { create: { ... } }) which is difficult to type
-      // statically without overly complex type guards.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      bulkResponse.items.forEach((action: any, i: number) => {
-        const operation = Object.keys(action)[0];
-        if (action[operation].error) {
-          erroredDocuments.push({
-            status: action[operation].status,
-            error: action[operation].error,
-            operation: operations[i * 2] as { index: { _index: string } },
-            document: operations[i * 2 + 1] as CodeChunk,
-          });
-        }
+    const succeeded: CodeChunk[] = [];
+    const failed: { chunk: CodeChunk; error: unknown }[] = [];
+
+    bulkResponse.items.forEach((action: Partial<Record<BulkOperationType, BulkResponseItem>>, i: number) => {
+      const operationType = Object.keys(action)[0] as BulkOperationType;
+      const result = action[operationType];
+      const chunk = operations[i * 2 + 1] as CodeChunk;
+
+      if (result?.error) {
+        failed.push({
+          chunk,
+          error: result.error,
+        });
+      } else {
+        succeeded.push(chunk);
+      }
+    });
+
+    if (failed.length > 0) {
+      logger.error(`Partial bulk failure: ${failed.length}/${chunks.length} documents failed`, {
+        errors: JSON.stringify(
+          failed.map((f) => ({ chunk_hash: f.chunk.chunk_hash, error: f.error })),
+          null,
+          2
+        ),
       });
-      logger.error('Errors during bulk indexing:', { errors: JSON.stringify(erroredDocuments, null, 2) });
-      throw new Error(
-        `Bulk indexing failed: ${erroredDocuments.length} of ${chunks.length} documents had errors. ` +
-          `First error: ${JSON.stringify(erroredDocuments[0]?.error)}`
-      );
     }
+
+    return { succeeded, failed };
   } catch (error) {
+    // Complete failure (network, cluster down, etc.) - all documents failed
     logger.error('Exception during bulk indexing:', { error });
-    throw error;
+    return {
+      succeeded: [],
+      failed: chunks.map((chunk) => ({ chunk, error })),
+    };
   }
 }
 
