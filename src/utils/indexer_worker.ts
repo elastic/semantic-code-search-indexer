@@ -102,36 +102,55 @@ export class IndexerWorker {
       concurrency: this.concurrency.toString(),
     });
 
-    try {
-      const codeChunks = batch.map((item) => item.document);
-      await indexCodeChunks(codeChunks, this.elasticsearchIndex);
-      await this.queue.commit(batch);
+    const codeChunks = batch.map((item) => item.document);
+    const result = await indexCodeChunks(codeChunks, this.elasticsearchIndex);
 
-      const duration = Date.now() - startTime;
+    const duration = Date.now() - startTime;
 
-      // Record successful batch metrics
+    // Build maps from chunk_hash to QueuedDocument for commit/requeue
+    const chunkHashToDoc = new Map(batch.map((doc) => [doc.document.chunk_hash, doc]));
+
+    const succeededDocs = result.succeeded
+      .map((chunk) => chunkHashToDoc.get(chunk.chunk_hash))
+      .filter((doc): doc is QueuedDocument => doc !== undefined);
+
+    const failedDocs = result.failed
+      .map((f) => chunkHashToDoc.get(f.chunk.chunk_hash))
+      .filter((doc): doc is QueuedDocument => doc !== undefined);
+
+    // Commit succeeded documents
+    if (succeededDocs.length > 0) {
+      await this.queue.commit(succeededDocs);
+    }
+
+    // Requeue failed documents
+    if (failedDocs.length > 0) {
+      await this.queue.requeue(failedDocs);
+      this.logger.error(`Requeueing ${failedDocs.length} failed documents from batch of ${batch.length}.`);
+    }
+
+    // Record metrics
+    if (result.failed.length === 0) {
+      // Full success
       this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
       this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
       this.metrics.indexer?.batchSize.record(batch.length, commonMetricAttributes);
-
       this.logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
       return true;
-    } catch (error) {
-      const duration = Date.now() - startTime;
-
-      // Record failed batch metrics
+    } else if (result.succeeded.length > 0) {
+      // Partial success
+      this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
+      this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
+      this.metrics.indexer?.batchSize.record(result.succeeded.length, commonMetricAttributes);
+      this.logger.info(
+        `Partial success: ${result.succeeded.length}/${batch.length} indexed, ${result.failed.length} failed.`
+      );
+      return true;
+    } else {
+      // Complete failure
       this.metrics.indexer?.batchFailed.add(1, commonMetricAttributes);
       this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
-
-      if (error instanceof Error) {
-        this.logger.error('Error processing batch, requeueing.', {
-          errorMessage: error.message,
-          errorStack: error.stack,
-        });
-      } else {
-        this.logger.error('An unknown error occurred while processing a batch.', { error });
-      }
-      await this.queue.requeue(batch);
+      this.logger.error(`Complete batch failure: all ${batch.length} documents failed.`);
       return false;
     }
   }
