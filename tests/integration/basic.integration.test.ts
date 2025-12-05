@@ -83,4 +83,25 @@ describe('Integration Test - Full Indexing Pipeline', () => {
 
     expect(response.count).toBeGreaterThan(0);
   }, 180000); // 3 minute timeout
+
+  it('should create settings document after indexing', async () => {
+    // Limit to markdown for faster test execution
+    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'markdown';
+
+    // Setup creates the index with proper mapping
+    await setup(testRepoUrl, {});
+
+    // Index the test repository with watch: false to prevent infinite loops
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
+
+    // Force Elasticsearch to refresh the settings index
+    await client.indices.refresh({ index: `${TEST_INDEX}_settings` });
+
+    // Verify settings document has associated_index field
+    const settingsResponse = await client.count({
+      index: `${TEST_INDEX}_settings`,
+    });
+
+    expect(settingsResponse.count).toBeGreaterThan(0);
+  }, 180000); // 3 minute timeout
 });
