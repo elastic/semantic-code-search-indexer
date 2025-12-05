@@ -1,7 +1,6 @@
 import { getLastIndexedCommit, deleteDocumentsByFilePath } from '../utils/elasticsearch';
 import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
-import { indexingConfig, appConfig } from '../config';
-import { pullRepo } from '../utils/git_helper';
+import { indexingConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
@@ -24,7 +23,6 @@ export interface IncrementalIndexOptions {
   token?: string;
   repoName?: string;
   branch?: string;
-  pull?: boolean;
 }
 
 async function getQueue(options: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
@@ -60,11 +58,6 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
   }
 
   logger.info(`Last indexed commit hash: ${lastCommitHash}`, { gitBranch });
-
-  if (options?.pull) {
-    const token = options?.token || appConfig.githubToken;
-    await pullRepo(directory, gitBranch, token);
-  }
 
   const gitRoot = await git.revparse(['--show-toplevel']);
   const changedFilesRaw = await git.diff(['--name-status', lastCommitHash, 'HEAD']);

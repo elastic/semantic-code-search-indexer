@@ -1,8 +1,9 @@
+import { Client } from '@elastic/elasticsearch';
+import { beforeEach, describe, it, expect, vi, afterEach } from 'vitest';
+import type { Mock } from 'vitest';
+
 import * as elasticsearch from '../../src/utils/elasticsearch';
 import { CodeChunk } from '../../src/utils/elasticsearch';
-import { Client } from '@elastic/elasticsearch';
-import { beforeEach, describe, it, expect, vi } from 'vitest';
-import type { Mock } from 'vitest';
 
 const MOCK_CHUNK: CodeChunk = {
   type: 'code',
@@ -24,9 +25,35 @@ const MOCK_CHUNK: CodeChunk = {
 
 describe('indexCodeChunks', () => {
   let mockBulk: Mock;
+  let mockClient: Client;
 
   beforeEach(() => {
-    mockBulk = vi.spyOn(elasticsearch.client, 'bulk');
+    // Create a mock client with all necessary methods
+    mockBulk = vi.fn();
+    mockClient = {
+      bulk: mockBulk,
+      indices: {
+        exists: vi.fn(),
+        create: vi.fn(),
+        delete: vi.fn(),
+      },
+      get: vi.fn(),
+      index: vi.fn(),
+      search: vi.fn(),
+      deleteByQuery: vi.fn(),
+      cluster: {
+        health: vi.fn(),
+      },
+    } as unknown as Client;
+
+    // Set the mock client directly
+    elasticsearch.setClient(mockClient);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    // Reset the client
+    elasticsearch.setClient(undefined);
   });
 
   it('should not throw when bulk indexing succeeds', async () => {
@@ -205,14 +232,16 @@ describe('indexCodeChunks', () => {
 describe('Elasticsearch Client Configuration', () => {
   describe('WHEN examining the client configuration', () => {
     it('SHOULD have a client instance', () => {
-      expect(elasticsearch.client).toBeDefined();
-      expect(elasticsearch.client).toBeInstanceOf(Client);
+      expect(elasticsearch.getClient).toBeDefined();
+      const client = elasticsearch.getClient();
+      expect(client).toBeDefined();
     });
 
     it('SHOULD have request timeout configured', () => {
-      // The client is already initialized with our .env config
+      // The client is initialized with our .env config
       // We can verify it's a valid Client instance
-      expect(elasticsearch.client.transport).toBeDefined();
+      const client = elasticsearch.getClient();
+      expect(client.transport).toBeDefined();
     });
   });
 
