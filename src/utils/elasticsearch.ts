@@ -153,6 +153,7 @@ export async function createSettingsIndex(index?: string): Promise<void> {
       mappings: {
         properties: {
           branch: { type: 'keyword' },
+          associated_index: { type: 'keyword' },
           commit_hash: { type: 'keyword' },
           updated_at: { type: 'date' },
         },
@@ -181,11 +182,13 @@ export async function getLastIndexedCommit(branch: string, index?: string): Prom
 
 export async function updateLastIndexedCommit(branch: string, commitHash: string, index?: string): Promise<void> {
   const settingsIndexName = `${index || defaultIndexName}_settings`;
+  const associatedIndex = index || defaultIndexName;
   await client.index({
     index: settingsIndexName,
     id: branch,
     document: {
       branch,
+      associated_index: associatedIndex,
       commit_hash: commitHash,
       updated_at: new Date().toISOString(),
     },
