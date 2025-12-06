@@ -15,53 +15,74 @@ import { logger } from './logger';
  * in the environment variables. It is used for all communication with
  * Elasticsearch.
  */
-export let client: Client;
+let _client: Client | undefined;
 
-const baseOptions: Partial<ClientOptions> = {
-  requestTimeout: parseInt(process.env.ELASTICSEARCH_REQUEST_TIMEOUT || '90000', 10),
-};
+/**
+ * Sets the Elasticsearch client instance (for testing purposes).
+ * @internal
+ */
+export function setClient(client: Client | undefined): void {
+  _client = client;
+}
 
-if (elasticsearchConfig.cloudId) {
-  const clientOptions: ClientOptions = {
-    ...baseOptions,
-    cloud: {
-      id: elasticsearchConfig.cloudId,
-    },
+/**
+ * Gets the Elasticsearch client instance, initializing it if necessary.
+ * This lazy initialization allows commands that don't need Elasticsearch
+ * to run without requiring Elasticsearch configuration.
+ */
+export function getClient(): Client {
+  if (_client) {
+    return _client;
+  }
+
+  const baseOptions: Partial<ClientOptions> = {
+    requestTimeout: parseInt(process.env.ELASTICSEARCH_REQUEST_TIMEOUT || '90000', 10),
   };
 
-  if (elasticsearchConfig.apiKey) {
-    clientOptions.auth = { apiKey: elasticsearchConfig.apiKey };
-  } else if (elasticsearchConfig.username && elasticsearchConfig.password) {
-    clientOptions.auth = {
-      username: elasticsearchConfig.username,
-      password: elasticsearchConfig.password,
+  if (elasticsearchConfig.cloudId) {
+    const clientOptions: ClientOptions = {
+      ...baseOptions,
+      cloud: {
+        id: elasticsearchConfig.cloudId,
+      },
     };
+
+    if (elasticsearchConfig.apiKey) {
+      clientOptions.auth = { apiKey: elasticsearchConfig.apiKey };
+    } else if (elasticsearchConfig.username && elasticsearchConfig.password) {
+      clientOptions.auth = {
+        username: elasticsearchConfig.username,
+        password: elasticsearchConfig.password,
+      };
+    } else {
+      throw new Error(
+        'Elasticsearch Cloud authentication not configured. Please set ELASTICSEARCH_API_KEY or ELASTICSEARCH_USER and ELASTICSEARCH_PASSWORD.'
+      );
+    }
+
+    _client = new Client(clientOptions);
+  } else if (elasticsearchConfig.endpoint) {
+    const clientOptions: ClientOptions = {
+      ...baseOptions,
+      node: elasticsearchConfig.endpoint,
+    };
+
+    if (elasticsearchConfig.apiKey) {
+      clientOptions.auth = { apiKey: elasticsearchConfig.apiKey };
+    } else if (elasticsearchConfig.username && elasticsearchConfig.password) {
+      clientOptions.auth = {
+        username: elasticsearchConfig.username,
+        password: elasticsearchConfig.password,
+      };
+    }
+    _client = new Client(clientOptions);
   } else {
     throw new Error(
-      'Elasticsearch Cloud authentication not configured. Please set ELASTICSEARCH_API_KEY or ELASTICSEARCH_USER and ELASTICSEARCH_PASSWORD.'
+      'Elasticsearch connection not configured. Please set ELASTICSEARCH_CLOUD_ID or ELASTICSEARCH_ENDPOINT.'
     );
   }
 
-  client = new Client(clientOptions);
-} else if (elasticsearchConfig.endpoint) {
-  const clientOptions: ClientOptions = {
-    ...baseOptions,
-    node: elasticsearchConfig.endpoint,
-  };
-
-  if (elasticsearchConfig.apiKey) {
-    clientOptions.auth = { apiKey: elasticsearchConfig.apiKey };
-  } else if (elasticsearchConfig.username && elasticsearchConfig.password) {
-    clientOptions.auth = {
-      username: elasticsearchConfig.username,
-      password: elasticsearchConfig.password,
-    };
-  }
-  client = new Client(clientOptions);
-} else {
-  throw new Error(
-    'Elasticsearch connection not configured. Please set ELASTICSEARCH_CLOUD_ID or ELASTICSEARCH_ENDPOINT.'
-  );
+  return _client;
 }
 
 const defaultIndexName = elasticsearchConfig.index;
@@ -76,10 +97,10 @@ const codeSimilarityPipeline = 'code-similarity-pipeline';
  */
 export async function createIndex(index?: string): Promise<void> {
   const indexName = index || defaultIndexName;
-  const indexExists = await client.indices.exists({ index: indexName });
+  const indexExists = await getClient().indices.exists({ index: indexName });
   if (!indexExists) {
     logger.info(`Creating index "${indexName}"...`);
-    await client.indices.create({
+    await getClient().indices.create({
       index: indexName,
       mappings: {
         properties: {
@@ -145,10 +166,10 @@ export async function createIndex(index?: string): Promise<void> {
 
 export async function createSettingsIndex(index?: string): Promise<void> {
   const settingsIndexName = `${index || defaultIndexName}_settings`;
-  const indexExists = await client.indices.exists({ index: settingsIndexName });
+  const indexExists = await getClient().indices.exists({ index: settingsIndexName });
   if (!indexExists) {
     logger.info(`Creating index "${settingsIndexName}"...`);
-    await client.indices.create({
+    await getClient().indices.create({
       index: settingsIndexName,
       mappings: {
         properties: {
@@ -166,7 +187,7 @@ export async function createSettingsIndex(index?: string): Promise<void> {
 export async function getLastIndexedCommit(branch: string, index?: string): Promise<string | null> {
   const settingsIndexName = `${index || defaultIndexName}_settings`;
   try {
-    const response = await client.get<{ commit_hash: string }>({
+    const response = await getClient().get<{ commit_hash: string }>({
       index: settingsIndexName,
       id: branch,
     });
@@ -181,7 +202,7 @@ export async function getLastIndexedCommit(branch: string, index?: string): Prom
 
 export async function updateLastIndexedCommit(branch: string, commitHash: string, index?: string): Promise<void> {
   const settingsIndexName = `${index || defaultIndexName}_settings`;
-  await client.index({
+  await getClient().index({
     index: settingsIndexName,
     id: branch,
     document: {
@@ -265,7 +286,7 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
 
   try {
     logger.info(`Indexing ${chunks.length} chunks to ${indexName}...`);
-    const bulkResponse = await client.bulk(bulkOptions);
+    const bulkResponse = await getClient().bulk(bulkOptions);
     logger.info(`Bulk operation completed for ${chunks.length} chunks`);
 
     if (bulkResponse.errors) {
@@ -298,7 +319,7 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
 }
 
 export async function getClusterHealth(): Promise<ClusterHealthResponse> {
-  return client.cluster.health();
+  return getClient().cluster.health();
 }
 
 export interface SearchResult extends CodeChunk {
@@ -317,7 +338,7 @@ import { SearchHit } from '@elastic/elasticsearch/lib/api/types';
 
 export async function searchCodeChunks(query: string, index?: string): Promise<SearchResult[]> {
   const indexName = index || defaultIndexName;
-  const response = await client.search<CodeChunk>({
+  const response = await getClient().search<CodeChunk>({
     index: indexName,
     query: {
       semantic: {
@@ -380,7 +401,7 @@ export async function aggregateBySymbols(
   index?: string
 ): Promise<Record<string, SymbolInfo[]>> {
   const indexName = index || defaultIndexName;
-  const response = await client.search<unknown, FileAggregation>({
+  const response = await getClient().search<unknown, FileAggregation>({
     index: indexName,
     query,
     aggs: {
@@ -442,10 +463,10 @@ export async function aggregateBySymbols(
 
 export async function deleteIndex(index?: string): Promise<void> {
   const indexName = index || defaultIndexName;
-  const indexExists = await client.indices.exists({ index: indexName });
+  const indexExists = await getClient().indices.exists({ index: indexName });
   if (indexExists) {
     logger.info(`Deleting index "${indexName}"...`);
-    await client.indices.delete({ index: indexName });
+    await getClient().indices.delete({ index: indexName });
   } else {
     logger.info(`Index "${indexName}" does not exist, skipping deletion.`);
   }
@@ -453,7 +474,7 @@ export async function deleteIndex(index?: string): Promise<void> {
 
 export async function deleteDocumentsByFilePath(filePath: string, index?: string): Promise<void> {
   const indexName = index || defaultIndexName;
-  await client.deleteByQuery({
+  await getClient().deleteByQuery({
     index: indexName,
     query: {
       term: {

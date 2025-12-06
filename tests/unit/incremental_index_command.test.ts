@@ -8,6 +8,7 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('simple-git');
 vi.mock('../../src/utils/elasticsearch');
+vi.mock('../../src/utils/git_helper');
 
 vi.mock('../../src/utils/sqlite_queue', () => {
   const MockSqliteQueue = vi.fn();

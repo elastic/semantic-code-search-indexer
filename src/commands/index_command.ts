@@ -203,6 +203,8 @@ async function indexRepos(
   }
 
   const concurrency = parseInt(options.concurrency || '1', 10);
+  const isSingleRepo = repoArgs.length === 1;
+  const failedRepos: string[] = [];
 
   for (let i = 0; i < repoArgs.length; i++) {
     const repoArg = repoArgs[i];
@@ -233,18 +235,43 @@ async function indexRepos(
         }
       }
 
-      await ensureRepoCloned(repoUrl, config.repoPath, config.token);
+      try {
+        await ensureRepoCloned(repoUrl, config.repoPath, config.token);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Clone failed';
+        logger.error(`Failed to clone ${config.repoName}.`, { error: errorMessage });
+        if (isSingleRepo) {
+          throw error;
+        }
+        failedRepos.push(config.repoName);
+        continue;
+      }
     }
 
     // Step 2: Verify repo exists
     if (!fs.existsSync(config.repoPath)) {
-      logger.error(`Repository not found at ${config.repoPath}. Skipping.`);
+      logger.error(`Repository not found at ${config.repoPath}.`);
+      if (isSingleRepo) {
+        throw new Error(`Repository not found at ${config.repoPath}`);
+      }
+      failedRepos.push(config.repoName);
       continue;
     }
 
     // Step 3: Pull if requested
     if (options.pull) {
-      await pullRepo(config.repoPath, config.branch);
+      try {
+        await pullRepo(config.repoPath, config.branch, config.token);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Pull failed';
+        logger.error(`Failed to pull ${config.repoName}.`, { error: errorMessage });
+        if (isSingleRepo) {
+          throw error;
+        }
+        // Multi-repo: track failure and continue processing remaining repositories
+        failedRepos.push(config.repoName);
+        continue;
+      }
     }
 
     // Step 4: Determine git branch
@@ -358,6 +385,12 @@ async function indexRepos(
 
   // Flush OpenTelemetry logs before exiting
   await shutdown();
+
+  // Set exit code if any repo setup failures occurred (multi-repo mode only)
+  if (failedRepos.length > 0) {
+    logger.error(`Failed to process repositories: ${failedRepos.join(', ')}`);
+    process.exitCode = 1;
+  }
 }
 
 export const indexCommand = new Command('index')

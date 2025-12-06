@@ -8,12 +8,12 @@ import { afterAll } from 'vitest';
 // Enable logging even in test mode for integration tests
 process.env.FORCE_LOGGING = 'true';
 
-import { client } from '../src/utils/elasticsearch';
+import { getClient } from '../src/utils/elasticsearch';
 
 // Clean up Elasticsearch client after all tests complete
 afterAll(async () => {
   try {
-    await client.close();
+    await getClient().close();
   } catch {
     // Ignore errors during cleanup
   }
