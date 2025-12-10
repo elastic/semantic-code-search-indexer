@@ -1,7 +1,6 @@
 import { Command } from 'commander';
 import path from 'path';
 import { appConfig } from '../config';
-import { logger } from '../utils/logger';
 import { cloneOrPullRepo } from '../utils/git_helper';
 
 async function setup(repoUrl: string, options: { token?: string }) {
@@ -10,17 +9,12 @@ async function setup(repoUrl: string, options: { token?: string }) {
 
   const repoName = repoUrl.split('/').pop()?.replace('.git', '');
   if (!repoName) {
-    logger.error('Could not determine repository name from URL.');
-    return;
+    throw new Error('Could not determine repository name from URL.');
   }
 
   const repoPath = path.join(reposDir, repoName);
 
-  try {
-    await cloneOrPullRepo(repoUrl, repoPath, token);
-  } catch (error) {
-    logger.error(`Failed to setup repository: ${error}`);
-  }
+  await cloneOrPullRepo(repoUrl, repoPath, token);
 }
 
 export const setupCommand = new Command('setup')

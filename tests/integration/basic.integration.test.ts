@@ -1,4 +1,4 @@
-import { client } from '../../src/utils/elasticsearch';
+import { getClient } from '../../src/utils/elasticsearch';
 import { setup } from '../../src/commands/setup_command';
 import { indexRepos } from '../../src/commands/index_command';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -12,7 +12,7 @@ const TEST_INDEX = `test-integration-index-${Date.now()}`;
 // Check if Elasticsearch is available
 async function isElasticsearchAvailable(): Promise<boolean> {
   try {
-    await client.ping();
+    await getClient().ping();
     return true;
   } catch {
     return false;
@@ -53,6 +53,7 @@ describe('Integration Test - Full Indexing Pipeline', () => {
   afterAll(async () => {
     // Clean up test index
     try {
+      const client = getClient();
       await client.indices.delete({ index: TEST_INDEX });
       await client.indices.delete({ index: `${TEST_INDEX}_settings` });
     } catch {
@@ -76,6 +77,7 @@ describe('Integration Test - Full Indexing Pipeline', () => {
     await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
 
     // Force Elasticsearch to refresh the index to make documents searchable
+    const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
 
     // Verify documents were indexed
