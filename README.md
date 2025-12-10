@@ -308,6 +308,47 @@ This indexer is designed to work with a Model Context Protocol (MCP) server, whi
 For information on how to set up and run the server, please visit:
 [https://github.com/elastic/semantic-code-search-mcp-server](https://github.com/elastic/semantic-code-search-mcp-server)
 
+### Automatic Alias Creation
+
+The indexer automatically creates a `-repo` alias for each index to enable automatic discovery by the MCP server. When you index a repository, the indexer:
+
+1. Creates the main index (e.g., `kibana`)
+2. Automatically creates an alias `<index-name>-repo` (e.g., `kibana-repo`) pointing to the main index
+
+This allows the MCP server to automatically discover indices without requiring manual alias creation. The alias creation is:
+
+- **Automatic**: Happens during index creation, no manual steps required
+- **Idempotent**: Safe to run multiple times - won't create duplicate aliases
+- **Works with existing indices**: Automatically creates aliases for indices that were created before this feature was added (when `createIndex()` is called)
+- **Index Name Normalization**: Automatically normalizes index names by removing all trailing `-repo` segments. This ensures alias creation always works, since Elasticsearch does not allow an alias to have the same name as an index. For example:
+  - `kibana-repo-repo-repo` → normalized to `kibana` (index name)
+  - `my-repo-repo` → normalized to `my` (index name)
+  - `kibana-repo` → normalized to `kibana` (index name)
+  - `kibana` → stays `kibana` (no normalization needed)
+- **Alias Creation**: After index name normalization, creates an alias by appending `-repo` to the normalized index name. For example:
+  - Index `kibana` → creates alias `kibana-repo`
+  - Index `kibana-repo` (normalized to `kibana`) → creates alias `kibana-repo` pointing to `kibana` index
+  - Index `kibana-repo-repo-repo` (normalized to `kibana`) → creates alias `kibana-repo` pointing to `kibana` index
+- **Conflict detection**: If an index with the alias name already exists (e.g., you have both `kibana` and `kibana-repo` as separate indices), the alias creation is skipped with a clear warning message. This prevents errors and ensures indexing continues normally.
+
+**Example:**
+```bash
+# Index a repository
+npm run index -- /path/to/repo --clean
+
+# The indexer will:
+# 1. Create index: "code-chunks" (or your custom index name)
+# 2. Create alias: "code-chunks-repo" pointing to "code-chunks"
+# 3. The MCP server can now automatically discover this index via the alias
+
+# Even if you use an index name with -repo segments:
+npm run index -- /path/to/repo:my-repo-repo --clean
+# Index name is normalized: "my-repo-repo" → "my" (all -repo segments removed)
+# Creates index: "my"
+# Creates alias: "my-repo" pointing to "my" index
+# Note: A warning is logged when index name normalization occurs.
+```
+
 ---
 
 ## Deployment

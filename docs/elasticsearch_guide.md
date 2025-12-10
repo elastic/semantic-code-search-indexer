@@ -40,6 +40,40 @@ const client = new Client({
 
 The `code-indexer` creates an index with the name specified by the `ELASTICSEARCH_INDEX` environment variable (defaulting to `code-chunks`). This index stores parsed code chunks and their metadata.
 
+### Automatic Alias Creation
+
+The indexer automatically creates a `-repo` alias for each index to enable automatic discovery by the MCP server. When an index is created (or when indexing an existing index), the indexer:
+
+1. Creates the main index (e.g., `code-chunks` or a custom name like `kibana`)
+2. Automatically creates an alias `<index-name>-repo` (e.g., `code-chunks-repo` or `kibana-repo`) pointing to the main index
+
+**Key Features:**
+- **Automatic**: No manual configuration required
+- **Idempotent**: Safe to run multiple times - won't create duplicate aliases
+- **Works with existing indices**: Automatically creates aliases for indices that were created before this feature was added (when `createIndex()` is called)
+- **Index Name Normalization**: Automatically normalizes index names by removing all trailing `-repo` segments. This ensures alias creation always works, since Elasticsearch does not allow an alias to have the same name as an index:
+  - `kibana-repo-repo-repo` → normalized to `kibana` (index name)
+  - `my-repo-repo` → normalized to `my` (index name)
+  - `kibana-repo` → normalized to `kibana` (index name)
+  - `kibana` → stays `kibana` (no normalization needed)
+- **Alias Creation**: After index name normalization, creates an alias by appending `-repo` to the normalized index name:
+  - Index `kibana` → creates alias `kibana-repo`
+  - Index `kibana-repo` (normalized to `kibana`) → creates alias `kibana-repo` pointing to `kibana` index
+  - Index `kibana-repo-repo-repo` (normalized to `kibana`) → creates alias `kibana-repo` pointing to `kibana` index
+- **Conflict Detection**: If an index with the alias name already exists (e.g., you have both `kibana` and `kibana-repo` as separate indices), the alias creation is skipped with a clear warning message. This prevents errors and ensures indexing continues normally.
+- **Error handling**: Alias creation failures are logged but don't break indexing
+
+**Example:**
+```javascript
+// After indexing, you can query using either the index name or the alias
+const response = await client.search({
+  index: 'code-chunks-repo', // Alias (preferred for MCP server discovery)
+  // OR
+  // index: 'code-chunks',    // Direct index name
+  query: { /* ... */ }
+});
+```
+
 ### Index Mapping
 
 Here is the mapping for the `code-chunks` index:
@@ -132,4 +166,5 @@ While the primary focus is on semantic search, you can also perform traditional 
 
 *   **ELSER Model:** The `semantic_text` field in the index is configured with an `inference_id` that specifies which ELSER model to use for generating embeddings. Ensure that the ELSER model is available in your Elasticsearch cluster. The model ID is configurable via the `ELASTICSEARCH_INFERENCE_ID` environment variable (defaulting to `.elser-2-elastic`). Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility.
 *   **Index Name:** Always use the `ELASTICSEARCH_INDEX` environment variable to refer to the index name to avoid mismatches.
+*   **Index Aliases:** The indexer automatically creates a `-repo` alias for each index. The MCP server uses these aliases for automatic index discovery. You can query using either the index name or the alias - both point to the same data.
 *   **Data Freshness:** The index is updated by running the `code-indexer` tool. For the MCP server to have the latest data, the index needs to be kept up-to-date by running the indexer regularly.

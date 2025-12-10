@@ -6,6 +6,7 @@ import { appConfig } from '../config';
 import { logger } from '../utils/logger';
 import { shutdown } from '../utils/otel_provider';
 import { cloneOrPullRepo, pullRepo } from '../utils/git_helper';
+import { removeRepoSegments } from '../utils/elasticsearch';
 import path from 'path';
 import fs from 'fs';
 import { execFileSync } from 'child_process';
@@ -120,10 +121,20 @@ export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: s
     repoPath = path.join(process.cwd(), '.repos', repoName);
   }
 
+  // Remove -repo segments from index name
+  // Because -repo suffix is used by alias
+  const rawIndexName = indexName || repoName;
+  const normalizedIndexName = removeRepoSegments(rawIndexName);
+
+  // Log warning normalization occurred
+  if (rawIndexName !== normalizedIndexName) {
+    logger.warn(`Index name "${rawIndexName}" was normalized to "${normalizedIndexName}" `);
+  }
+
   return {
     repoPath,
     repoName,
-    indexName: indexName || repoName,
+    indexName: normalizedIndexName,
     token: globalToken,
     branch: globalBranch,
   };

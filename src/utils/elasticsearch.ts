@@ -98,7 +98,7 @@ const codeSimilarityPipeline = 'code-similarity-pipeline';
  * the index with the correct mappings for the code chunk documents.
  */
 export async function createIndex(index?: string): Promise<void> {
-  const indexName = index || defaultIndexName;
+  const indexName = index ?? defaultIndexName;
   const indexExists = await getClient().indices.exists({ index: indexName });
   if (!indexExists) {
     logger.info(`Creating index "${indexName}"...`);
@@ -164,6 +164,10 @@ export async function createIndex(index?: string): Promise<void> {
   } else {
     logger.info(`Index "${indexName}" already exists.`);
   }
+
+  // Always try to create -repo alias if it doesn't exist (for both new and existing indices)
+  // This ensures aliases are created for indices that were created before alias auto-creation was added
+  await createRepoAlias(indexName);
 }
 
 export async function createSettingsIndex(index?: string): Promise<void> {
@@ -183,6 +187,219 @@ export async function createSettingsIndex(index?: string): Promise<void> {
     });
   } else {
     logger.info(`Index "${settingsIndexName}" already exists.`);
+  }
+}
+
+/**
+ * Validates that an index name is valid for Elasticsearch.
+ * Elasticsearch index names must be lowercase, cannot contain certain characters,
+ * and have length restrictions.
+ *
+ * @param name The index name to validate
+ * @returns true if the name is valid, false otherwise
+ */
+function isValidIndexName(name: string): boolean {
+  if (!name || name.trim().length === 0) {
+    return false;
+  }
+
+  // Elasticsearch index name restrictions:
+  // - Must be lowercase; uppercase characters are not allowed and will cause an error
+  // - Cannot contain: \, /, *, ?, ", <, >, |, space
+  // - Cannot start with: _, -, +
+  // - Maximum length: 255 bytes
+  if (name !== name.toLowerCase()) {
+    return false;
+  }
+
+  const invalidChars = /[\\/*?"<>| ]/;
+  const invalidStart = /^[_+-]/;
+
+  if (invalidChars.test(name) || invalidStart.test(name)) {
+    return false;
+  }
+
+  // Check length (255 bytes, but for simplicity we check UTF-8 length)
+  // In practice, most index names are ASCII, so this is a reasonable check
+  if (name.length > 255) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Normalizes an index name by removing all trailing `-repo` segments.
+ * This ensures index names don't end with `-repo`, allowing the `-repo` alias to be created successfully.
+ * Elasticsearch does not allow an alias to have the same name as an index, so we strip `-repo` from
+ * index names to ensure alias creation always works.
+ *
+ * @param name The index name to normalize
+ * @returns The normalized index name with all trailing `-repo` segments removed
+ * @example
+ * removeRepoSegments('kibana-repo-repo-repo') // Returns 'kibana'
+ * removeRepoSegments('kibana-repo') // Returns 'kibana'
+ * removeRepoSegments('kibana') // Returns 'kibana' (no change)
+ */
+export function removeRepoSegments(name: string): string {
+  // Remove all trailing `-repo` segments to ensure alias creation works
+  // Use a while loop to handle multiple consecutive `-repo` segments
+  let cleaned = name;
+  while (cleaned.endsWith('-repo')) {
+    cleaned = cleaned.slice(0, -5); // Remove '-repo' (5 characters)
+  }
+  return cleaned;
+}
+
+/**
+ * Type guard to check if an error is an Elasticsearch error indicating a resource conflict.
+ * This handles race conditions where an alias might have been created by another process.
+ *
+ * @param error The error to check
+ * @returns true if the error indicates a resource already exists or conflict
+ */
+function isElasticsearchConflictError(error: unknown): boolean {
+  // Check for 409 status code in meta
+  if (
+    error &&
+    typeof error === 'object' &&
+    'meta' in error &&
+    error.meta &&
+    typeof error.meta === 'object' &&
+    'statusCode' in error.meta &&
+    error.meta.statusCode === 409
+  ) {
+    return true;
+  }
+
+  // Check for error body with conflict error types
+  if (
+    error &&
+    typeof error === 'object' &&
+    'body' in error &&
+    error.body &&
+    typeof error.body === 'object' &&
+    'error' in error.body &&
+    error.body.error &&
+    typeof error.body.error === 'object' &&
+    'type' in error.body.error &&
+    typeof error.body.error.type === 'string' &&
+    (error.body.error.type === 'resource_already_exists_exception' ||
+      error.body.error.type === 'illegal_argument_exception' ||
+      error.body.error.type === 'invalid_alias_name_exception')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Creates a -repo alias for the index to enable automatic discovery by the MCP server.
+ *
+ * This function creates an alias with the pattern `<indexName>-repo` pointing to the
+ * main index. This allows the semantic-code-search-mcp-server to automatically discover
+ * indices without requiring manual alias creation.
+ *
+ * The function automatically removes `-repo` segments from the index name before
+ * creating the alias. For example, if the index is named `kibana-repo-repo-repo`, it will
+ * normalize it to `kibana` and then create an alias `kibana-repo` pointing to it.
+ *
+ * @param index The index name (optional, defaults to configured index)
+ * @example
+ * await createRepoAlias('kibana'); // Creates 'kibana-repo' alias
+ * await createRepoAlias('kibana-repo-repo'); // Creates 'kibana-repo' alias (normalized from 'kibana-repo-repo')
+ */
+export async function createRepoAlias(index?: string): Promise<void> {
+  // Handle empty string by using default index name
+  const indexName = index && index.trim().length > 0 ? index : defaultIndexName;
+
+  // Validate index name
+  if (!isValidIndexName(indexName)) {
+    logger.warn(`Cannot create alias: invalid index name "${indexName}"`);
+    return;
+  }
+
+  // Remove all trailing `-repo` segments from index name, then add one back for alias
+  // This ensures alias is always <base-name>-repo, even if index name already has -repo
+  // Note: Index names are already normalized in parseRepoArg(), but we handle non-normalized
+  // names here for safety (e.g., if createRepoAlias is called directly)
+  const baseIndexName = removeRepoSegments(indexName);
+
+  // Log warning if normalization occurred (for direct calls to createRepoAlias)
+  if (indexName !== baseIndexName) {
+    logger.warn(`Index name "${indexName}" was normalized to "${baseIndexName}" `);
+  }
+
+  const aliasName = `${baseIndexName}-repo`;
+
+  // Explicit length check for alias name (255 character limit) - check before validation
+  // This provides a more specific error message for length issues
+  if (aliasName.length > 255) {
+    logger.warn(`Cannot create alias: alias name "${aliasName}" exceeds 255 character limit`);
+    return;
+  }
+
+  // Validate alias name (same rules as index names)
+  if (!isValidIndexName(aliasName)) {
+    logger.warn(`Cannot create alias: generated alias name "${aliasName}" is invalid`);
+    return;
+  }
+
+  try {
+    // Check if alias already exists
+    const aliasExists = await getClient().indices.existsAlias({
+      name: aliasName,
+    });
+
+    if (aliasExists) {
+      logger.info(`Alias "${aliasName}" already exists.`);
+      return;
+    }
+
+    // Check if an index with the alias name already exists (conflict)
+    // This prevents attempting to create an alias with a name that conflicts with an existing index.
+    // Note: We only skip if the conflicting index is different from the target index.
+    // If aliasName === baseIndexName, we still want to create the alias (though ES will reject it).
+    if (aliasName !== baseIndexName) {
+      const aliasNameIndexExists = await getClient().indices.exists({ index: aliasName });
+      if (aliasNameIndexExists) {
+        logger.warn(
+          `Cannot create alias "${aliasName}": an index with this name already exists. ` +
+            `The alias cannot be created because index names and alias names must be unique.`
+        );
+        return;
+      }
+    }
+
+    // Verify the index exists before creating alias
+    // Use baseIndexName (normalized) since that's what the actual index name would be
+    const indexExists = await getClient().indices.exists({ index: baseIndexName });
+    if (!indexExists) {
+      logger.warn(`Cannot create alias "${aliasName}": index "${baseIndexName}" does not exist.`);
+      return;
+    }
+
+    logger.info(`Creating alias "${aliasName}" pointing to index "${baseIndexName}"...`);
+    try {
+      await getClient().indices.putAlias({
+        index: baseIndexName,
+        name: aliasName,
+      });
+      logger.info(`Successfully created alias "${aliasName}"`);
+    } catch (putAliasError: unknown) {
+      // Handle race condition: alias might have been created by another process
+      if (isElasticsearchConflictError(putAliasError)) {
+        logger.info(`Alias "${aliasName}" was created by another process or already exists.`);
+        return;
+      }
+
+      // Re-throw if it's a different error
+      throw putAliasError;
+    }
+  } catch (error) {
+    logger.error(`Failed to create alias "${aliasName}":`, { error });
+    // Don't throw - alias creation is optional and shouldn't break indexing
   }
 }
 

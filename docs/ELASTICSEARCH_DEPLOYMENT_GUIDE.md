@@ -116,4 +116,30 @@ After completing these steps, your Elasticsearch cluster is fully configured. Yo
 
 The application will automatically create the index with the correct mapping on its first run.
 
+### Automatic Alias Creation
+
+The indexer automatically creates a `-repo` alias for each index to enable automatic discovery by the MCP server. For example, if you index with the name `kibana`, the indexer will:
+
+1. Create the index: `kibana`
+2. Automatically create an alias: `kibana-repo` pointing to `kibana`
+
+This allows the MCP server to automatically discover indices without requiring manual alias creation. The alias creation is idempotent and backward compatible - it will create aliases for existing indices as well as new ones.
+
+**Index Name Normalization:** The indexer automatically normalizes index names by removing all trailing `-repo` segments. This ensures alias creation always works, since Elasticsearch does not allow an alias to have the same name as an index:
+- `kibana-repo-repo-repo` → normalized to `kibana` (index name)
+- `my-repo-repo` → normalized to `my` (index name)
+- `kibana-repo` → normalized to `kibana` (index name)
+- `kibana` → stays `kibana` (no normalization needed)
+
+A warning is logged when normalization occurs: `"Index name 'X' was normalized to 'Y' (removed duplicate -repo segments)"`
+
+**Alias Creation:** After index name normalization, creates an alias by appending `-repo` to the normalized index name:
+- Index `kibana` → creates alias `kibana-repo`
+- Index `kibana-repo` (normalized to `kibana`) → creates alias `kibana-repo` pointing to `kibana` index
+- Index `kibana-repo-repo-repo` (normalized to `kibana`) → creates alias `kibana-repo` pointing to `kibana` index
+
+This ensures that even if users accidentally specify index names with multiple `-repo` segments, both the index name and alias will be clean and consistent.
+
+**Conflict Detection:** If an index with the alias name already exists (e.g., you have both `kibana` and `kibana-repo` as separate indices), the alias creation is automatically skipped with a clear warning message. This prevents errors and ensures indexing continues normally. The existing index remains untouched, and the MCP server will discover both indices separately.
+
 ```

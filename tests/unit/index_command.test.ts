@@ -115,11 +115,13 @@ describe('index_command', () => {
 
     describe('WHEN parsing a repo name', () => {
       it('SHOULD construct path in .repos directory', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
         const result = parseRepoArg('my-repo');
 
         expect(result.repoName).toBe('my-repo');
         expect(result.repoPath).toContain('.repos/my-repo');
-        expect(result.indexName).toBe('my-repo');
+        expect(result.indexName).toBe('my'); // -repo is stripped to allow alias creation
+        expect(mockWarn).toHaveBeenCalledWith('Index name "my-repo" was normalized to "my" ');
       });
 
       it('SHOULD use custom index name when provided', () => {
@@ -128,15 +130,41 @@ describe('index_command', () => {
         expect(result.repoName).toBe('my-repo');
         expect(result.indexName).toBe('custom-index');
       });
+
+      it('SHOULD deduplicate -repo segments from index name', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
+        const result = parseRepoArg('my-repo:my-repo-repo-repo');
+
+        expect(result.indexName).toBe('my');
+        expect(mockWarn).toHaveBeenCalledWith('Index name "my-repo-repo-repo" was normalized to "my" ');
+      });
+
+      it('SHOULD deduplicate index name with single -repo segment', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
+        const result = parseRepoArg('my-repo:my-repo');
+
+        expect(result.indexName).toBe('my');
+        expect(mockWarn).toHaveBeenCalledWith('Index name "my-repo" was normalized to "my" ');
+      });
+
+      it('SHOULD deduplicate -repo segments from index name in URL format', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
+        const result = parseRepoArg('https://github.com/elastic/kibana.git:kibana-repo-repo');
+
+        expect(result.indexName).toBe('kibana');
+        expect(mockWarn).toHaveBeenCalledWith('Index name "kibana-repo-repo" was normalized to "kibana" ');
+      });
     });
 
     describe('WHEN parsing a full path', () => {
       it('SHOULD use the provided path and extract repo name', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
         const result = parseRepoArg('/absolute/path/to/my-repo');
 
         expect(result.repoName).toBe('my-repo');
         expect(result.repoPath).toBe('/absolute/path/to/my-repo');
-        expect(result.indexName).toBe('my-repo');
+        expect(result.indexName).toBe('my'); // -repo is stripped to allow alias creation
+        expect(mockWarn).toHaveBeenCalledWith('Index name "my-repo" was normalized to "my" ');
       });
 
       it('SHOULD handle relative paths', () => {
@@ -156,21 +184,34 @@ describe('index_command', () => {
 
     describe('WHEN parsing Windows paths', () => {
       it('SHOULD handle Windows absolute path with backslashes', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
         const result = parseRepoArg('C:\\Users\\dev\\repos\\my-repo');
 
         // On non-Windows systems, path.basename may not parse Windows paths correctly
         // The important thing is that it's recognized as a path (not a URL) and resolved
         expect(result.repoPath).toContain('my-repo');
-        expect(result.indexName).toContain('my-repo');
+        // On macOS, path.basename doesn't parse Windows paths correctly, so repoName becomes the full path
+        // and indexName gets normalized from that full path. Just verify normalization happened.
+        if (result.indexName.includes('\\')) {
+          // Windows path wasn't parsed correctly, indexName is the normalized full path
+          expect(result.indexName).toContain('my'); // -repo was stripped
+          expect(mockWarn).toHaveBeenCalled();
+        } else {
+          // Path was parsed correctly, -repo should be stripped
+          expect(result.indexName).toBe('my');
+          expect(mockWarn).toHaveBeenCalledWith(expect.stringContaining('Index name "my-repo" was normalized to "my"'));
+        }
       });
 
       it('SHOULD handle Windows absolute path with forward slashes', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
         const result = parseRepoArg('C:/Users/dev/repos/my-repo');
 
         expect(result.repoName).toBe('my-repo');
         // path.resolve on macOS will prepend cwd to Windows-style paths
         expect(result.repoPath).toContain('my-repo');
-        expect(result.indexName).toBe('my-repo');
+        expect(result.indexName).toBe('my'); // -repo is stripped to allow alias creation
+        expect(mockWarn).toHaveBeenCalledWith('Index name "my-repo" was normalized to "my" ');
       });
 
       it('SHOULD handle Windows path with custom index', () => {
@@ -189,11 +230,24 @@ describe('index_command', () => {
       });
 
       it('SHOULD handle lowercase drive letter', () => {
+        const mockWarn = vi.spyOn(logger, 'warn');
         const result = parseRepoArg('c:\\repos\\test-repo');
 
         // Verify it's treated as a path
         expect(result.repoPath).toContain('test-repo');
-        expect(result.indexName).toContain('test-repo');
+        // On macOS, path.basename doesn't parse Windows paths correctly, so repoName becomes the full path
+        // and indexName gets normalized from that full path. Just verify normalization happened.
+        if (result.indexName.includes('\\')) {
+          // Windows path wasn't parsed correctly, indexName is the normalized full path
+          expect(result.indexName).toContain('test'); // -repo was stripped
+          expect(mockWarn).toHaveBeenCalled();
+        } else {
+          // Path was parsed correctly, -repo should be stripped
+          expect(result.indexName).toBe('test');
+          expect(mockWarn).toHaveBeenCalledWith(
+            expect.stringContaining('Index name "test-repo" was normalized to "test"')
+          );
+        }
       });
     });
   });
