@@ -84,16 +84,18 @@ describe('Integration Test - Incremental Indexing & Multi-language Support', () 
     const initialHits = initialSearch.hits.hits.map((h) => h._source!);
     expect(initialHits.length).toBeGreaterThanOrEqual(3);
 
-    const tsFile = initialHits.find((h) => h.filePath === 'main.ts');
+    const tsFile = initialHits.find((h) => h.filePaths?.some((p) => p.path === 'main.ts') || h.filePath === 'main.ts');
     expect(tsFile).toBeDefined();
     expect(tsFile?.language).toBe('typescript');
     expect(tsFile?.content).toContain('export const x = 1');
 
-    const pyFile = initialHits.find((h) => h.filePath === 'script.py');
+    const pyFile = initialHits.find(
+      (h) => h.filePaths?.some((p) => p.path === 'script.py') || h.filePath === 'script.py'
+    );
     expect(pyFile).toBeDefined();
     expect(pyFile?.language).toBe('python');
 
-    const goFile = initialHits.find((h) => h.filePath === 'main.go');
+    const goFile = initialHits.find((h) => h.filePaths?.some((p) => p.path === 'main.go') || h.filePath === 'main.go');
     expect(goFile).toBeDefined();
     expect(goFile?.language).toBe('go');
 
@@ -126,25 +128,36 @@ describe('Integration Test - Incremental Indexing & Multi-language Support', () 
     const finalHits = finalSearch.hits.hits.map((h) => h._source!);
 
     // Check main.ts (Modified)
-    const tsFileFinal = finalHits.find((h) => h.filePath === 'main.ts');
-    expect(tsFileFinal).toBeDefined();
-    expect(tsFileFinal?.content).toContain('export const x = 2');
+    // Content-based dedupe means the updated file should point at new content,
+    // and the old content should no longer be associated with the file.
+    const tsFileNewContent = finalHits.find((h) => h.content.includes('export const x = 2'));
+    expect(tsFileNewContent).toBeDefined();
+    expect(tsFileNewContent?.filePaths?.some((p) => p.path === 'main.ts')).toBe(true);
+
+    const tsFileOldContent = finalHits.find((h) => h.content.includes('export const x = 1'));
+    expect(tsFileOldContent).toBeUndefined();
 
     // Check script.py (Renamed/Deleted)
-    const pyFileOld = finalHits.find((h) => h.filePath === 'script.py');
+    const pyFileOld = finalHits.find(
+      (h) => h.filePaths?.some((p) => p.path === 'script.py') || h.filePath === 'script.py'
+    );
     expect(pyFileOld).toBeUndefined();
 
     // Check lib.py (Renamed/Created)
-    const pyFileNew = finalHits.find((h) => h.filePath === 'lib.py');
+    const pyFileNew = finalHits.find((h) => h.filePaths?.some((p) => p.path === 'lib.py') || h.filePath === 'lib.py');
     expect(pyFileNew).toBeDefined();
     expect(pyFileNew?.language).toBe('python');
 
     // Check main.go (Deleted)
-    const goFileFinal = finalHits.find((h) => h.filePath === 'main.go');
+    const goFileFinal = finalHits.find(
+      (h) => h.filePaths?.some((p) => p.path === 'main.go') || h.filePath === 'main.go'
+    );
     expect(goFileFinal).toBeUndefined();
 
     // Check README.md (Added)
-    const mdFile = finalHits.find((h) => h.filePath === 'README.md');
+    const mdFile = finalHits.find(
+      (h) => h.filePaths?.some((p) => p.path === 'README.md') || h.filePath === 'README.md'
+    );
     expect(mdFile).toBeDefined();
     expect(mdFile?.language).toBe('markdown');
   }, 300000); // 5 minute timeout

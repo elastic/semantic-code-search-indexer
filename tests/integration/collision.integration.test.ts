@@ -68,7 +68,7 @@ describe('Integration Test - Collision Handling', () => {
     }
   });
 
-  it('should index identical content from different files as separate documents', async () => {
+  it('should aggregate identical chunks across files into shared documents', async () => {
     // Limit to typescript
     process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
 
@@ -78,8 +78,6 @@ describe('Integration Test - Collision Handling', () => {
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
 
-    // We expect at least 2 documents (one for each file)
-    // There might be more depending on chunking, but we at least want to ensure both files are represented
     const response = await client.search<CodeChunk>({
       index: TEST_INDEX,
       query: {
@@ -89,18 +87,27 @@ describe('Integration Test - Collision Handling', () => {
     });
 
     const hits = response.hits.hits;
-    const filePaths = hits.map((hit) => hit._source?.filePath);
 
-    expect(filePaths).toContain('file1.ts');
-    expect(filePaths).toContain('file2.ts');
+    // We expect the TypeScript parser to produce at least:
+    // - a `function_declaration` chunk (contains the console.log call)
+    // - a `call_expression` chunk (the console.log call itself)
+    // Both chunks should be aggregated across the 2 files.
+    const relevantHits = hits.filter((h) => h._source?.content.includes('console.log("world")'));
+    expect(relevantHits.length).toBe(2);
 
-    // Ensure distinct IDs
-    const ids = hits.map((hit) => hit._id);
-    const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(ids.length);
+    // Verify each document has 2 file paths
+    relevantHits.forEach((hit) => {
+      const doc = hit._source;
+      expect(doc?.fileCount).toBe(2);
+      expect(doc?.filePaths).toHaveLength(2);
+      const paths = doc?.filePaths?.map((p) => p.path).sort();
+      expect(paths).toEqual(['file1.ts', 'file2.ts']);
+    });
 
-    // Verify content is correct
-    const content = hits.map((hit) => hit._source?.content);
-    expect(content.some((c) => c && c.includes('console.log("world")'))).toBe(true);
+    // Sanity check: ensure we found both the function and the call chunks.
+    const functionChunk = relevantHits.find((h) => h._source?.content.includes('function hello'));
+    const callChunk = relevantHits.find((h) => h._source?.content.trim().startsWith('console.log("world")'));
+    expect(functionChunk).toBeDefined();
+    expect(callChunk).toBeDefined();
   }, 180000);
 });

@@ -27,12 +27,26 @@ import {
 
 const { Query } = Parser;
 
+function getGitRoot(cwd: string): string {
+  // When running inside git hooks (e.g. husky), git may set GIT_DIR/GIT_WORK_TREE
+  // in the environment for child processes. That can cause `git rev-parse --show-toplevel`
+  // to incorrectly treat `cwd` as the worktree root.
+  //
+  // We explicitly remove those env vars so git discovers the real repository root from `cwd`.
+  const env: Record<string, string> = { ...process.env } as Record<string, string>;
+  delete env.GIT_DIR;
+  delete env.GIT_WORK_TREE;
+  delete env.GIT_INDEX_FILE;
+
+  return execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd, env }).toString().trim();
+}
+
 /**
- * Creates a stable, unique identifier for a chunk within a specific file revision.
+ * Creates a stable identifier for a chunk's content.
  *
- * IMPORTANT: `chunk_hash` is used as the Elasticsearch `_id`, so it MUST be unique across chunks.
- * Hashing only `content` causes massive collisions (e.g., common tokens like `}` across many files),
- * which in turn overwrites documents in Elasticsearch and breaks queue commit logic.
+ * NOTE: This hash is stored as `chunk_hash` on the document, but it is not necessarily the
+ * Elasticsearch `_id`. The actual `_id` is produced in `src/utils/elasticsearch.ts` (see
+ * `getChunkDocumentId`) and may intentionally deduplicate identical content across files.
  */
 function createChunkHash(params: {
   type: string;
@@ -44,17 +58,20 @@ function createChunkHash(params: {
   endLine: number;
   startIndex: number;
   endIndex: number;
+  content: string; // Added content param
 }): string {
+  // IMPORTANT: To implement path aggregation (#121), we MUST NOT include file-specific metadata
+  // (path, branch, line numbers) in the hash. Identical code in different files
+  // must generate the same hash so they map to the same document.
   const stableId = [
     params.type,
     params.language,
-    params.gitBranch,
-    params.relativePath,
-    params.gitFileHash,
-    params.startLine.toString(),
-    params.endLine.toString(),
-    params.startIndex.toString(),
-    params.endIndex.toString(),
+    // params.relativePath, // Excluded for aggregation
+    // params.gitBranch,    // Excluded for aggregation
+    // params.gitFileHash,  // Excluded for aggregation
+    // params.startLine,    // Excluded for aggregation
+    // params.endLine,      // Excluded for aggregation
+    params.content,
   ].join(':');
 
   return createHash('sha256').update(stableId).digest('hex');
@@ -220,6 +237,7 @@ export class LanguageParser {
       endLine: params.endLine,
       startIndex: params.startIndex,
       endIndex: params.endIndex,
+      content: params.content,
     });
     const directoryInfo = extractDirectoryInfo(params.relativePath);
 
@@ -632,12 +650,20 @@ export class LanguageParser {
           }
 
           let type: 'module' | 'file' = 'module';
-          if (importPath.startsWith('.')) {
+          // Bash `source` / `.` statements treat paths as file paths, even without a leading `./`.
+          // We normalize non-absolute paths to be repo-root-relative for consistency in indexing/tests.
+          if (langConfig.name === 'bash') {
+            type = 'file';
+            if (!path.isAbsolute(importPath)) {
+              const resolvedPath = path.resolve(path.dirname(filePath), importPath);
+              // Use execFileSync to prevent shell injection from special characters in directory paths
+              const gitRoot = getGitRoot(path.dirname(filePath));
+              importPath = path.relative(gitRoot, resolvedPath);
+            }
+          } else if (importPath.startsWith('.')) {
             const resolvedPath = path.resolve(path.dirname(filePath), importPath);
             // Use execFileSync to prevent shell injection from special characters in directory paths
-            const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) })
-              .toString()
-              .trim();
+            const gitRoot = getGitRoot(path.dirname(filePath));
             importPath = path.relative(gitRoot, resolvedPath);
             type = 'file';
           }
@@ -744,9 +770,7 @@ export class LanguageParser {
               try {
                 const resolvedPath = path.resolve(path.dirname(filePath), exportTarget);
                 // Use execFileSync to prevent shell injection from special characters in directory paths
-                const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) })
-                  .toString()
-                  .trim();
+                const gitRoot = getGitRoot(path.dirname(filePath));
                 exportTarget = path.relative(gitRoot, resolvedPath);
               } catch (error) {
                 logger.warn(
@@ -849,6 +873,7 @@ export class LanguageParser {
           endLine,
           startIndex: node.startIndex,
           endIndex: node.endIndex,
+          content: content,
         });
 
         let containerPath = '';
