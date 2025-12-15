@@ -1,5 +1,5 @@
 import { getLastIndexedCommit, deleteDocumentsByFilePath } from '../utils/elasticsearch';
-import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
+import { languageConfigurations } from '../languages';
 import { indexingConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
@@ -45,6 +45,11 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
   const logger = createLogger({ name: repoName, branch: gitBranch });
   const metrics = createMetrics({ name: repoName, branch: gitBranch });
 
+  const supportedExtensions = new Set<string>();
+  Object.values(languageConfigurations).forEach((config) => {
+    config.fileSuffixes.forEach((suffix) => supportedExtensions.add(suffix));
+  });
+
   logger.info('Starting incremental indexing process', {
     directory,
     ...options,
@@ -76,13 +81,13 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
       const oldFile = parts[1];
       const newFile = parts[2];
       filesToDelete.push(oldFile);
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(newFile))) {
+      if (supportedExtensions.has(path.extname(newFile))) {
         filesToIndex.push(newFile);
       }
     } else if (status.startsWith('C')) {
       // Handle Copy (CXXX)
       const newFile = parts[2];
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(newFile))) {
+      if (supportedExtensions.has(path.extname(newFile))) {
         filesToIndex.push(newFile);
       }
     } else if (status === 'D') {
@@ -90,12 +95,12 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
       filesToDelete.push(file);
     } else if (status === 'A') {
       const file = parts[1];
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(file))) {
+      if (supportedExtensions.has(path.extname(file))) {
         filesToIndex.push(file);
       }
     } else if (status === 'M') {
       const file = parts[1];
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(file))) {
+      if (supportedExtensions.has(path.extname(file))) {
         filesToDelete.push(file);
         filesToIndex.push(file);
       }

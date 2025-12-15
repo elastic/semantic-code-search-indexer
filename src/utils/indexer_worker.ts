@@ -75,8 +75,14 @@ export class IndexerWorker {
           // If in watch mode and the queue is empty, wait before polling again.
           await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL_MS));
         } else {
-          // If not in watch mode and the queue is empty, exit the loop.
-          // The final `onIdle` will wait for any remaining tasks.
+          // If not in watch mode and dequeue returns empty:
+          // - If there are still in-flight tasks, wait for a task to complete and retry.
+          //   (In-flight tasks may requeue work back to 'pending' when they finish.)
+          // - If there are no in-flight tasks, we're truly done.
+          if (totalActiveTasks > 0) {
+            await new Promise<void>((resolve) => this.consumerQueue.once('next', resolve));
+            continue;
+          }
           break;
         }
       }
@@ -107,15 +113,15 @@ export class IndexerWorker {
 
     const duration = Date.now() - startTime;
 
-    // Build maps from chunk_hash to QueuedDocument for commit/requeue
-    const chunkHashToDoc = new Map(batch.map((doc) => [doc.document.chunk_hash, doc]));
-
+    // Map indexCodeChunks results back to the exact queue rows by input index.
+    // Do NOT map by chunk_hash: chunk_hash is not guaranteed unique (content collisions),
+    // and duplicates would leave rows stuck in 'processing'.
     const succeededDocs = result.succeeded
-      .map((chunk) => chunkHashToDoc.get(chunk.chunk_hash))
+      .map((s) => batch[s.inputIndex])
       .filter((doc): doc is QueuedDocument => doc !== undefined);
 
     const failedDocs = result.failed
-      .map((f) => chunkHashToDoc.get(f.chunk.chunk_hash))
+      .map((f) => batch[f.inputIndex])
       .filter((doc): doc is QueuedDocument => doc !== undefined);
 
     // Commit succeeded documents
@@ -135,15 +141,15 @@ export class IndexerWorker {
       this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
       this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
       this.metrics.indexer?.batchSize.record(batch.length, commonMetricAttributes);
-      this.logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
+      this.logger.info(`Successfully indexed and committed batch of ${succeededDocs.length} documents.`);
       return true;
     } else if (result.succeeded.length > 0) {
       // Partial success
       this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
       this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
-      this.metrics.indexer?.batchSize.record(result.succeeded.length, commonMetricAttributes);
+      this.metrics.indexer?.batchSize.record(succeededDocs.length, commonMetricAttributes);
       this.logger.info(
-        `Partial success: ${result.succeeded.length}/${batch.length} indexed, ${result.failed.length} failed.`
+        `Partial success: ${succeededDocs.length}/${batch.length} indexed, ${failedDocs.length} failed.`
       );
       return true;
     } else {

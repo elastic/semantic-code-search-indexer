@@ -6,6 +6,7 @@ import {
   BulkOperationType,
   BulkResponseItem,
 } from '@elastic/elasticsearch/lib/api/types';
+import { createHash } from 'crypto';
 import { elasticsearchConfig, indexingConfig } from '../config';
 export { elasticsearchConfig };
 import { logger } from './logger';
@@ -134,7 +135,7 @@ export async function createIndex(index?: string): Promise<void> {
             },
           },
           containerPath: { type: 'text' },
-          filePath: { type: 'keyword' },
+          filePath: { type: 'keyword' }, // Legacy field
           directoryPath: { type: 'keyword', eager_global_ordinals: true },
           directoryName: { type: 'keyword' },
           directoryDepth: { type: 'integer' },
@@ -143,6 +144,21 @@ export async function createIndex(index?: string): Promise<void> {
           chunk_hash: { type: 'keyword' },
           startLine: { type: 'integer' },
           endLine: { type: 'integer' },
+          // New fields for path aggregation
+          fileCount: { type: 'integer' },
+          filePaths: {
+            type: 'nested',
+            properties: {
+              path: { type: 'keyword' },
+              startLine: { type: 'integer' },
+              endLine: { type: 'integer' },
+              directoryPath: { type: 'keyword' },
+              directoryName: { type: 'keyword' },
+              directoryDepth: { type: 'integer' },
+              git_file_hash: { type: 'keyword' },
+              git_branch: { type: 'keyword' },
+            },
+          },
           content: { type: 'text' },
           ...(process.env.DISABLE_SEMANTIC_TEXT !== 'true' && {
             semantic_text: {
@@ -236,15 +252,28 @@ export interface CodeChunk {
   symbols?: SymbolInfo[];
   exports?: ExportInfo[];
   containerPath?: string;
-  filePath: string;
-  directoryPath: string;
-  directoryName: string;
-  directoryDepth: number;
-  git_file_hash: string;
-  git_branch: string;
+  // Deprecated: use filePaths array instead
+  filePath?: string;
+  directoryPath?: string;
+  directoryName?: string;
+  directoryDepth?: number;
+  git_file_hash?: string;
+  git_branch?: string;
+  // New field for aggregation
+  filePaths?: {
+    path: string;
+    startLine: number;
+    endLine: number;
+    directoryPath?: string;
+    directoryName?: string;
+    directoryDepth?: number;
+    git_file_hash?: string;
+    git_branch?: string;
+  }[];
+  fileCount?: number;
   chunk_hash: string;
-  startLine: number;
-  endLine: number;
+  startLine?: number;
+  endLine?: number;
   content: string;
   semantic_text: string;
   code_vector?: number[];
@@ -253,13 +282,43 @@ export interface CodeChunk {
 }
 
 /**
+ * Produces a stable Elasticsearch document id for a chunk.
+ *
+ * Uses SHA256(content + language + type + kind + containerPath) to ensure identical code
+ * from different files maps to the same document.
+ */
+function getChunkDocumentId(chunk: CodeChunk): string {
+  // IMPORTANT: Do NOT include file-specific metadata (path, branch, line numbers)
+  // in the hash input. This ensures identical content shares the same ID.
+  const stable = [chunk.type, chunk.language, chunk.kind ?? '', chunk.containerPath ?? '', chunk.content].join(':');
+
+  return createHash('sha256').update(stable).digest('hex');
+}
+
+/**
  * Result of a bulk indexing operation, separating succeeded and failed documents.
  */
+export interface BulkIndexSucceeded {
+  /** Original input chunk that was indexed */
+  chunk: CodeChunk;
+  /** Index of the chunk in the original `chunks` input array */
+  inputIndex: number;
+}
+
+export interface BulkIndexFailed {
+  /** Original input chunk that failed to index */
+  chunk: CodeChunk;
+  /** Index of the chunk in the original `chunks` input array */
+  inputIndex: number;
+  /** Elasticsearch error information for this item */
+  error: unknown;
+}
+
 export interface BulkIndexResult {
   /** Documents that were successfully indexed */
-  succeeded: CodeChunk[];
+  succeeded: BulkIndexSucceeded[];
   /** Documents that failed to index with their errors */
-  failed: { chunk: CodeChunk; error: unknown }[];
+  failed: BulkIndexFailed[];
 }
 
 /**
@@ -281,9 +340,84 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
   }
 
   const indexName = index || defaultIndexName;
-  const operations = chunks.flatMap((doc) => [{ index: { _index: indexName, _id: doc.chunk_hash } }, doc]);
 
-  const bulkOptions: { refresh: boolean; operations: (BulkOperationContainer | CodeChunk)[]; pipeline?: string } = {
+  // Transform chunks into update/upsert operations
+  const operations = chunks.flatMap((doc) => {
+    // The indexer pipeline is expected to always enqueue chunks with file-specific metadata.
+    // Keep `CodeChunk` fields optional because indexed *documents* can be aggregated across files,
+    // but the *input* to indexing must include a file path and line range to update filePaths.
+    if (!doc.filePath || doc.startLine == null || doc.endLine == null) {
+      throw new Error(
+        `indexCodeChunks received an input chunk without required file metadata (filePath/startLine/endLine). chunk_hash=${doc.chunk_hash}`
+      );
+    }
+
+    // Extract file-specific info to add to filePaths
+    const pathInfo = {
+      path: doc.filePath,
+      startLine: doc.startLine,
+      endLine: doc.endLine,
+      directoryPath: doc.directoryPath,
+      directoryName: doc.directoryName,
+      directoryDepth: doc.directoryDepth,
+      git_file_hash: doc.git_file_hash,
+      git_branch: doc.git_branch,
+    };
+
+    // Prepare the base document for upsert (if it doesn't exist)
+    // Initialize filePaths with the current path info
+    const upsertDoc = {
+      ...doc,
+      filePaths: [pathInfo],
+      fileCount: 1,
+    };
+
+    // Remove flat fields from upsertDoc if desired, or keep them as "primary"
+    // For now, we keep them as they are required by the CodeChunk interface
+
+    return [
+      { update: { _index: indexName, _id: getChunkDocumentId(doc) } },
+      {
+        script: {
+          source: `
+            // Check if path already exists in filePaths
+            boolean exists = false;
+            if (ctx._source.filePaths != null) {
+              for (item in ctx._source.filePaths) {
+                if (item.path == params.pathInfo.path && item.startLine == params.pathInfo.startLine) {
+                  exists = true;
+                  break;
+                }
+              }
+            } else {
+              ctx._source.filePaths = [];
+            }
+            
+            // Append if not exists
+            if (!exists) {
+              ctx._source.filePaths.add(params.pathInfo);
+              if (ctx._source.fileCount == null) {
+                ctx._source.fileCount = 1;
+              } else {
+                ctx._source.fileCount += 1;
+              }
+            }
+          `,
+          lang: 'painless',
+          params: {
+            pathInfo: pathInfo,
+          },
+        },
+        upsert: upsertDoc,
+      },
+    ];
+  });
+
+  const bulkOptions: {
+    refresh: boolean;
+    operations: Array<BulkOperationContainer | Record<string, unknown>>;
+    pipeline?: string;
+  } = {
     refresh: false,
     operations,
   };
@@ -297,28 +431,34 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
     const bulkResponse = await getClient().bulk(bulkOptions);
     logger.info(`Bulk operation completed for ${chunks.length} chunks`);
 
-    const succeeded: CodeChunk[] = [];
-    const failed: { chunk: CodeChunk; error: unknown }[] = [];
+    const succeeded: BulkIndexSucceeded[] = [];
+    const failed: BulkIndexFailed[] = [];
 
     bulkResponse.items.forEach((action: Partial<Record<BulkOperationType, BulkResponseItem>>, i: number) => {
+      // The result key will be 'update' (or 'create'/'index' if we used those)
+      // Since we use 'update', look for that.
       const operationType = Object.keys(action)[0] as BulkOperationType;
       const result = action[operationType];
-      const chunk = operations[i * 2 + 1] as CodeChunk;
+      const chunk = chunks[i];
+      if (!chunk) {
+        return;
+      }
 
       if (result?.error) {
         failed.push({
           chunk,
+          inputIndex: i,
           error: result.error,
         });
       } else {
-        succeeded.push(chunk);
+        succeeded.push({ chunk, inputIndex: i });
       }
     });
 
     if (failed.length > 0) {
       logger.error(`Partial bulk failure: ${failed.length}/${chunks.length} documents failed`, {
         errors: JSON.stringify(
-          failed.map((f) => ({ chunk_hash: f.chunk.chunk_hash, error: f.error })),
+          failed.map((f) => ({ chunk_hash: f.chunk.chunk_hash, inputIndex: f.inputIndex, error: f.error })),
           null,
           2
         ),
@@ -331,7 +471,7 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
     logger.error('Exception during bulk indexing:', { error });
     return {
       succeeded: [],
-      failed: chunks.map((chunk) => ({ chunk, error })),
+      failed: chunks.map((chunk, inputIndex) => ({ chunk, inputIndex, error })),
     };
   }
 }
@@ -382,26 +522,30 @@ export async function searchCodeChunks(query: string, index?: string): Promise<S
  */
 interface FileAggregation {
   files: {
-    buckets: {
-      key: string;
-      symbols: {
-        names: {
-          buckets: {
-            key: string;
-            kind: {
+    paths: {
+      buckets: {
+        key: string;
+        to_root: {
+          symbols: {
+            names: {
               buckets: {
                 key: string;
+                kind: {
+                  buckets: {
+                    key: string;
+                  }[];
+                };
+                line: {
+                  buckets: {
+                    key: number;
+                  }[];
+                };
               }[];
             };
-            line: {
-              buckets: {
-                key: number;
-              }[];
-            };
-          }[];
+          };
         };
-      };
-    }[];
+      }[];
+    };
   };
 }
 
@@ -424,32 +568,44 @@ export async function aggregateBySymbols(
     query,
     aggs: {
       files: {
-        terms: {
-          field: 'filePath',
-          size: 1000,
+        nested: {
+          path: 'filePaths',
         },
         aggs: {
-          symbols: {
-            nested: {
-              path: 'symbols',
+          paths: {
+            terms: {
+              field: 'filePaths.path',
+              size: 1000,
             },
             aggs: {
-              names: {
-                terms: {
-                  field: 'symbols.name',
-                  size: 1000,
-                },
+              to_root: {
+                reverse_nested: {},
                 aggs: {
-                  kind: {
-                    terms: {
-                      field: 'symbols.kind',
-                      size: 1,
+                  symbols: {
+                    nested: {
+                      path: 'symbols',
                     },
-                  },
-                  line: {
-                    terms: {
-                      field: 'symbols.line',
-                      size: 1,
+                    aggs: {
+                      names: {
+                        terms: {
+                          field: 'symbols.name',
+                          size: 1000,
+                        },
+                        aggs: {
+                          kind: {
+                            terms: {
+                              field: 'symbols.kind',
+                              size: 1,
+                            },
+                          },
+                          line: {
+                            terms: {
+                              field: 'symbols.line',
+                              size: 1,
+                            },
+                          },
+                        },
+                      },
                     },
                   },
                 },
@@ -465,12 +621,12 @@ export async function aggregateBySymbols(
   const results: Record<string, SymbolInfo[]> = {};
   if (response.aggregations) {
     const files = response.aggregations;
-    for (const bucket of files.files.buckets) {
+    for (const bucket of files.files.paths.buckets) {
       const filePath = bucket.key;
-      const symbols: SymbolInfo[] = bucket.symbols.names.buckets.map((b) => ({
+      const symbols: SymbolInfo[] = bucket.to_root.symbols.names.buckets.map((b) => ({
         name: b.key,
-        kind: b.kind.buckets[0].key,
-        line: b.line.buckets[0].key,
+        kind: b.kind.buckets[0]?.key ?? 'symbol',
+        line: b.line.buckets[0]?.key ?? 0,
       }));
       results[filePath] = symbols;
     }
@@ -492,11 +648,31 @@ export async function deleteIndex(index?: string): Promise<void> {
 
 export async function deleteDocumentsByFilePath(filePath: string, index?: string): Promise<void> {
   const indexName = index || defaultIndexName;
-  await getClient().deleteByQuery({
+  await getClient().updateByQuery({
     index: indexName,
     query: {
-      term: {
-        filePath: filePath,
+      nested: {
+        path: 'filePaths',
+        query: {
+          term: {
+            'filePaths.path': filePath,
+          },
+        },
+      },
+    },
+    script: {
+      source: `
+        if (ctx._source.filePaths != null) {
+          ctx._source.filePaths.removeIf(item -> item.path == params.path);
+          ctx._source.fileCount = ctx._source.filePaths.size();
+          if (ctx._source.filePaths.size() == 0) {
+            ctx.op = "delete";
+          }
+        }
+      `,
+      lang: 'painless',
+      params: {
+        path: filePath,
       },
     },
     refresh: true,

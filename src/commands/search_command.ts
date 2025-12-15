@@ -21,8 +21,21 @@ export async function search(query: string, options: { index?: string; limit?: s
     console.log('\n' + '='.repeat(80));
     console.log(`Result #${index + 1} (Score: ${result.score.toFixed(2)})`);
     console.log('='.repeat(80));
-    console.log(`File: ${result.filePath}`);
-    console.log(`Lines: ${result.startLine}-${result.endLine}`);
+    if (result.filePaths && result.filePaths.length > 0) {
+      console.log(`Files: ${result.fileCount ?? result.filePaths.length}`);
+      const shown = result.filePaths.slice(0, 5);
+      shown.forEach((p) => {
+        console.log(`- ${p.path}:${p.startLine}-${p.endLine}`);
+      });
+      if (result.filePaths.length > shown.length) {
+        console.log(`- ... +${result.filePaths.length - shown.length} more`);
+      }
+    } else {
+      console.log(`File: ${result.filePath ?? '(unknown)'}`);
+      if (result.startLine != null && result.endLine != null) {
+        console.log(`Lines: ${result.startLine}-${result.endLine}`);
+      }
+    }
     if (result.kind) {
       console.log(`Kind: ${result.kind}`);
     }

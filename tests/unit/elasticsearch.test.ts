@@ -77,7 +77,7 @@ describe('indexCodeChunks', () => {
 
     expect(result.succeeded).toHaveLength(1);
     expect(result.failed).toHaveLength(0);
-    expect(result.succeeded[0].chunk_hash).toBe('chunk_hash_1');
+    expect(result.succeeded[0].chunk.chunk_hash).toBe('chunk_hash_1');
     expect(mockBulk).toHaveBeenCalledTimes(1);
   });
 
@@ -193,7 +193,7 @@ describe('indexCodeChunks', () => {
 
     // First chunk succeeded
     expect(result.succeeded).toHaveLength(1);
-    expect(result.succeeded[0].chunk_hash).toBe('chunk_hash_1');
+    expect(result.succeeded[0].chunk.chunk_hash).toBe('chunk_hash_1');
 
     // Second and third chunks failed
     expect(result.failed).toHaveLength(2);

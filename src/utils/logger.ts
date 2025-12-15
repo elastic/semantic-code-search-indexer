@@ -39,7 +39,15 @@ function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?:
   if (process.env.NODE_ENV !== 'test' || process.env.FORCE_LOGGING === 'true') {
     // Always output text to console (unless in test mode without FORCE_LOGGING)
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] [${level}] ${message}`);
+    let logMessage = `[${timestamp}] [${level}] ${message}`;
+    if (metadata && Object.keys(metadata).length > 0) {
+      try {
+        logMessage += ` ${JSON.stringify(metadata)}`;
+      } catch {
+        logMessage += ' [Metadata serialization failed]';
+      }
+    }
+    console.log(logMessage);
   }
 
   // Send to OTel if enabled

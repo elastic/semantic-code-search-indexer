@@ -2,20 +2,18 @@ import { SqliteQueue } from '../../src/utils/sqlite_queue';
 import { CodeChunk } from '../../src/utils/elasticsearch';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import Database from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('SqliteQueue - Stale Task Recovery', () => {
-  const testDbDir = path.join(__dirname, '.test-queues');
-  const testDbPath = path.join(testDbDir, 'stale-test-queue.db');
+  let testDbDir: string;
+  let testDbPath: string;
   let queue: SqliteQueue;
 
   beforeEach(async () => {
-    // Clean up any existing test database
-    if (fs.existsSync(testDbDir)) {
-      fs.rmSync(testDbDir, { recursive: true });
-    }
-    fs.mkdirSync(testDbDir, { recursive: true });
+    testDbDir = fs.mkdtempSync(path.join(os.tmpdir(), 'queue-stale-test-'));
+    testDbPath = path.join(testDbDir, 'stale-test-queue.db');
 
     queue = new SqliteQueue({
       dbPath: testDbPath,
