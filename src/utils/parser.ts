@@ -28,6 +28,39 @@ import {
 const { Query } = Parser;
 
 /**
+ * Creates a stable, unique identifier for a chunk within a specific file revision.
+ *
+ * IMPORTANT: `chunk_hash` is used as the Elasticsearch `_id`, so it MUST be unique across chunks.
+ * Hashing only `content` causes massive collisions (e.g., common tokens like `}` across many files),
+ * which in turn overwrites documents in Elasticsearch and breaks queue commit logic.
+ */
+function createChunkHash(params: {
+  type: string;
+  language: string;
+  relativePath: string;
+  gitBranch: string;
+  gitFileHash: string;
+  startLine: number;
+  endLine: number;
+  startIndex: number;
+  endIndex: number;
+}): string {
+  const stableId = [
+    params.type,
+    params.language,
+    params.gitBranch,
+    params.relativePath,
+    params.gitFileHash,
+    params.startLine.toString(),
+    params.endLine.toString(),
+    params.startIndex.toString(),
+    params.endIndex.toString(),
+  ].join(':');
+
+  return createHash('sha256').update(stableId).digest('hex');
+}
+
+/**
  * Extracts directory information from a file path.
  * @param filePath The relative file path
  * @returns Object containing directoryPath, directoryName, and directoryDepth
@@ -92,6 +125,8 @@ interface ChunkParams {
   gitBranch: string;
   startLine: number;
   endLine: number;
+  startIndex: number;
+  endIndex: number;
   timestamp: string;
 }
 
@@ -175,7 +210,17 @@ export class LanguageParser {
    * @returns Complete CodeChunk object with semantic_text
    */
   private createChunk(params: ChunkParams): CodeChunk {
-    const chunkHash = createHash('sha256').update(params.content).digest('hex');
+    const chunkHash = createChunkHash({
+      type: CHUNK_TYPE_DOC,
+      language: params.language,
+      relativePath: params.relativePath,
+      gitBranch: params.gitBranch,
+      gitFileHash: params.gitFileHash,
+      startLine: params.startLine,
+      endLine: params.endLine,
+      startIndex: params.startIndex,
+      endIndex: params.endIndex,
+    });
     const directoryInfo = extractDirectoryInfo(params.relativePath);
 
     const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
@@ -229,6 +274,8 @@ export class LanguageParser {
       gitBranch,
       startLine: 1,
       endLine: lines.length,
+      startIndex: 0,
+      endIndex: content.length,
       timestamp,
     });
 
@@ -272,6 +319,8 @@ export class LanguageParser {
 
       const startLine = i + 1;
       const endLine = i + chunkLines.length;
+      const startIndex = lines.slice(0, i).join('\n').length + (i > 0 ? 1 : 0);
+      const endIndex = startIndex + chunkContent.length;
 
       chunks.push(
         this.createChunk({
@@ -282,6 +331,8 @@ export class LanguageParser {
           gitBranch,
           startLine,
           endLine,
+          startIndex,
+          endIndex,
           timestamp,
         })
       );
@@ -408,6 +459,8 @@ export class LanguageParser {
           gitBranch,
           startLine,
           endLine,
+          startIndex: chunkStartIndex,
+          endIndex: chunkStartIndex + chunk.length,
           timestamp,
         });
       });
@@ -768,8 +821,7 @@ export class LanguageParser {
       new Map(
         matches.map((match) => {
           const node = match.captures[0].node;
-          const chunkHash = createHash('sha256').update(node.text).digest('hex');
-          return [`${node.startIndex}-${node.endIndex}-${chunkHash}`, match];
+          return [`${node.startIndex}-${node.endIndex}`, match];
         })
       ).values()
     );
@@ -785,7 +837,19 @@ export class LanguageParser {
           chunksSkipped++;
           return null;
         }
-        const chunkHash = createHash('sha256').update(content).digest('hex');
+        const startLine = node.startPosition.row + 1;
+        const endLine = node.endPosition.row + 1;
+        const chunkHash = createChunkHash({
+          type: CHUNK_TYPE_CODE,
+          language: langConfig.name,
+          relativePath,
+          gitBranch,
+          gitFileHash,
+          startLine,
+          endLine,
+          startIndex: node.startIndex,
+          endIndex: node.endIndex,
+        });
 
         let containerPath = '';
         let parent = node.parent;
@@ -809,8 +873,6 @@ export class LanguageParser {
           }
         }
 
-        const startLine = node.startPosition.row + 1;
-        const endLine = node.endPosition.row + 1;
         const chunkImports = importsByLine[startLine] || [];
         const chunkSymbols: SymbolInfo[] = [];
         for (let i = startLine; i <= endLine; i++) {

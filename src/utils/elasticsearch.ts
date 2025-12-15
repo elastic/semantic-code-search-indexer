@@ -6,6 +6,7 @@ import {
   BulkOperationType,
   BulkResponseItem,
 } from '@elastic/elasticsearch/lib/api/types';
+import { createHash } from 'crypto';
 import { elasticsearchConfig, indexingConfig } from '../config';
 export { elasticsearchConfig };
 import { logger } from './logger';
@@ -253,13 +254,55 @@ export interface CodeChunk {
 }
 
 /**
+ * Produces a stable Elasticsearch document id for a chunk.
+ *
+ * We intentionally DO NOT use `chunk_hash` directly as the Elasticsearch `_id` because it historically
+ * was computed from content only, which leads to massive collisions (e.g. common tokens across files).
+ * This id is derived from multiple fields that are already present in queued documents, so it works
+ * for already-enqueued items and does not require `--clean` to resume safely.
+ */
+function getChunkDocumentId(chunk: CodeChunk): string {
+  const stable = [
+    chunk.type,
+    chunk.language,
+    chunk.git_branch,
+    chunk.filePath,
+    chunk.git_file_hash,
+    chunk.startLine.toString(),
+    chunk.endLine.toString(),
+    chunk.kind ?? '',
+    chunk.containerPath ?? '',
+    // include historical chunk_hash to disambiguate same-range different-content cases
+    chunk.chunk_hash,
+  ].join(':');
+
+  return createHash('sha256').update(stable).digest('hex');
+}
+
+/**
  * Result of a bulk indexing operation, separating succeeded and failed documents.
  */
+export interface BulkIndexSucceeded {
+  /** Original input chunk that was indexed */
+  chunk: CodeChunk;
+  /** Index of the chunk in the original `chunks` input array */
+  inputIndex: number;
+}
+
+export interface BulkIndexFailed {
+  /** Original input chunk that failed to index */
+  chunk: CodeChunk;
+  /** Index of the chunk in the original `chunks` input array */
+  inputIndex: number;
+  /** Elasticsearch error information for this item */
+  error: unknown;
+}
+
 export interface BulkIndexResult {
   /** Documents that were successfully indexed */
-  succeeded: CodeChunk[];
+  succeeded: BulkIndexSucceeded[];
   /** Documents that failed to index with their errors */
-  failed: { chunk: CodeChunk; error: unknown }[];
+  failed: BulkIndexFailed[];
 }
 
 /**
@@ -281,7 +324,7 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
   }
 
   const indexName = index || defaultIndexName;
-  const operations = chunks.flatMap((doc) => [{ index: { _index: indexName, _id: doc.chunk_hash } }, doc]);
+  const operations = chunks.flatMap((doc) => [{ index: { _index: indexName, _id: getChunkDocumentId(doc) } }, doc]);
 
   const bulkOptions: { refresh: boolean; operations: (BulkOperationContainer | CodeChunk)[]; pipeline?: string } = {
     refresh: false,
@@ -297,28 +340,32 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
     const bulkResponse = await getClient().bulk(bulkOptions);
     logger.info(`Bulk operation completed for ${chunks.length} chunks`);
 
-    const succeeded: CodeChunk[] = [];
-    const failed: { chunk: CodeChunk; error: unknown }[] = [];
+    const succeeded: BulkIndexSucceeded[] = [];
+    const failed: BulkIndexFailed[] = [];
 
     bulkResponse.items.forEach((action: Partial<Record<BulkOperationType, BulkResponseItem>>, i: number) => {
       const operationType = Object.keys(action)[0] as BulkOperationType;
       const result = action[operationType];
-      const chunk = operations[i * 2 + 1] as CodeChunk;
+      const chunk = chunks[i];
+      if (!chunk) {
+        return;
+      }
 
       if (result?.error) {
         failed.push({
           chunk,
+          inputIndex: i,
           error: result.error,
         });
       } else {
-        succeeded.push(chunk);
+        succeeded.push({ chunk, inputIndex: i });
       }
     });
 
     if (failed.length > 0) {
       logger.error(`Partial bulk failure: ${failed.length}/${chunks.length} documents failed`, {
         errors: JSON.stringify(
-          failed.map((f) => ({ chunk_hash: f.chunk.chunk_hash, error: f.error })),
+          failed.map((f) => ({ chunk_hash: f.chunk.chunk_hash, inputIndex: f.inputIndex, error: f.error })),
           null,
           2
         ),
@@ -331,7 +378,7 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
     logger.error('Exception during bulk indexing:', { error });
     return {
       succeeded: [],
-      failed: chunks.map((chunk) => ({ chunk, error })),
+      failed: chunks.map((chunk, inputIndex) => ({ chunk, inputIndex, error })),
     };
   }
 }

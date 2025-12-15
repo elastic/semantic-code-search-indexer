@@ -1,4 +1,4 @@
-import { getClient } from '../../src/utils/elasticsearch';
+import { getClient, CodeChunk } from '../../src/utils/elasticsearch';
 import { setup } from '../../src/commands/setup_command';
 import { indexRepos } from '../../src/commands/index_command';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -7,7 +7,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import os from 'os';
 
-const TEST_INDEX = `test-integration-index-${Date.now()}`;
+const TEST_INDEX = `test-collision-index-${Date.now()}`;
 
 // Check if Elasticsearch is available
 async function isElasticsearchAvailable(): Promise<boolean> {
@@ -19,12 +19,11 @@ async function isElasticsearchAvailable(): Promise<boolean> {
   }
 }
 
-describe('Integration Test - Full Indexing Pipeline', () => {
+describe('Integration Test - Collision Handling', () => {
   let testRepoPath: string;
   let testRepoUrl: string;
 
   beforeAll(async () => {
-    // Check ES availability first
     const esAvailable = await isElasticsearchAvailable();
     if (!esAvailable) {
       throw new Error(
@@ -32,18 +31,23 @@ describe('Integration Test - Full Indexing Pipeline', () => {
       );
     }
 
-    // Create a temporary Git repository from fixtures for testing
-    testRepoPath = path.join(os.tmpdir(), `test-tiny-repo-${Date.now()}`);
+    testRepoPath = path.join(os.tmpdir(), `test-collision-repo-${Date.now()}`);
     fs.mkdirSync(testRepoPath, { recursive: true });
-
-    // Copy fixtures to test repo
-    const fixturesDir = path.resolve(__dirname, '../fixtures');
-    fs.cpSync(fixturesDir, testRepoPath, { recursive: true });
 
     // Initialize as git repo
     execSync('git init', { cwd: testRepoPath, stdio: 'ignore' });
     execSync('git config user.email "test@test.com"', { cwd: testRepoPath, stdio: 'ignore' });
     execSync('git config user.name "Test User"', { cwd: testRepoPath, stdio: 'ignore' });
+
+    // Create two files with IDENTICAL content
+    const content = `
+      function hello() {
+        console.log("world");
+      }
+    `;
+    fs.writeFileSync(path.join(testRepoPath, 'file1.ts'), content);
+    fs.writeFileSync(path.join(testRepoPath, 'file2.ts'), content);
+
     execSync('git add .', { cwd: testRepoPath, stdio: 'ignore' });
     execSync('git commit -m "Initial commit"', { cwd: testRepoPath, stdio: 'ignore' });
 
@@ -51,7 +55,6 @@ describe('Integration Test - Full Indexing Pipeline', () => {
   });
 
   afterAll(async () => {
-    // Clean up test index
     try {
       const client = getClient();
       await client.indices.delete({ index: TEST_INDEX });
@@ -60,42 +63,44 @@ describe('Integration Test - Full Indexing Pipeline', () => {
       // Ignore errors during cleanup
     }
 
-    // Clean up test repo
     if (testRepoPath && fs.existsSync(testRepoPath)) {
       fs.rmSync(testRepoPath, { recursive: true, force: true });
     }
   });
 
-  it('should setup, index, and verify documents in elasticsearch', async () => {
-    // Limit to typescript for faster test execution
+  it('should index identical content from different files as separate documents', async () => {
+    // Limit to typescript
     process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
 
-    // Setup creates the index with proper mapping
     await setup(testRepoUrl, {});
-
-    // Index the test repository with watch: false to prevent infinite loops
     await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
 
-    // Force Elasticsearch to refresh the index to make documents searchable
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
 
-    // Verify documents were indexed
-    const response = await client.count({ index: TEST_INDEX });
-
-    expect(response.count).toBeGreaterThan(0);
-
-    // Verify content match for a known fixture
-    const tsSearch = await client.search({
+    // We expect at least 2 documents (one for each file)
+    // There might be more depending on chunking, but we at least want to ensure both files are represented
+    const response = await client.search<CodeChunk>({
       index: TEST_INDEX,
       query: {
-        term: {
-          language: 'typescript',
-        },
+        match_all: {},
       },
+      size: 100,
     });
-    const total = tsSearch.hits.total;
-    const count = typeof total === 'number' ? total : total?.value;
-    expect(count).toBeGreaterThan(0);
-  }, 180000); // 3 minute timeout
+
+    const hits = response.hits.hits;
+    const filePaths = hits.map((hit) => hit._source?.filePath);
+
+    expect(filePaths).toContain('file1.ts');
+    expect(filePaths).toContain('file2.ts');
+
+    // Ensure distinct IDs
+    const ids = hits.map((hit) => hit._id);
+    const uniqueIds = new Set(ids);
+    expect(uniqueIds.size).toBe(ids.length);
+
+    // Verify content is correct
+    const content = hits.map((hit) => hit._source?.content);
+    expect(content.some((c) => c && c.includes('console.log("world")'))).toBe(true);
+  }, 180000);
 });
