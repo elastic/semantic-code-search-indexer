@@ -1,4 +1,4 @@
-import { getClient, CodeChunk } from '../../src/utils/elasticsearch';
+import { deleteDocumentsByFilePath, getClient, CodeChunk } from '../../src/utils/elasticsearch';
 import { setup } from '../../src/commands/setup_command';
 import { indexRepos } from '../../src/commands/index_command';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -78,13 +78,17 @@ describe('Integration Test - Collision Handling', () => {
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
 
-    const response = await client.search<CodeChunk>({
-      index: TEST_INDEX,
-      query: {
-        match_all: {},
-      },
-      size: 100,
-    });
+    const searchAll = async () => {
+      return client.search<CodeChunk>({
+        index: TEST_INDEX,
+        query: {
+          match_all: {},
+        },
+        size: 100,
+      });
+    };
+
+    const response = await searchAll();
 
     const hits = response.hits.hits;
 
@@ -109,5 +113,48 @@ describe('Integration Test - Collision Handling', () => {
     const callChunk = relevantHits.find((h) => h._source?.content.trim().startsWith('console.log("world")'));
     expect(functionChunk).toBeDefined();
     expect(callChunk).toBeDefined();
+
+    // Idempotency: running indexing again without repo changes should not duplicate filePaths entries.
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
+    await client.indices.refresh({ index: TEST_INDEX });
+
+    const responseAfterReindex = await searchAll();
+    const hitsAfterReindex = responseAfterReindex.hits.hits.filter((h) =>
+      h._source?.content.includes('console.log("world")')
+    );
+    expect(hitsAfterReindex.length).toBe(2);
+    hitsAfterReindex.forEach((hit) => {
+      const doc = hit._source;
+      expect(doc?.fileCount).toBe(2);
+      expect(doc?.filePaths).toHaveLength(2);
+      const unique = new Set((doc?.filePaths ?? []).map((p) => `${p.path}:${p.startLine}`));
+      expect(unique.size).toBe(2);
+    });
+
+    // Partial removal: deleting one file should remove only that path from aggregated documents.
+    await deleteDocumentsByFilePath('file1.ts', TEST_INDEX);
+    await client.indices.refresh({ index: TEST_INDEX });
+
+    const responseAfterDelete1 = await searchAll();
+    const hitsAfterDelete1 = responseAfterDelete1.hits.hits.filter((h) =>
+      h._source?.content.includes('console.log("world")')
+    );
+    expect(hitsAfterDelete1.length).toBe(2);
+    hitsAfterDelete1.forEach((hit) => {
+      const doc = hit._source;
+      expect(doc?.fileCount).toBe(1);
+      expect(doc?.filePaths).toHaveLength(1);
+      expect(doc?.filePaths?.[0]?.path).toBe('file2.ts');
+    });
+
+    // Final removal: deleting the last remaining path should delete the document entirely.
+    await deleteDocumentsByFilePath('file2.ts', TEST_INDEX);
+    await client.indices.refresh({ index: TEST_INDEX });
+
+    const responseAfterDelete2 = await searchAll();
+    const hitsAfterDelete2 = responseAfterDelete2.hits.hits.filter((h) =>
+      h._source?.content.includes('console.log("world")')
+    );
+    expect(hitsAfterDelete2.length).toBe(0);
   }, 180000);
 });
