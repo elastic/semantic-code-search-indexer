@@ -1,6 +1,7 @@
 // src/utils/language_validator.ts
-import { LanguageConfiguration } from './parser';
+import type { LanguageConfiguration } from './parser';
 import Parser from 'tree-sitter';
+import { isSharedExtensionAllowed } from './shared_extensions';
 
 /**
  * Represents a validation error for a language configuration
@@ -66,11 +67,14 @@ export function validateLanguageConfiguration(
       }
 
       const duplicates = config.fileSuffixes.filter((suffix) => existingConfig.fileSuffixes.includes(suffix));
+      const disallowedDuplicates = duplicates.filter(
+        (suffix) => !isSharedExtensionAllowed(suffix, config.name, existingConfig.name)
+      );
 
-      if (duplicates.length > 0) {
+      if (disallowedDuplicates.length > 0) {
         errors.push({
           field: 'fileSuffixes',
-          message: `File extension(s) ${duplicates.join(', ')} already used by language "${existingConfig.name}"`,
+          message: `File extension(s) ${disallowedDuplicates.join(', ')} already used by language "${existingConfig.name}"`,
         });
       }
     });
