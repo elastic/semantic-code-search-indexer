@@ -4,6 +4,8 @@
 
 Successfully implemented indexed directory fields to enable efficient directory-level aggregations and discovery in the semantic code search indexer. This enhancement enables the MCP server to help LLMs navigate large codebases (70K+ files) by discovering significant directories before diving into specific files.
 
+Note: Per-file directory and path information is stored in a dedicated `<index>_locations` index (one document per chunk occurrence). The primary `<index>` stores content-deduplicated chunk documents and intentionally does **not** store file paths or directory metadata.
+
 ## Changes Made
 
 ### 1. Core Data Model Updates
@@ -14,10 +16,13 @@ Successfully implemented indexed directory fields to enable efficient directory-
   - `directoryName: string` - Immediate parent directory name (e.g., "utils")
   - `directoryDepth: number` - Depth in directory tree (0 for root)
   
-- Updated Elasticsearch index mapping:
-  - `directoryPath` as `keyword` for fast aggregations
-  - `directoryName` as `keyword` for filtering by directory name
-  - `directoryDepth` as `integer` for range queries
+- Updated Elasticsearch storage model:
+  - The primary chunk index (`<index>`) stores content-deduplicated chunk documents (no file paths / directories).
+  - The locations index (`<index>_locations`) stores per-file occurrences, including:
+    - `filePath` (`wildcard`)
+    - `directoryPath` (`keyword`)
+    - `directoryName` (`keyword`)
+    - `directoryDepth` (`integer`)
 
 ### 2. Parser Implementation
 
@@ -25,7 +30,7 @@ Successfully implemented indexed directory fields to enable efficient directory-
 - Added `extractDirectoryInfo()` helper function to parse file paths
 - Updated `parseEntireFileAsChunk()` to extract and include directory info
 - Updated `parseWithTreeSitter()` to extract and include directory info
-- Enhanced `prepareSemanticText()` to include `directoryPath` in semantic text for better search relevance
+- Updated `prepareSemanticText()` to avoid file-specific metadata (paths/directories) because `semantic_text` is stored on content-deduplicated chunk documents
 
 ### 3. Test Updates
 
@@ -63,16 +68,16 @@ The depth is calculated by counting path separators in the normalized path:
 
 ### Semantic Text Enhancement
 
-Directory information is now included in the semantic text that's indexed:
+The indexed `semantic_text` avoids file-specific metadata and includes only stable headers:
 ```
-filePath: src/utils/elasticsearch.ts
-directoryPath: src/utils
+language: typescript
 kind: import_statement
+containerPath: src/utils/elasticsearch.ts
 
 [actual code content]
 ```
 
-This improves semantic search by adding contextual directory information.
+Directory context is provided via `<index>_locations` filtering, not in `semantic_text`.
 
 ## Verification
 
@@ -93,10 +98,9 @@ The implementation was verified with:
 
 ## Performance Impact
 
-- **Minimal**: Added 3 small fields (2 keywords, 1 integer) per chunk
-- **Indexing**: No significant performance impact - extraction is a simple path operation
-- **Querying**: Improved performance for directory-based aggregations (keyword fields are fast)
-- **Storage**: Negligible increase (~20-50 bytes per chunk)
+- **Indexing**: Directory extraction is a simple path operation.
+- **Querying**: Directory-based aggregations are performed on `<index>_locations` (keyword fields are fast).
+- **Storage**: Directory fields are stored per *occurrence* (location doc), not per chunk doc. This increases storage proportionally to the number of file occurrences, but avoids "mega-documents" and update contention.
 
 ## Future Enhancements
 
@@ -108,7 +112,7 @@ The directory fields enable future MCP tools like:
 
 ## Breaking Changes
 
-None. The implementation is backwards compatible:
-- Existing queries continue to work
-- New fields are optional in aggregations
-- Tests for unrelated functionality remain unchanged
+This change set is not fully backwards compatible:
+- The primary chunk index mapping no longer stores file-level fields (`filePath`, `filePaths[]`, `fileCount`, directory fields, line ranges).
+- Per-file location and directory metadata is stored exclusively in `<index>_locations`.
+- A clean reindex is required when migrating existing indices.

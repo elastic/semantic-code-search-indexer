@@ -7,7 +7,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import os from 'os';
 
-const TEST_INDEX = `test-integration-index-${Date.now()}`;
+const TEST_INDEX = `test-batching-index-${Date.now()}`;
 
 // Check if Elasticsearch is available
 async function isElasticsearchAvailable(): Promise<boolean> {
@@ -19,12 +19,12 @@ async function isElasticsearchAvailable(): Promise<boolean> {
   }
 }
 
-describe('Integration Test - Full Indexing Pipeline', () => {
+describe('Integration Test - Queue Batching Stability', () => {
   let testRepoPath: string;
   let testRepoUrl: string;
+  let originalBatchSize: string | undefined;
 
   beforeAll(async () => {
-    // Check ES availability first
     const esAvailable = await isElasticsearchAvailable();
     if (!esAvailable) {
       throw new Error(
@@ -32,26 +32,48 @@ describe('Integration Test - Full Indexing Pipeline', () => {
       );
     }
 
-    // Create a temporary Git repository from fixtures for testing
-    testRepoPath = path.join(os.tmpdir(), `test-tiny-repo-${Date.now()}`);
+    testRepoPath = path.join(os.tmpdir(), `test-batching-repo-${Date.now()}`);
     fs.mkdirSync(testRepoPath, { recursive: true });
-
-    // Copy fixtures to test repo
-    const fixturesDir = path.resolve(__dirname, '../fixtures');
-    fs.cpSync(fixturesDir, testRepoPath, { recursive: true });
 
     // Initialize as git repo
     execSync('git init', { cwd: testRepoPath, stdio: 'ignore' });
     execSync('git config user.email "test@test.com"', { cwd: testRepoPath, stdio: 'ignore' });
     execSync('git config user.name "Test User"', { cwd: testRepoPath, stdio: 'ignore' });
+
+    // Create a large file to generate > 1000 chunks
+    // Default chunk size is ~15 lines.
+    // 1500 chunks * 15 lines = 22,500 lines.
+    const repeatedContent = `
+function testFunction(i: number) {
+  console.log("This is a test function " + i);
+  return i * 2;
+}
+`;
+    let fileContent = '';
+    for (let i = 0; i < 2500; i++) {
+      fileContent += repeatedContent.replace('testFunction', `testFunction${i}`);
+    }
+
+    fs.writeFileSync(path.join(testRepoPath, 'large_file.ts'), fileContent);
+
     execSync('git add .', { cwd: testRepoPath, stdio: 'ignore' });
     execSync('git commit -m "Initial commit"', { cwd: testRepoPath, stdio: 'ignore' });
 
     testRepoUrl = `file://${testRepoPath}`;
+
+    // Override BATCH_SIZE
+    originalBatchSize = process.env.BATCH_SIZE;
+    process.env.BATCH_SIZE = '1200'; // Set > 999 to trigger potential SQLite limits if not handled
   });
 
   afterAll(async () => {
-    // Clean up test index
+    // Restore env var
+    if (originalBatchSize) {
+      process.env.BATCH_SIZE = originalBatchSize;
+    } else {
+      delete process.env.BATCH_SIZE;
+    }
+
     try {
       const client = getClient();
       await client.indices.delete({ index: TEST_INDEX });
@@ -61,29 +83,27 @@ describe('Integration Test - Full Indexing Pipeline', () => {
       // Ignore errors during cleanup
     }
 
-    // Clean up test repo
     if (testRepoPath && fs.existsSync(testRepoPath)) {
       fs.rmSync(testRepoPath, { recursive: true, force: true });
     }
   });
 
-  it('should setup, index, and verify documents in elasticsearch', async () => {
-    // Limit to markdown for faster test execution
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'markdown';
+  it('should process a large batch of documents without exceeding SQLite limits', async () => {
+    // Limit to typescript
+    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
 
-    // Setup creates the index with proper mapping
     await setup(testRepoUrl, {});
-
-    // Index the test repository with watch: false to prevent infinite loops
     await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
 
-    // Force Elasticsearch to refresh the index to make documents searchable
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
 
-    // Verify documents were indexed
     const response = await client.count({ index: TEST_INDEX });
 
-    expect(response.count).toBeGreaterThan(0);
-  }, 180000); // 3 minute timeout
+    // We expect > 1000 documents
+    expect(response.count).toBeGreaterThan(1000);
+
+    // Check for success log (implied by execution finishing without error, but we can check internal metrics if exposed)
+    // The main assertion here is that indexRepos didn't throw and we have docs.
+  }, 300000); // 5 minute timeout for large file
 });

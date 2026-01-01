@@ -1,5 +1,11 @@
 import { glob } from 'glob';
-import { createIndex, deleteIndex, createSettingsIndex } from '../utils/elasticsearch';
+import {
+  createIndex,
+  createLocationsIndex,
+  createSettingsIndex,
+  deleteIndex,
+  deleteLocationsIndex,
+} from '../utils/elasticsearch';
 import { LanguageParser } from '../utils/parser';
 import { indexingConfig } from '../config';
 import path from 'path';
@@ -63,6 +69,7 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   if (clean) {
     logger.info('Clean flag is set, deleting existing index and clearing queue.');
     await deleteIndex(options?.elasticsearchIndex);
+    await deleteLocationsIndex(options?.elasticsearchIndex);
 
     // Clear the queue when doing a clean reindex
     const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
@@ -71,6 +78,7 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
 
   await createIndex(options?.elasticsearchIndex);
   await createSettingsIndex(options?.elasticsearchIndex);
+  await createLocationsIndex(options?.elasticsearchIndex);
 
   // Use execFileSync to prevent shell injection from special characters in directory paths
   const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], {

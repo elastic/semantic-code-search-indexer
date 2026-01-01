@@ -27,6 +27,56 @@ import {
 
 const { Query } = Parser;
 
+function getGitRoot(cwd: string): string {
+  // When running inside git hooks (e.g. husky), git may set GIT_DIR/GIT_WORK_TREE
+  // in the environment for child processes. That can cause `git rev-parse --show-toplevel`
+  // to incorrectly treat `cwd` as the worktree root.
+  //
+  // We explicitly remove those env vars so git discovers the real repository root from `cwd`.
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  delete env.GIT_DIR;
+  delete env.GIT_WORK_TREE;
+  delete env.GIT_INDEX_FILE;
+
+  return execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd, env }).toString().trim();
+}
+
+/**
+ * Creates a stable identifier for a chunk's content.
+ *
+ * NOTE: This hash is stored as `chunk_hash` on the document, but it is not necessarily the
+ * Elasticsearch `_id`. The actual `_id` is produced in `src/utils/elasticsearch.ts` (see
+ * `getChunkDocumentId`) and may intentionally deduplicate identical content across files.
+ */
+function createChunkHash(params: {
+  type: string;
+  language: string;
+  relativePath: string;
+  gitBranch: string;
+  gitFileHash: string;
+  startLine: number;
+  endLine: number;
+  startIndex: number;
+  endIndex: number;
+  content: string; // Added content param
+}): string {
+  // IMPORTANT: To implement path aggregation (#121), we MUST NOT include file-specific metadata
+  // (path, branch, line numbers) in the hash. Identical code in different files
+  // must generate the same hash so they map to the same document.
+  const stableId = [
+    params.type,
+    params.language,
+    // params.relativePath, // Excluded for aggregation
+    // params.gitBranch,    // Excluded for aggregation
+    // params.gitFileHash,  // Excluded for aggregation
+    // params.startLine,    // Excluded for aggregation
+    // params.endLine,      // Excluded for aggregation
+    params.content,
+  ].join(':');
+
+  return createHash('sha256').update(stableId).digest('hex');
+}
+
 /**
  * Extracts directory information from a file path.
  * @param filePath The relative file path
@@ -92,6 +142,8 @@ interface ChunkParams {
   gitBranch: string;
   startLine: number;
   endLine: number;
+  startIndex: number;
+  endIndex: number;
   timestamp: string;
 }
 
@@ -175,7 +227,18 @@ export class LanguageParser {
    * @returns Complete CodeChunk object with semantic_text
    */
   private createChunk(params: ChunkParams): CodeChunk {
-    const chunkHash = createHash('sha256').update(params.content).digest('hex');
+    const chunkHash = createChunkHash({
+      type: CHUNK_TYPE_DOC,
+      language: params.language,
+      relativePath: params.relativePath,
+      gitBranch: params.gitBranch,
+      gitFileHash: params.gitFileHash,
+      startLine: params.startLine,
+      endLine: params.endLine,
+      startIndex: params.startIndex,
+      endIndex: params.endIndex,
+      content: params.content,
+    });
     const directoryInfo = extractDirectoryInfo(params.relativePath);
 
     const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
@@ -229,6 +292,8 @@ export class LanguageParser {
       gitBranch,
       startLine: 1,
       endLine: lines.length,
+      startIndex: 0,
+      endIndex: content.length,
       timestamp,
     });
 
@@ -272,6 +337,8 @@ export class LanguageParser {
 
       const startLine = i + 1;
       const endLine = i + chunkLines.length;
+      const startIndex = lines.slice(0, i).join('\n').length + (i > 0 ? 1 : 0);
+      const endIndex = startIndex + chunkContent.length;
 
       chunks.push(
         this.createChunk({
@@ -282,6 +349,8 @@ export class LanguageParser {
           gitBranch,
           startLine,
           endLine,
+          startIndex,
+          endIndex,
           timestamp,
         })
       );
@@ -408,6 +477,8 @@ export class LanguageParser {
           gitBranch,
           startLine,
           endLine,
+          startIndex: chunkStartIndex,
+          endIndex: chunkStartIndex + chunk.length,
           timestamp,
         });
       });
@@ -579,12 +650,20 @@ export class LanguageParser {
           }
 
           let type: 'module' | 'file' = 'module';
-          if (importPath.startsWith('.')) {
+          // Bash `source` / `.` statements treat paths as file paths, even without a leading `./`.
+          // We normalize non-absolute paths to be repo-root-relative for consistency in indexing/tests.
+          if (langConfig.name === 'bash') {
+            type = 'file';
+            if (!path.isAbsolute(importPath)) {
+              const resolvedPath = path.resolve(path.dirname(filePath), importPath);
+              // Use execFileSync to prevent shell injection from special characters in directory paths
+              const gitRoot = getGitRoot(path.dirname(filePath));
+              importPath = path.relative(gitRoot, resolvedPath);
+            }
+          } else if (importPath.startsWith('.')) {
             const resolvedPath = path.resolve(path.dirname(filePath), importPath);
             // Use execFileSync to prevent shell injection from special characters in directory paths
-            const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) })
-              .toString()
-              .trim();
+            const gitRoot = getGitRoot(path.dirname(filePath));
             importPath = path.relative(gitRoot, resolvedPath);
             type = 'file';
           }
@@ -691,9 +770,7 @@ export class LanguageParser {
               try {
                 const resolvedPath = path.resolve(path.dirname(filePath), exportTarget);
                 // Use execFileSync to prevent shell injection from special characters in directory paths
-                const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: path.dirname(filePath) })
-                  .toString()
-                  .trim();
+                const gitRoot = getGitRoot(path.dirname(filePath));
                 exportTarget = path.relative(gitRoot, resolvedPath);
               } catch (error) {
                 logger.warn(
@@ -768,8 +845,7 @@ export class LanguageParser {
       new Map(
         matches.map((match) => {
           const node = match.captures[0].node;
-          const chunkHash = createHash('sha256').update(node.text).digest('hex');
-          return [`${node.startIndex}-${node.endIndex}-${chunkHash}`, match];
+          return [`${node.startIndex}-${node.endIndex}`, match];
         })
       ).values()
     );
@@ -785,7 +861,20 @@ export class LanguageParser {
           chunksSkipped++;
           return null;
         }
-        const chunkHash = createHash('sha256').update(content).digest('hex');
+        const startLine = node.startPosition.row + 1;
+        const endLine = node.endPosition.row + 1;
+        const chunkHash = createChunkHash({
+          type: CHUNK_TYPE_CODE,
+          language: langConfig.name,
+          relativePath,
+          gitBranch,
+          gitFileHash,
+          startLine,
+          endLine,
+          startIndex: node.startIndex,
+          endIndex: node.endIndex,
+          content: content,
+        });
 
         let containerPath = '';
         let parent = node.parent;
@@ -809,8 +898,6 @@ export class LanguageParser {
           }
         }
 
-        const startLine = node.startPosition.row + 1;
-        const endLine = node.endPosition.row + 1;
         const chunkImports = importsByLine[startLine] || [];
         const chunkSymbols: SymbolInfo[] = [];
         for (let i = startLine; i <= endLine; i++) {
@@ -858,17 +945,19 @@ export class LanguageParser {
       'semantic_text' | 'code_vector' | 'created_at' | 'updated_at' | 'chunk_hash' | 'git_file_hash'
     >
   ): string {
-    let text = `filePath: ${chunk.filePath}\n`;
-    if (chunk.directoryPath) {
-      text += `directoryPath: ${chunk.directoryPath}\n`;
-    }
+    // IMPORTANT: `semantic_text` is stored on the content-deduplicated chunk document.
+    // It must NOT include file-specific metadata (paths/directories/branches), otherwise a chunk
+    // that appears in many files would be "tagged" with an arbitrary file path depending on
+    // ingestion order.
+    const header: string[] = [];
+    header.push(`language: ${chunk.language}`);
     if (chunk.kind) {
-      text += `kind: ${chunk.kind}\n`;
+      header.push(`kind: ${chunk.kind}`);
     }
     if (chunk.containerPath) {
-      text += `containerPath: ${chunk.containerPath}\n`;
+      header.push(`containerPath: ${chunk.containerPath}`);
     }
-    text += `\n${chunk.content}`;
-    return text;
+
+    return `${header.join('\n')}\n\n${chunk.content}`;
   }
 }

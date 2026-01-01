@@ -1,6 +1,6 @@
 # Directory Aggregations
 
-The code indexer now includes directory fields (`directoryPath`, `directoryName`, `directoryDepth`) that enable efficient directory-level aggregations and discovery.
+The indexer stores per-file directory metadata in `<index>_locations` (one document per chunk occurrence). This enables efficient directory-level aggregations and discovery without relying on nested fields on the primary chunk documents.
 
 ## Directory Fields
 
@@ -16,33 +16,17 @@ The code indexer now includes directory fields (`directoryPath`, `directoryName`
 
 Find directories that contain important package markers:
 
+Example: directories that contain a `package.json`:
+
 ```json
 {
   "size": 0,
   "query": {
-    "bool": {
-      "should": [
-        { "wildcard": { "filePath": "*README.md" } },
-        { "wildcard": { "filePath": "*package.json" } },
-        { "wildcard": { "filePath": "*__init__.py" } },
-        { "wildcard": { "filePath": "*setup.py" } }
-      ]
-    }
+    "wildcard": { "filePath": "*package.json" }
   },
   "aggs": {
-    "significant_directories": {
-      "terms": {
-        "field": "directoryPath",
-        "size": 100
-      },
-      "aggs": {
-        "file_types": {
-          "terms": {
-            "field": "filePath",
-            "size": 10
-          }
-        }
-      }
+    "directories": {
+      "terms": { "field": "directoryPath", "size": 1000 }
     }
   }
 }
@@ -60,10 +44,7 @@ Find top-level packages (depth 1):
   },
   "aggs": {
     "top_level_dirs": {
-      "terms": {
-        "field": "directoryPath",
-        "size": 100
-      }
+      "terms": { "field": "directoryPath", "size": 1000 }
     }
   }
 }
@@ -78,18 +59,10 @@ Get all files in a specific directory:
   "query": {
     "term": { "directoryPath": "src/utils" }
   },
+  "size": 0,
   "aggs": {
-    "file_types": {
-      "terms": {
-        "field": "language",
-        "size": 20
-      }
-    },
-    "chunk_types": {
-      "terms": {
-        "field": "kind",
-        "size": 20
-      }
+    "files": {
+      "terms": { "field": "filePath", "size": 1000 }
     }
   }
 }
@@ -99,38 +72,14 @@ Get all files in a specific directory:
 
 Discover directories with specific content patterns:
 
-```json
-{
-  "size": 0,
-  "query": {
-    "bool": {
-      "must": [
-        { "match": { "content": "class definition" } },
-        { "term": { "language": "python" } }
-      ]
-    }
-  },
-  "aggs": {
-    "directories_with_classes": {
-      "terms": {
-        "field": "directoryPath",
-        "size": 50
-      },
-      "aggs": {
-        "class_count": {
-          "filter": {
-            "term": { "kind": "class_definition" }
-          }
-        }
-      }
-    }
-  }
-}
-```
+Directory-level pattern discovery is a **two-step join**:
+
+1. Query the chunk index (`<index>`) for the content/symbol pattern to get matching chunk `_id` values.
+2. Query `<index>_locations` with `terms: { chunk_id: [...] }` and aggregate by `directoryPath`.
 
 ## Integration with MCP Tools
 
-These directory fields enable efficient implementation of directory discovery tools in the MCP server:
+These directory fields enable efficient implementation of directory discovery tools in the MCP server (by querying `<index>_locations`):
 
 ### Example: `discover_directories` Tool
 
@@ -144,11 +93,11 @@ async function discoverDirectories(query: {
   const filters = [];
   
   if (query.hasReadme) {
-    filters.push({ term: { filePath: "README.md" } });
+    filters.push({ wildcard: { filePath: "*README.md" } });
   }
   
   if (query.hasPackageJson) {
-    filters.push({ term: { filePath: "package.json" } });
+    filters.push({ wildcard: { filePath: "*package.json" } });
   }
   
   if (query.language) {
@@ -160,21 +109,17 @@ async function discoverDirectories(query: {
     query: {
       bool: {
         filter: filters,
-        ...(query.maxDepth && {
-          must: [{ range: { directoryDepth: { lte: query.maxDepth } } }]
-        })
       }
     },
     aggs: {
-      directories: {
-        terms: {
-          field: "directoryPath",
-          size: 1000
-        },
+      depth_filter: {
+        filter: query.maxDepth ? { range: { directoryDepth: { lte: query.maxDepth } } } : { match_all: {} },
         aggs: {
-          file_count: { cardinality: { field: "filePath" } },
-          languages: {
-            terms: { field: "language", size: 10 }
+          directories: {
+            terms: { field: "directoryPath", size: 1000 },
+            aggs: {
+              file_count: { cardinality: { field: "filePath" } }
+            }
           }
         }
       }
@@ -182,11 +127,11 @@ async function discoverDirectories(query: {
   };
   
   const response = await client.search({
-    index: indexName,
+    index: `${indexName}_locations`,
     body: searchQuery
   });
   
-  return response.aggregations.directories.buckets;
+  return response.aggregations.depth_filter.directories.buckets;
 }
 ```
 

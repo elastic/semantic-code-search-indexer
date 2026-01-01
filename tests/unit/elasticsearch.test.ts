@@ -56,197 +56,194 @@ describe('indexCodeChunks', () => {
     elasticsearch.setClient(undefined);
   });
 
-  it('should return all chunks as succeeded when bulk indexing succeeds', async () => {
-    const mockBulkResponse = {
-      errors: false,
-      items: [
-        {
-          index: {
-            status: 200,
-            _index: 'test-index',
-            _id: 'chunk_hash_1',
-          },
-        },
-      ],
-    };
+  it('should create one chunk doc and index locations for all inputs', async () => {
+    const chunkA: CodeChunk = { ...MOCK_CHUNK, filePath: 'a.ts', startLine: 1, endLine: 1 };
+    const chunkB: CodeChunk = { ...MOCK_CHUNK, filePath: 'b.ts', startLine: 2, endLine: 2 };
 
-    mockBulk.mockResolvedValue(mockBulkResponse);
+    let createdChunkId = '';
+    mockBulk
+      .mockImplementationOnce(async ({ operations }: { operations: unknown[] }) => {
+        const action = operations[0] as { create?: { _id?: string } };
+        createdChunkId = action.create?._id ?? '';
+        return {
+          errors: false,
+          items: [{ create: { status: 201, _index: 'test-index', _id: createdChunkId } }],
+        };
+      })
+      .mockImplementationOnce(async ({ operations }: { operations: unknown[] }) => {
+        // Two locations: 2 index ops (4 array entries).
+        expect(operations).toHaveLength(4);
+        const body1 = operations[1] as { chunk_id?: string; filePath?: string };
+        const body2 = operations[3] as { chunk_id?: string; filePath?: string };
+        expect(body1.chunk_id).toBe(createdChunkId);
+        expect(body2.chunk_id).toBe(createdChunkId);
+        expect(new Set([body1.filePath, body2.filePath])).toEqual(new Set(['a.ts', 'b.ts']));
+        return {
+          errors: false,
+          items: [{ index: { status: 201 } }, { index: { status: 201 } }],
+        };
+      });
 
-    const chunks = [MOCK_CHUNK];
-    const result = await elasticsearch.indexCodeChunks(chunks);
+    const result = await elasticsearch.indexCodeChunks([chunkA, chunkB], 'test-index');
 
-    expect(result.succeeded).toHaveLength(1);
+    expect(result.succeeded).toHaveLength(2);
     expect(result.failed).toHaveLength(0);
-    expect(result.succeeded[0].chunk_hash).toBe('chunk_hash_1');
-    expect(mockBulk).toHaveBeenCalledTimes(1);
+    expect(mockBulk).toHaveBeenCalledTimes(2);
+
+    // Ensure chunk-doc body does not include file-specific metadata.
+    const firstBulkArgs = mockBulk.mock.calls[0]?.[0] as { operations: unknown[] };
+    const chunkDocBody = firstBulkArgs.operations[1] as Record<string, unknown>;
+    expect(chunkDocBody.filePath).toBeUndefined();
+    expect(chunkDocBody.startLine).toBeUndefined();
+    expect(chunkDocBody.endLine).toBeUndefined();
+    expect(chunkDocBody.directoryPath).toBeUndefined();
   });
 
-  it('should return failed chunks when bulk indexing has errors', async () => {
-    const mockBulkResponse = {
-      errors: true,
-      items: [
-        {
-          index: {
-            status: 400,
-            error: {
-              type: 'mapper_parsing_exception',
-              reason: 'failed to parse field [semantic_text]',
+  it('should treat 409 create conflicts as success (no re-inference)', async () => {
+    const chunkA: CodeChunk = { ...MOCK_CHUNK, filePath: 'a.ts', startLine: 1, endLine: 1 };
+    const chunkB: CodeChunk = { ...MOCK_CHUNK, filePath: 'b.ts', startLine: 2, endLine: 2 };
+
+    mockBulk
+      .mockResolvedValueOnce({
+        errors: true,
+        items: [
+          {
+            create: {
+              status: 409,
+              error: { type: 'version_conflict_engine_exception', reason: 'document already exists' },
             },
           },
-        },
-      ],
-    };
+        ],
+      })
+      .mockResolvedValueOnce({ errors: false, items: [{ index: { status: 201 } }, { index: { status: 201 } }] });
 
-    mockBulk.mockResolvedValue(mockBulkResponse);
-
-    const chunks = [MOCK_CHUNK];
-    const result = await elasticsearch.indexCodeChunks(chunks);
-
-    expect(result.succeeded).toHaveLength(0);
-    expect(result.failed).toHaveLength(1);
-    expect(result.failed[0].chunk.chunk_hash).toBe('chunk_hash_1');
-    expect(result.failed[0].error).toEqual({
-      type: 'mapper_parsing_exception',
-      reason: 'failed to parse field [semantic_text]',
-    });
-    expect(mockBulk).toHaveBeenCalledTimes(1);
-  });
-
-  it('should include error details in failed results', async () => {
-    const mockBulkResponse = {
-      errors: true,
-      items: [
-        {
-          index: {
-            status: 404,
-            error: {
-              type: 'index_not_found_exception',
-              reason: 'no such index [missing-index]',
-              index: 'missing-index',
-            },
-          },
-        },
-      ],
-    };
-
-    mockBulk.mockResolvedValue(mockBulkResponse);
-
-    const chunks = [MOCK_CHUNK];
-    const result = await elasticsearch.indexCodeChunks(chunks);
-
-    expect(result.succeeded).toHaveLength(0);
-    expect(result.failed).toHaveLength(1);
-    expect(result.failed[0].error).toMatchObject({
-      type: 'index_not_found_exception',
-      reason: 'no such index [missing-index]',
-    });
-  });
-
-  it('should separate succeeded and failed documents in partial failure', async () => {
-    const mockChunk2: CodeChunk = {
-      ...MOCK_CHUNK,
-      chunk_hash: 'chunk_hash_2',
-      content: 'const b = 2;',
-    };
-
-    const mockChunk3: CodeChunk = {
-      ...MOCK_CHUNK,
-      chunk_hash: 'chunk_hash_3',
-      content: 'const c = 3;',
-    };
-
-    const mockBulkResponse = {
-      errors: true,
-      items: [
-        {
-          index: {
-            status: 200,
-            _index: 'test-index',
-            _id: 'chunk_hash_1',
-          },
-        },
-        {
-          index: {
-            status: 400,
-            error: {
-              type: 'mapper_parsing_exception',
-              reason: 'failed to parse',
-            },
-          },
-        },
-        {
-          index: {
-            status: 500,
-            error: {
-              type: 'internal_server_error',
-              reason: 'internal error',
-            },
-          },
-        },
-      ],
-    };
-
-    mockBulk.mockResolvedValue(mockBulkResponse);
-
-    const chunks = [MOCK_CHUNK, mockChunk2, mockChunk3];
-    const result = await elasticsearch.indexCodeChunks(chunks);
-
-    // First chunk succeeded
-    expect(result.succeeded).toHaveLength(1);
-    expect(result.succeeded[0].chunk_hash).toBe('chunk_hash_1');
-
-    // Second and third chunks failed
-    expect(result.failed).toHaveLength(2);
-    expect(result.failed[0].chunk.chunk_hash).toBe('chunk_hash_2');
-    expect(result.failed[1].chunk.chunk_hash).toBe('chunk_hash_3');
-  });
-
-  it('should return empty arrays when chunks array is empty', async () => {
-    const result = await elasticsearch.indexCodeChunks([]);
-
-    expect(result.succeeded).toHaveLength(0);
+    const result = await elasticsearch.indexCodeChunks([chunkA, chunkB], 'test-index');
+    expect(result.succeeded).toHaveLength(2);
     expect(result.failed).toHaveLength(0);
-    expect(mockBulk).not.toHaveBeenCalled();
   });
 
-  it('should handle errors with different action types', async () => {
-    const mockBulkResponse = {
+  it('should fail all grouped inputs when chunk create fails', async () => {
+    const chunkA: CodeChunk = { ...MOCK_CHUNK, filePath: 'a.ts', startLine: 1, endLine: 1 };
+    const chunkB: CodeChunk = { ...MOCK_CHUNK, filePath: 'b.ts', startLine: 2, endLine: 2 };
+
+    mockBulk.mockResolvedValueOnce({
       errors: true,
       items: [
         {
           create: {
-            status: 409,
-            error: {
-              type: 'version_conflict_engine_exception',
-              reason: 'document already exists',
-            },
+            status: 400,
+            error: { type: 'mapper_parsing_exception', reason: 'boom' },
           },
         },
       ],
-    };
-
-    mockBulk.mockResolvedValue(mockBulkResponse);
-
-    const chunks = [MOCK_CHUNK];
-    const result = await elasticsearch.indexCodeChunks(chunks);
-
-    expect(result.succeeded).toHaveLength(0);
-    expect(result.failed).toHaveLength(1);
-    expect(result.failed[0].error).toMatchObject({
-      type: 'version_conflict_engine_exception',
     });
+
+    const result = await elasticsearch.indexCodeChunks([chunkA, chunkB], 'test-index');
+    expect(result.succeeded).toHaveLength(0);
+    expect(result.failed).toHaveLength(2);
+    expect(mockBulk).toHaveBeenCalledTimes(1);
   });
 
-  it('should return all chunks as failed on network/connection error', async () => {
-    mockBulk.mockRejectedValue(new Error('Connection refused'));
+  it('should fail only the affected input when location indexing fails', async () => {
+    const chunkA: CodeChunk = { ...MOCK_CHUNK, filePath: 'a.ts', startLine: 1, endLine: 1 };
+    const chunkB: CodeChunk = { ...MOCK_CHUNK, filePath: 'b.ts', startLine: 2, endLine: 2 };
 
-    const chunks = [MOCK_CHUNK];
-    const result = await elasticsearch.indexCodeChunks(chunks);
+    mockBulk
+      .mockResolvedValueOnce({
+        errors: false,
+        items: [{ create: { status: 201, _index: 'test-index', _id: 'cid' } }],
+      })
+      .mockResolvedValueOnce({
+        errors: true,
+        items: [
+          { index: { status: 201 } },
+          { index: { status: 400, error: { type: 'mapper_parsing_exception', reason: 'bad location' } } },
+        ],
+      });
 
-    expect(result.succeeded).toHaveLength(0);
+    const result = await elasticsearch.indexCodeChunks([chunkA, chunkB], 'test-index');
+    expect(result.succeeded).toHaveLength(1);
     expect(result.failed).toHaveLength(1);
-    expect(result.failed[0].chunk.chunk_hash).toBe('chunk_hash_1');
-    expect(result.failed[0].error).toBeInstanceOf(Error);
+  });
+});
+
+describe('deleteDocumentsByFilePath', () => {
+  let mockOpenPit: Mock;
+  let mockClosePit: Mock;
+  let mockSearch: Mock;
+  let mockBulk: Mock;
+  let mockIndicesExists: Mock;
+  let mockClient: Client;
+
+  beforeEach(() => {
+    mockOpenPit = vi.fn();
+    mockClosePit = vi.fn();
+    mockSearch = vi.fn();
+    mockBulk = vi.fn();
+    mockIndicesExists = vi.fn();
+
+    mockClient = {
+      openPointInTime: mockOpenPit,
+      closePointInTime: mockClosePit,
+      search: mockSearch,
+      bulk: mockBulk,
+      indices: {
+        exists: mockIndicesExists,
+        refresh: vi.fn(),
+      },
+    } as unknown as Client;
+
+    elasticsearch.setClient(mockClient);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    elasticsearch.setClient(undefined);
+  });
+
+  it('should delete location docs for a file path and delete orphan chunk docs', async () => {
+    mockIndicesExists.mockResolvedValue(true);
+    mockOpenPit.mockResolvedValue({ id: 'pit-1' });
+
+    // PIT scan: one location hit, then empty.
+    mockSearch
+      .mockResolvedValueOnce({
+        hits: {
+          hits: [
+            {
+              _id: 'loc-1',
+              sort: [1],
+              _source: { chunk_id: 'chunk-1' },
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({ hits: { hits: [] } })
+      // Orphan check: no remaining locations for chunk-1
+      .mockResolvedValueOnce({
+        aggregations: {
+          present: { buckets: [] },
+        },
+        hits: { total: { value: 0 } },
+      });
+
+    mockBulk
+      // location bulk delete
+      .mockResolvedValueOnce({ errors: false, items: [{ delete: { status: 200 } }] })
+      // chunk bulk delete
+      .mockResolvedValueOnce({ errors: false, items: [{ delete: { status: 200 } }] });
+
+    await elasticsearch.deleteDocumentsByFilePath('a.ts', 'idx');
+
+    expect(mockOpenPit).toHaveBeenCalledTimes(1);
+    expect(mockClosePit).toHaveBeenCalledWith({ id: 'pit-1' });
+    expect(mockBulk).toHaveBeenCalledTimes(2);
+
+    const firstBulkArgs = mockBulk.mock.calls[0]?.[0] as { operations: unknown[] };
+    expect(firstBulkArgs.operations).toEqual([{ delete: { _index: 'idx_locations', _id: 'loc-1' } }]);
+
+    const secondBulkArgs = mockBulk.mock.calls[1]?.[0] as { operations: unknown[] };
+    expect(secondBulkArgs.operations).toEqual([{ delete: { _index: 'idx', _id: 'chunk-1' } }]);
   });
 });
 

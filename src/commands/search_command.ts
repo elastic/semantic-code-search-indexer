@@ -1,5 +1,5 @@
 import { Command, Option } from 'commander';
-import { searchCodeChunks } from '../utils/elasticsearch';
+import { getLocationsForChunkIds, searchCodeChunks } from '../utils/elasticsearch';
 
 /**
  * Search command - performs semantic search on indexed code
@@ -17,12 +17,23 @@ export async function search(query: string, options: { index?: string; limit?: s
     return;
   }
 
-  results.slice(0, limit).forEach((result, index) => {
+  const visible = results.slice(0, limit);
+  const locationsByChunkId = await getLocationsForChunkIds(
+    visible.map((r) => r.id),
+    { index: options.index, perChunkLimit: 5 }
+  );
+
+  visible.forEach((result, index) => {
     console.log('\n' + '='.repeat(80));
     console.log(`Result #${index + 1} (Score: ${result.score.toFixed(2)})`);
     console.log('='.repeat(80));
-    console.log(`File: ${result.filePath}`);
-    console.log(`Lines: ${result.startLine}-${result.endLine}`);
+    const locations = locationsByChunkId[result.id] ?? [];
+    if (locations.length > 0) {
+      console.log(`Locations (sample): ${locations.length}`);
+      locations.forEach((p) => {
+        console.log(`- ${p.filePath}:${p.startLine}-${p.endLine}`);
+      });
+    }
     if (result.kind) {
       console.log(`Kind: ${result.kind}`);
     }

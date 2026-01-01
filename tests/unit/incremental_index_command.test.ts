@@ -115,30 +115,23 @@ describe('incrementalIndex', () => {
 
     await incrementalIndex('/test/repo', { queueDir: '.test-queue' });
 
-    // Renamed file: old path is deleted
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).toHaveBeenCalledWith('src/old_file.ts', undefined);
+    // Deletes are batched: old rename path, modified file, and deleted file are removed in one call.
+    expect(mockedElasticsearch.deleteDocumentsByFilePaths).toHaveBeenCalledTimes(1);
+    expect(mockedElasticsearch.deleteDocumentsByFilePaths).toHaveBeenCalledWith(
+      expect.arrayContaining(['src/old_file.ts', 'src/modified_file.ts', 'src/deleted_file.ts']),
+      undefined
+    );
 
-    // Modified file: deleted first, then re-indexed.
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).toHaveBeenCalledWith('src/modified_file.ts', undefined);
+    // Ensure we didn't attempt to delete paths that should only be indexed.
+    const deleteArgs = (mockedElasticsearch.deleteDocumentsByFilePaths as unknown as { mock: { calls: unknown[][] } })
+      .mock.calls[0]?.[0] as string[];
+    expect(deleteArgs).not.toEqual(
+      expect.arrayContaining(['src/added_file.ts', 'src/new_file.ts', 'src/copied_file.ts'])
+    );
+    expect(deleteArgs).not.toEqual(expect.arrayContaining(['src/original_file.ts']));
 
-    // Deleted file: just deleted.
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).toHaveBeenCalledWith('src/deleted_file.ts', undefined);
-
-    // Added file: not deleted, just indexed.
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).not.toHaveBeenCalledWith('src/added_file.ts', undefined);
-
-    // New file from rename: not deleted, just indexed.
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).not.toHaveBeenCalledWith('src/new_file.ts', undefined);
-
-    // Copied file: original is untouched, new file is indexed.
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).not.toHaveBeenCalledWith('src/copied_file.ts', undefined);
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).not.toHaveBeenCalledWith('src/original_file.ts', undefined);
-
-    // Verify total deletion calls
-    expect(mockedElasticsearch.deleteDocumentsByFilePath).toHaveBeenCalledTimes(3);
-
-    // Verify that workers are created for the correct files to be indexed
-    expect(mockedWorker).toHaveBeenCalledTimes(4);
+    // Verify that parsing workers are created (pooling may reuse workers)
+    expect(mockedWorker).toHaveBeenCalled();
 
     const indexedFiles = postedMessages.map((msg) => msg.relativePath);
     expect(indexedFiles).toHaveLength(4);

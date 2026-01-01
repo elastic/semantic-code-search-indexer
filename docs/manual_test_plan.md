@@ -16,7 +16,7 @@ This test verifies the complete indexing flow using the local SQLite queue.
 1.  **Clean Environment:**
     - Delete the queue directory to ensure a fresh start:
       ```bash
-      rm -rf .queue
+      rm -rf .queues
       ```
     - Run the indexer with the `--clean` flag to delete the Elasticsearch index:
       ```bash
@@ -36,7 +36,7 @@ This test verifies the complete indexing flow using the local SQLite queue.
 1.  **Reset the Test:**
     - Delete the queue directory and Elasticsearch index:
       ```bash
-      rm -rf .queue
+      rm -rf .queues
       npm run index -- .repos/semantic-code-search-mcp-server --clean
       ```
     - This ensures a clean starting state for the failure test.
@@ -57,7 +57,7 @@ This test verifies the complete indexing flow using the local SQLite queue.
 4.  **Verify Requeue:**
     - Check the queue status:
       ```bash
-      npm run queue:monitor
+      npm run queue:monitor -- --repo-name=semantic-code-search-mcp-server
       ```
     - **Expected Result:** You should see documents in the queue with `failed` or `pending` status and non-zero retry counts.
 

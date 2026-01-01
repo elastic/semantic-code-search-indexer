@@ -15,14 +15,14 @@ vi.mock('../../src/utils/elasticsearch', async () => {
 
 // Helper to create a successful bulk result
 const successResult = (chunks: CodeChunk[]): BulkIndexResult => ({
-  succeeded: chunks,
+  succeeded: chunks.map((chunk, inputIndex) => ({ chunk, inputIndex })),
   failed: [],
 });
 
 // Helper to create a failed bulk result
 const failedResult = (chunks: CodeChunk[], error: unknown = { type: 'test_error' }): BulkIndexResult => ({
   succeeded: [],
-  failed: chunks.map((chunk) => ({ chunk, error })),
+  failed: chunks.map((chunk, inputIndex) => ({ chunk, inputIndex, error })),
 });
 
 const MOCK_CHUNK: CodeChunk = {
@@ -322,10 +322,16 @@ describe('IndexerWorker', () => {
       if (callCount === 1) {
         // Partial failure: good succeeds, bad fails
         return {
-          succeeded: chunks.filter((c) => c.chunk_hash === 'good_chunk'),
+          succeeded: chunks
+            .map((chunk, inputIndex) => (chunk.chunk_hash === 'good_chunk' ? { chunk, inputIndex } : null))
+            .filter((v): v is { chunk: CodeChunk; inputIndex: number } => v !== null),
           failed: chunks
-            .filter((c) => c.chunk_hash === 'bad_chunk')
-            .map((chunk) => ({ chunk, error: { type: 'mapper_parsing_exception' } })),
+            .map((chunk, inputIndex) =>
+              chunk.chunk_hash === 'bad_chunk'
+                ? { chunk, inputIndex, error: { type: 'mapper_parsing_exception' } }
+                : null
+            )
+            .filter((v): v is { chunk: CodeChunk; inputIndex: number; error: unknown } => v !== null),
         };
       }
       // On retry, all succeed

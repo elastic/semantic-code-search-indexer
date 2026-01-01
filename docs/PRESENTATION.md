@@ -31,7 +31,7 @@ Our indexing process is designed to capture the semantic meaning of your code.
     *   **Code:** We don't just split files. We create documents for each logical block of code (e.g., `function`, `class`, `method`). This preserves the local context.
     *   **Markdown:** Documentation files (`.md`) are split into sections based on their headings, keeping related paragraphs together.
 
-3.  **Enrichment & Embedding:** Each chunk is enriched with metadata and then processed by ELSER to create a `sparse_vector` embedding of its content.
+3.  **Enrichment & Semantic Indexing:** Each chunk is enriched with metadata and indexed to Elasticsearch. The `semantic_text` field is populated via ELSER inference so we can run natural language semantic queries.
 
 ---
 
@@ -75,16 +75,11 @@ Each document in our index represents a single chunk of code or documentation, s
       "type": { "type": "keyword" },
       "language": { "type": "keyword" },
       "kind": { "type": "keyword" },
-      "imports": { "type": "keyword" },
+      "imports": { "type": "nested" },
       "containerPath": { "type": "text" },
-      "filePath": { "type": "keyword" },
-      "git_file_hash": { "type": "keyword" },
-      "git_branch": { "type": "keyword" },
       "chunk_hash": { "type": "keyword" },
-      "startLine": { "type": "integer" },
-      "endLine": { "type": "integer" },
       "content": { "type": "text" },
-      "content_embedding": { "type": "sparse_vector" },
+      "semantic_text": { "type": "semantic_text" },
       "created_at": { "type": "date" },
       "updated_at": { "type": "date" }
     }
@@ -103,9 +98,7 @@ The LLM can use the following fields for additional filtering:
 - **kind**:  The specific kind of the code symbol (from LSP) (e.g., `call_expression`, `import_statement`, `comment`, `function_declaration`, `type_alias_declaration`, `interface_declaration`, `lexical_declaration`).
 - **imports**: A list of imported modules or libraries.
 - **containerPath**:  The path of the containing symbol (e.g., class name for a method).
-- **filePath**: The absolute path to the source file.
-- **startLine**: The starting line number of the chunk in the file.
-- **endLine**: The ending line number of the chunk in the file.
+- **File locations**: Per-file occurrences live in a separate `<index>_locations` index and are joined via `chunk_id`.
 
 ---
 
@@ -137,7 +130,7 @@ The `find_usages` tool analyzes a code symbol's usage across the entire codebase
 Instead of multiple round-trips, the tool uses a single, powerful Elasticsearch query.
 1.  It sets `size: 0` as it only needs aggregation results.
 2.  It performs a `match` query on the `content` field for the target symbol.
-3.  It uses a nested terms aggregation: it first aggregates by `filePath` and then runs sub-aggregations on `kind` and `language` for each file.
+3.  It aggregates by file path in `<index>_locations` and then joins to chunk docs (by `chunk_id`) to get symbol/kind/language breakdowns.
 
 This single query efficiently returns all files that mention the symbol, along with a categorized breakdown of *how* the symbol is used in each file.
 
@@ -797,13 +790,13 @@ You have access to two powerful tools to accomplish this: `code_search` and `fin
 
 - **Purpose:** Performs a semantic search of the codebase. It's ideal for broad, conceptual queries to find a starting point or discover relevant files and symbols.
 - **Inputs:** `query` (optional string for semantic search), `kql` (optional string for precise filtering), `size`, `page`.
-- **How it Works:** It uses ELSER for semantic search and allows for filtering on fields like `filePath`, `kind`, `language`, and `content`.
+- **How it Works:** It runs semantic queries against `semantic_text` and allows filtering on fields like `filePath`, `kind`, `language`, and `content`.
 
 **2. The `find_usages` Tool (For Analysis)**
 
 - **Purpose:** Analyzes a code symbol's usage across the entire codebase and generates a rich, categorized report. Use this tool *after* discovering a key symbol to quickly understand its architectural role, differentiate between its definition, execution sites, and type declarations, and see where it is referenced.
 -  **Input:** A single `symbol` string.
-- **How it Works:** It uses a single, efficient Elasticsearch aggregation query. It finds all documents matching the symbol's content and then performs nested aggregations—first by `filePath`, then by `kind` and `language`—to build a comprehensive picture in one shot.
+- **How it Works:** It uses a single, efficient Elasticsearch aggregation query. It finds all documents matching the symbol's content and then aggregates by file path (nested `filePaths.path` under chunk aggregation), then by `kind` and `language`.
 - **Output:** A structured Markdown report categorizing usages into "Primary Definition(s)", "Execution/Call Site(s)", "Import Reference(s)", etc.
 
 Your goal is to tell a story of how an AI can use these tools **in tandem**. A typical workflow, which you should demonstrate, is using `code_search` for initial discovery and then feeding the key symbols from those results into `find_usages` for deeper analysis.

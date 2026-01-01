@@ -75,8 +75,14 @@ export class IndexerWorker {
           // If in watch mode and the queue is empty, wait before polling again.
           await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL_MS));
         } else {
-          // If not in watch mode and the queue is empty, exit the loop.
-          // The final `onIdle` will wait for any remaining tasks.
+          // If not in watch mode and dequeue returns empty:
+          // - If there are still in-flight tasks, wait for a task to complete and retry.
+          //   (In-flight tasks may requeue work back to 'pending' when they finish.)
+          // - If there are no in-flight tasks, we're truly done.
+          if (totalActiveTasks > 0) {
+            await new Promise<void>((resolve) => this.consumerQueue.once('next', resolve));
+            continue;
+          }
           break;
         }
       }
@@ -102,55 +108,88 @@ export class IndexerWorker {
       concurrency: this.concurrency.toString(),
     });
 
-    const codeChunks = batch.map((item) => item.document);
-    const result = await indexCodeChunks(codeChunks, this.elasticsearchIndex);
+    let committed: QueuedDocument[] = [];
+    let requeued: QueuedDocument[] = [];
 
-    const duration = Date.now() - startTime;
+    try {
+      const codeChunks = batch.map((item) => item.document);
+      const result = await indexCodeChunks(codeChunks, this.elasticsearchIndex);
 
-    // Build maps from chunk_hash to QueuedDocument for commit/requeue
-    const chunkHashToDoc = new Map(batch.map((doc) => [doc.document.chunk_hash, doc]));
+      const duration = Date.now() - startTime;
 
-    const succeededDocs = result.succeeded
-      .map((chunk) => chunkHashToDoc.get(chunk.chunk_hash))
-      .filter((doc): doc is QueuedDocument => doc !== undefined);
+      // Map indexCodeChunks results back to the exact queue rows by input index.
+      // Do NOT map by chunk_hash: chunk_hash is not guaranteed unique (content collisions),
+      // and duplicates would leave rows stuck in 'processing'.
+      const succeededDocs = result.succeeded
+        .map((s) => batch[s.inputIndex])
+        .filter((doc): doc is QueuedDocument => doc !== undefined);
 
-    const failedDocs = result.failed
-      .map((f) => chunkHashToDoc.get(f.chunk.chunk_hash))
-      .filter((doc): doc is QueuedDocument => doc !== undefined);
+      const failedDocs = result.failed
+        .map((f) => batch[f.inputIndex])
+        .filter((doc): doc is QueuedDocument => doc !== undefined);
 
-    // Commit succeeded documents
-    if (succeededDocs.length > 0) {
-      await this.queue.commit(succeededDocs);
-    }
+      // Commit succeeded documents
+      if (succeededDocs.length > 0) {
+        await this.queue.commit(succeededDocs);
+        committed = succeededDocs;
+      }
 
-    // Requeue failed documents
-    if (failedDocs.length > 0) {
-      await this.queue.requeue(failedDocs);
-      this.logger.error(`Requeueing ${failedDocs.length} failed documents from batch of ${batch.length}.`);
-    }
+      // Requeue failed documents
+      if (failedDocs.length > 0) {
+        await this.queue.requeue(failedDocs);
+        requeued = failedDocs;
+        this.logger.error(`Requeueing ${failedDocs.length} failed documents from batch of ${batch.length}.`);
+      }
 
-    // Record metrics
-    if (result.failed.length === 0) {
-      // Full success
-      this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
-      this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
-      this.metrics.indexer?.batchSize.record(batch.length, commonMetricAttributes);
-      this.logger.info(`Successfully indexed and committed batch of ${batch.length} documents.`);
-      return true;
-    } else if (result.succeeded.length > 0) {
-      // Partial success
-      this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
-      this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
-      this.metrics.indexer?.batchSize.record(result.succeeded.length, commonMetricAttributes);
-      this.logger.info(
-        `Partial success: ${result.succeeded.length}/${batch.length} indexed, ${result.failed.length} failed.`
-      );
-      return true;
-    } else {
-      // Complete failure
+      // Record metrics
+      if (result.failed.length === 0) {
+        // Full success
+        this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
+        this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
+        this.metrics.indexer?.batchSize.record(batch.length, commonMetricAttributes);
+        this.logger.info(`Successfully indexed and committed batch of ${succeededDocs.length} documents.`);
+        return true;
+      } else if (result.succeeded.length > 0) {
+        // Partial success
+        this.metrics.indexer?.batchProcessed.add(1, commonMetricAttributes);
+        this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
+        this.metrics.indexer?.batchSize.record(succeededDocs.length, commonMetricAttributes);
+        this.logger.info(
+          `Partial success: ${succeededDocs.length}/${batch.length} indexed, ${failedDocs.length} failed.`
+        );
+        return true;
+      } else {
+        // Complete failure
+        this.metrics.indexer?.batchFailed.add(1, commonMetricAttributes);
+        this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
+        this.logger.error(`Complete batch failure: all ${batch.length} documents failed.`);
+        return false;
+      }
+    } catch (error) {
+      // Critical safety: never leave dequeued rows stuck in 'processing' due to an exception.
+      // Best-effort requeue any documents that were not already committed or requeued.
+      const committedIds = new Set(committed.map((d) => d.id));
+      const requeuedIds = new Set(requeued.map((d) => d.id));
+      const remaining = batch.filter((d) => !committedIds.has(d.id) && !requeuedIds.has(d.id));
+
+      this.logger.error('processBatch threw; attempting to requeue remaining documents', {
+        error: error instanceof Error ? error.message : String(error),
+        batchSize: batch.length,
+        remaining: remaining.length,
+      });
+
+      if (remaining.length > 0) {
+        try {
+          await this.queue.requeue(remaining);
+          this.logger.warn(`Requeued ${remaining.length} documents after exception.`);
+        } catch (requeueError) {
+          this.logger.error('Failed to requeue documents after exception; they may remain stuck until stale recovery', {
+            error: requeueError instanceof Error ? requeueError.message : String(requeueError),
+          });
+        }
+      }
+
       this.metrics.indexer?.batchFailed.add(1, commonMetricAttributes);
-      this.metrics.indexer?.batchDuration.record(duration, commonMetricAttributes);
-      this.logger.error(`Complete batch failure: all ${batch.length} documents failed.`);
       return false;
     }
   }
