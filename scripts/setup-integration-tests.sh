@@ -15,7 +15,7 @@ docker compose -f docker-compose.integration.yml up -d
 echo "Waiting for Elasticsearch to be ready..."
 timeout=180
 elapsed=0
-while ! curl -s -u elastic:testpassword http://localhost:9200/_cluster/health >/dev/null; do
+while ! curl -s -u elastic:testpassword -f http://localhost:9200/_cluster/health >/dev/null; do
   if [ $elapsed -ge $timeout ]; then
     echo "ERROR: Elasticsearch did not start within $timeout seconds"
     docker compose -f docker-compose.integration.yml logs

@@ -2,6 +2,8 @@ Hello! Your task is to create a "Semantic Search" tool for the Kibana MCP server
 
 This tool will allow users to search the Kibana codebase using natural language queries. It will be powered by an Elasticsearch index and a sentence-transformer model for generating vector embeddings. The tool will be registered with the server using an existing `addTool` function.
 
+Note: this prompt predates the indexer’s move to Elasticsearch `semantic_text` + `semantic` queries. In current deployments, semantic search is performed by querying the `semantic_text` field, and per-file reconstruction/filtering uses `<index>_locations` (not fields on the chunk document).
+
 **Goal:** Create a tool that takes a natural language query as input, converts it to a vector embedding, and searches an Elasticsearch index to find semantically similar code chunks.
 
 ---

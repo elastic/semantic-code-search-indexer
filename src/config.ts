@@ -24,10 +24,10 @@ const projectRoot = findProjectRoot(__dirname);
 
 export const elasticsearchConfig = {
   endpoint: process.env.ELASTICSEARCH_ENDPOINT || process.env.ELASTICSEARCH_HOST,
-  cloudId: process.env.ELASTICSEARCH_CLOUD_ID,
+  cloudId: process.env.ELASTICSEARCH_CLOUD_ID || undefined,
   username: process.env.ELASTICSEARCH_USER || process.env.ELASTICSEARCH_USERNAME,
   password: process.env.ELASTICSEARCH_PASSWORD,
-  apiKey: process.env.ELASTICSEARCH_API_KEY,
+  apiKey: process.env.ELASTICSEARCH_API_KEY || undefined,
   inferenceId: process.env.ELASTICSEARCH_INFERENCE_ID || process.env.ELASTICSEARCH_MODEL || '.elser-2-elasticsearch',
   index: process.env.ELASTICSEARCH_INDEX || 'code-chunks',
 };
@@ -57,6 +57,15 @@ export const indexingConfig = {
   defaultChunkLines: parseInt(process.env.DEFAULT_CHUNK_LINES || '15', 10),
   chunkOverlapLines: parseInt(process.env.CHUNK_OVERLAP_LINES || '3', 10),
   markdownChunkDelimiter: process.env.MARKDOWN_CHUNK_DELIMITER || '\\n\\s*\\n',
+  // Batch size for PIT pagination in deleteDocumentsByFilePaths. Larger values reduce round trips
+  // but can increase per-request payload sizes.
+  deleteDocumentsPageSize: parseInt(process.env.DELETE_DOCUMENTS_PAGE_SIZE || '500', 10),
+  // Incremental parsing worker pool size. Reuses worker threads to reduce startup/teardown overhead.
+  // This is clamped to CPU_CORES at runtime.
+  producerWorkerPoolSize: parseInt(
+    process.env.PRODUCER_WORKER_POOL_SIZE || `${Math.max(1, Math.floor(os.cpus().length / 2))}`,
+    10
+  ),
 };
 
 export const appConfig = {

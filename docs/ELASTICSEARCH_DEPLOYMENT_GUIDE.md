@@ -1,9 +1,9 @@
 # Elasticsearch Deployment Guide
 
-This guide provides step-by-step instructions for setting up the necessary machine learning models and ingest pipelines in your Elasticsearch cluster to support the Semantic Code Indexer.
+This guide provides step-by-step instructions for setting up the machine learning inference and ingest pipeline pieces in your Elasticsearch cluster to support the Semantic Code Indexer.
 
 This setup enables two powerful features:
-1.  **Semantic Search:** Using Elastic's ELSER model for sparse vector text expansion.
+1.  **Semantic Search:** Using Elastic's ELSER model via an Elasticsearch inference endpoint (used by the `semantic_text` field).
 2.  **Code Similarity Search:** Using Microsoft's CodeBERT model to generate dense vectors for future KNN (k-Nearest Neighbor) features, such as a `find_similar_code` tool.
 
 ---
@@ -19,21 +19,16 @@ This setup enables two powerful features:
 
 ### Step 1: Deploy the ELSER Model
 
-ELSER (Elastic Learned Sparse EncodeR) is a sparse vector model that powers our primary semantic search functionality.
+ELSER (Elastic Learned Sparse EncodeR) powers the primary semantic search functionality.
+
+The index mapping uses Elasticsearch’s `semantic_text` field with an `inference_id`. Configure that via `ELASTICSEARCH_INFERENCE_ID` in the indexer.
 
 1.  Navigate to the **Dev Tools** console in your Kibana instance.
-2.  Run the following command to download and deploy the ELSER model. We are using version 2.
+2.  Create (or reuse) an inference endpoint ID that resolves to an ELSER sparse embedding endpoint, then set `ELASTICSEARCH_INFERENCE_ID` to that ID.
 
-```json
-PUT _ml/trained_models/.elser_model_2
-{
-  "input": {
-    "field_names": ["text_field"]
-  }
-}
-```
+The exact setup depends on your Elasticsearch deployment and version. The indexer repository includes an example of creating an inference endpoint for local testing in `scripts/setup-integration-tests.sh` (see how it configures an endpoint like `elser-inference-test` via `/_inference/sparse_embedding/...`).
 
-3.  The model will begin downloading and deploying. You can monitor its status in the **Machine Learning > Trained Models** section of Kibana. Ensure the model deployment is "Started" before proceeding.
+3.  Verify the inference endpoint is available and healthy before proceeding.
 
 ---
 
@@ -110,7 +105,7 @@ This pipeline intelligently inspects the `kind` of each code chunk. If it's a lo
 ## Summary
 
 After completing these steps, your Elasticsearch cluster is fully configured. You have:
-- The **.elser_model_2** deployed for sparse vector semantic search.
+- An ELSER-backed inference endpoint configured for `semantic_text` semantic search.
 - The **microsoft__codebert-base** model deployed for dense vector code similarity.
 - The optimized **code-similarity-pipeline** ready to selectively and automatically generate dense vectors during indexing.
 

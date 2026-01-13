@@ -5,7 +5,7 @@ import { IQueue, QueuedDocument } from './queue';
 import { CodeChunk } from './elasticsearch';
 import { logger, createLogger } from './logger';
 import { createMetrics, Metrics, createAttributes } from './metrics';
-import { QUEUE_STATUS_PENDING, QUEUE_STATUS_PROCESSING, QUEUE_STATUS_FAILED, CHUNK_TYPE_CODE } from './constants';
+import { QUEUE_STATUS_PENDING, QUEUE_STATUS_PROCESSING, QUEUE_STATUS_FAILED } from './constants';
 
 export const MAX_RETRIES = 3;
 const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -96,6 +96,14 @@ export class SqliteQueue implements IQueue {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Migration: Add processing_started_at column if it doesn't exist (for existing databases)
+    try {
+      this.db.exec('ALTER TABLE queue ADD COLUMN processing_started_at TIMESTAMP;');
+      this.logger.info('Added processing_started_at column to queue table');
+    } catch {
+      // Column already exists, ignore error
+    }
 
     // Migration: Add worker_pid column if it doesn't exist (for existing databases)
     try {
@@ -235,13 +243,24 @@ export class SqliteQueue implements IQueue {
       return;
     }
     const ids = documents.map((d) => parseInt(d.id.split('_').pop() || '0', 10));
-    const deleteStmt = this.db.prepare(`DELETE FROM queue WHERE id IN (${ids.map(() => '?').join(',')})`);
-    const result = deleteStmt.run(...ids);
-    this.logger.info(`Committed and deleted ${result.changes} documents.`);
+
+    // Batch size for SQLite operations to avoid "too many SQL variables" error
+    const BATCH_SIZE = 500;
+
+    let totalChanges = 0;
+
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      const batchIds = ids.slice(i, i + BATCH_SIZE);
+      const deleteStmt = this.db.prepare(`DELETE FROM queue WHERE id IN (${batchIds.map(() => '?').join(',')})`);
+      const result = deleteStmt.run(...batchIds);
+      totalChanges += result.changes;
+    }
+
+    this.logger.info(`Committed and deleted ${totalChanges} documents.`);
 
     // Record commit and delete metrics
-    this.metrics.queue?.documentsCommitted.add(result.changes, createAttributes(this.metrics));
-    this.metrics.queue?.documentsDeleted.add(result.changes, createAttributes(this.metrics));
+    this.metrics.queue?.documentsCommitted.add(totalChanges, createAttributes(this.metrics));
+    this.metrics.queue?.documentsDeleted.add(totalChanges, createAttributes(this.metrics));
 
     // Periodic WAL checkpoint to prevent unbounded WAL growth
     // PASSIVE mode won't block - it just checkpoints what it can
@@ -263,153 +282,139 @@ export class SqliteQueue implements IQueue {
     }
     const ids = documents.map((d) => parseInt(d.id.split('_').pop() || '0', 10));
 
-    const selectRetriesStmt = this.db.prepare(
-      `SELECT id, retry_count FROM queue WHERE id IN (${ids.map(() => '?').join(',')})`
-    );
-    const rowsToRequeue = selectRetriesStmt.all(...ids) as { id: number; retry_count: number }[];
+    // Batch size for SQLite operations to avoid "too many SQL variables" error
+    // SQLite default limit is usually 999 or 32766, so 500 is safe
+    const BATCH_SIZE = 500;
 
-    const toRequeue: number[] = [];
-    const toFail: number[] = [];
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      const batchIds = ids.slice(i, i + BATCH_SIZE);
 
-    for (const row of rowsToRequeue) {
-      if (row.retry_count + 1 >= MAX_RETRIES) {
-        toFail.push(row.id);
-      } else {
-        toRequeue.push(row.id);
+      const selectRetriesStmt = this.db.prepare(
+        `SELECT id, retry_count FROM queue WHERE id IN (${batchIds.map(() => '?').join(',')})`
+      );
+      const rowsToRequeue = selectRetriesStmt.all(...batchIds) as { id: number; retry_count: number }[];
+
+      const toRequeue: number[] = [];
+      const toFail: number[] = [];
+
+      for (const row of rowsToRequeue) {
+        if (row.retry_count + 1 >= MAX_RETRIES) {
+          toFail.push(row.id);
+        } else {
+          toRequeue.push(row.id);
+        }
       }
-    }
 
-    if (toRequeue.length > 0) {
-      const requeueStmt = this.db.prepare(
-        `UPDATE queue SET status = '${QUEUE_STATUS_PENDING}', retry_count = retry_count + 1, processing_started_at = NULL, worker_pid = NULL WHERE id IN (${toRequeue.map(() => '?').join(',')})`
-      );
-      requeueStmt.run(...toRequeue);
-      this.logger.warn(`Requeued ${toRequeue.length} documents.`);
+      if (toRequeue.length > 0) {
+        const requeueStmt = this.db.prepare(
+          `UPDATE queue SET status = '${QUEUE_STATUS_PENDING}', retry_count = retry_count + 1, processing_started_at = NULL, worker_pid = NULL WHERE id IN (${toRequeue.map(() => '?').join(',')})`
+        );
+        requeueStmt.run(...toRequeue);
+        this.logger.warn(`Requeued ${toRequeue.length} documents (batch ${Math.floor(i / BATCH_SIZE) + 1}).`);
 
-      // Record requeue metrics
-      this.metrics.queue?.documentsRequeued.add(toRequeue.length, createAttributes(this.metrics));
-    }
+        // Record requeue metrics
+        this.metrics.queue?.documentsRequeued.add(toRequeue.length, createAttributes(this.metrics));
+      }
 
-    if (toFail.length > 0) {
-      const failStmt = this.db.prepare(
-        `UPDATE queue SET status = '${QUEUE_STATUS_FAILED}' WHERE id IN (${toFail.map(() => '?').join(',')})`
-      );
-      failStmt.run(...toFail);
-      this.logger.error(`Moved ${toFail.length} documents to failed status after ${MAX_RETRIES} retries.`);
+      if (toFail.length > 0) {
+        const failStmt = this.db.prepare(
+          `UPDATE queue SET status = '${QUEUE_STATUS_FAILED}' WHERE id IN (${toFail.map(() => '?').join(',')})`
+        );
+        failStmt.run(...toFail);
+        this.logger.error(
+          `Moved ${toFail.length} documents to failed status after ${MAX_RETRIES} retries (batch ${Math.floor(i / BATCH_SIZE) + 1}).`
+        );
 
-      // Record failed metrics
-      this.metrics.queue?.documentsFailed.add(toFail.length, createAttributes(this.metrics));
+        // Record failed metrics
+        this.metrics.queue?.documentsFailed.add(toFail.length, createAttributes(this.metrics));
+      }
     }
   }
 
   async requeueStaleTasks(): Promise<void> {
-    // Get all items currently in processing status with their PIDs
-    const selectStmt = this.db.prepare(`
-        SELECT id, worker_pid, processing_started_at FROM queue
-        WHERE status = ?
-    `);
-    const processingItems = selectStmt.all(QUEUE_STATUS_PROCESSING) as {
-      id: number;
-      worker_pid: number | null;
-      processing_started_at: string;
-    }[];
+    this.logger.info('Checking for stale tasks...');
 
-    if (processingItems.length === 0) {
-      return;
-    }
+    // 1. Requeue items from dead workers (PIDs that are no longer running)
+    // We do this by getting distinct PIDs first, checking liveness, and then batch updating
+    const distinctPids = this.db
+      .prepare(
+        `
+      SELECT DISTINCT worker_pid
+      FROM queue
+      WHERE status = ?
+      AND worker_pid IS NOT NULL
+    `
+      )
+      .all(QUEUE_STATUS_PROCESSING) as { worker_pid: number }[];
 
-    this.logger.info(`Checking ${processingItems.length} items in processing status for stale tasks...`);
-
-    const itemsToRequeue: number[] = [];
-    const staleTimeMs = Date.now() - STALE_TIMEOUT_MS;
-
-    // Group items by PID for efficient checking
-    const itemsByPid = new Map<number | null, number[]>();
-    for (const item of processingItems) {
-      const pid = item.worker_pid;
-      if (!itemsByPid.has(pid)) {
-        itemsByPid.set(pid, []);
-      }
-      itemsByPid.get(pid)!.push(item.id);
-    }
-
-    // Check each PID
-    for (const [pid, itemIds] of itemsByPid.entries()) {
-      if (pid === null) {
-        // No PID recorded (old items before PID tracking was added)
-        // Fall back to time-based check for these items
-        this.logger.info(`Found ${itemIds.length} items with no PID (legacy items), checking by timestamp...`);
-        for (const item of processingItems.filter((i) => i.worker_pid === null)) {
-          // Parse timestamp to Date and compare as numbers
-          // SQLite CURRENT_TIMESTAMP returns UTC without 'Z', so append 'Z' if missing to parse as UTC
-          let timestamp = item.processing_started_at;
-          if (!timestamp.endsWith('Z') && !timestamp.includes('+')) {
-            timestamp = timestamp.replace(' ', 'T') + 'Z';
-          }
-          const itemStartTime = new Date(timestamp).getTime();
-          if (isNaN(itemStartTime)) {
-            // Invalid timestamp - requeue to be safe
-            this.logger.warn(`Item ${item.id} has invalid timestamp '${item.processing_started_at}'. Requeuing.`);
-            itemsToRequeue.push(item.id);
-          } else if (itemStartTime < staleTimeMs) {
-            itemsToRequeue.push(item.id);
-          }
-        }
-      } else if (!isProcessRunning(pid)) {
-        // Process is dead - requeue ALL items from this PID immediately
-        this.logger.warn(`Worker process ${pid} is not running. Requeuing ${itemIds.length} items immediately.`);
-        itemsToRequeue.push(...itemIds);
-      } else {
-        // Process is still running - check if items are stale (hung/stuck)
-        for (const item of processingItems.filter((i) => i.worker_pid === pid)) {
-          // Parse timestamp to Date and compare as numbers
-          // SQLite CURRENT_TIMESTAMP returns UTC without 'Z', so append 'Z' if missing to parse as UTC
-          let timestamp = item.processing_started_at;
-          if (!timestamp.endsWith('Z') && !timestamp.includes('+')) {
-            timestamp = timestamp.replace(' ', 'T') + 'Z';
-          }
-          const itemStartTime = new Date(timestamp).getTime();
-          if (isNaN(itemStartTime)) {
-            // Invalid timestamp - requeue to be safe
-            this.logger.warn(`Item ${item.id} has invalid timestamp '${item.processing_started_at}'. Requeuing.`);
-            itemsToRequeue.push(item.id);
-          } else if (itemStartTime < staleTimeMs) {
-            this.logger.warn(
-              `Worker process ${pid} is running but item ${item.id} has been processing for >${STALE_TIMEOUT_MS / 1000}s. Requeuing...`
-            );
-            itemsToRequeue.push(item.id);
-          }
-        }
+    const deadPids: number[] = [];
+    for (const { worker_pid } of distinctPids) {
+      if (!isProcessRunning(worker_pid)) {
+        deadPids.push(worker_pid);
       }
     }
 
-    if (itemsToRequeue.length > 0) {
-      this.logger.warn(`Requeuing ${itemsToRequeue.length} stale/orphaned tasks...`);
+    if (deadPids.length > 0) {
+      this.logger.warn(`Found ${deadPids.length} dead worker PIDs. Requeuing their tasks...`);
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < deadPids.length; i += BATCH_SIZE) {
+        const batchPids = deadPids.slice(i, i + BATCH_SIZE);
+        const result = this.db
+          .prepare(
+            `
+          UPDATE queue
+          SET status = ?,
+              processing_started_at = NULL,
+              worker_pid = NULL
+          WHERE status = ?
+          AND worker_pid IN (${batchPids.map(() => '?').join(',')})
+        `
+          )
+          .run(QUEUE_STATUS_PENDING, QUEUE_STATUS_PROCESSING, ...batchPids);
+        this.logger.warn(
+          `Requeued ${result.changes} tasks from dead workers (batch ${Math.floor(i / BATCH_SIZE) + 1}).`
+        );
+        this.metrics.queue?.documentsRequeued.add(
+          result.changes,
+          createAttributes(this.metrics, { reason: 'dead_worker' })
+        );
+      }
+    }
 
-      const documentsToRequeue: QueuedDocument[] = itemsToRequeue.map((id) => ({
-        id: `stale_${id}`,
-        document: {
-          type: CHUNK_TYPE_CODE,
-          language: '',
-          filePath: '',
-          directoryPath: '',
-          directoryName: '',
-          directoryDepth: 0,
-          git_file_hash: '',
-          git_branch: '',
-          chunk_hash: '',
-          startLine: 0,
-          endLine: 0,
-          content: '',
-          semantic_text: '',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      }));
+    // 2. Requeue items that have timed out (stale timestamp), regardless of PID
+    // This catches items with NULL PIDs (legacy) and items where the worker is alive but stuck
+    const staleMinutes = Math.floor(STALE_TIMEOUT_MS / (60 * 1000));
+    const staleWindow = `-${staleMinutes} minutes`;
+    const result = this.db
+      .prepare(
+        `
+      UPDATE queue
+      SET status = ?,
+          processing_started_at = NULL,
+          worker_pid = NULL
+      WHERE status = ?
+      AND (
+        processing_started_at IS NULL
+        OR datetime(processing_started_at) IS NULL
+        OR datetime(processing_started_at) < datetime('now', ?)
+      )
+    `
+      )
+      .run(QUEUE_STATUS_PENDING, QUEUE_STATUS_PROCESSING, staleWindow);
 
-      await this.requeue(documentsToRequeue);
+    if (result.changes > 0) {
+      this.logger.warn(`Requeued ${result.changes} timed-out tasks.`);
+      this.metrics.queue?.documentsRequeued.add(result.changes, createAttributes(this.metrics, { reason: 'timeout' }));
+    }
+
+    // Log total processing count for visibility
+    const countResult = this.db
+      .prepare('SELECT COUNT(*) as count FROM queue WHERE status = ?')
+      .get(QUEUE_STATUS_PROCESSING) as { count: number };
+    if (countResult.count > 0) {
+      this.logger.info(`${countResult.count} tasks remain in processing state (active workers).`);
     } else {
-      this.logger.info(`All ${processingItems.length} processing items are from active workers and recent.`);
+      this.logger.info('No tasks in processing state.');
     }
   }
 

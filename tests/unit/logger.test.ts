@@ -170,12 +170,13 @@ describe('Logger', () => {
         expect(logOutput).toContain('test message');
       });
 
-      it('does not include metadata in console output', () => {
+      it('includes metadata in console output', () => {
         logger.info('test message', { key: 'value', count: 42 });
 
         const logOutput = consoleLogSpy.mock.calls[0][0];
-        expect(logOutput).not.toContain('key');
-        expect(logOutput).not.toContain('value');
+        expect(logOutput).toContain('key');
+        expect(logOutput).toContain('value');
+        expect(logOutput).toContain('count');
       });
     });
   });

@@ -8,6 +8,7 @@ async function monitorQueue(options?: { repoName?: string }) {
   const repoName = resolveRepoName(options?.repoName);
   const logger = createLogger({ name: repoName, branch: 'unknown' });
   const dbPath = getQueueDbPath(repoName);
+  logger.info(`Database: ${dbPath}`);
   const db = new Database(dbPath, { readonly: true });
 
   logger.info('--- Queue Monitor ---');

@@ -20,7 +20,7 @@ This guide covers development workflows, testing strategies, and contribution gu
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - Docker with Compose v2 plugin
 - Elasticsearch 9.x (for integration tests)
 - Git
@@ -338,8 +338,8 @@ Consider setting up pre-commit hooks for automatic linting and formatting.
 │   ├── languages/          # Language-specific parsers
 │   └── config.ts           # Environment configuration
 ├── tests/
-│   ├── unit/               # Unit tests (20 files, 263 tests)
-│   ├── integration/        # Integration tests (1 file, 1 test)
+│   ├── unit/               # Unit tests
+│   ├── integration/        # Integration tests
 │   ├── fixtures/           # Test data (sample code files)
 │   ├── setup.ts            # Unit test setup
 │   └── integration-setup.ts  # Integration test setup

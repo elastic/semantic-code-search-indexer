@@ -3,7 +3,7 @@
 exports[`LanguageParser > should parse Bash fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "3667bb6922c0f881f5357826a9130fcce94a7144915ea65dfa472e65ae3b2049",
+    "chunk_hash": "aead04fd13708717691abc23a43ed9fb944f0e89a30d476a1f059ba824890bb8",
     "containerPath": "",
     "content": "#!/bin/bash",
     "created_at": "[TIMESTAMP]",
@@ -18,8 +18,7 @@ exports[`LanguageParser > should parse Bash fixtures correctly 1`] = `
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 #!/bin/bash",
@@ -29,7 +28,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "84f34e2cd2497b7abe9c8e3b5139bd2254e7f2f45510cde9ccfc0754302805d9",
+    "chunk_hash": "42bc9938076f400367d6f5db7221f1a387f15d5203d7302fbdb5dc42bafc4dfe",
     "containerPath": "",
     "content": "# Test fixture for Bash language support",
     "created_at": "[TIMESTAMP]",
@@ -44,8 +43,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Test fixture for Bash language support",
@@ -55,7 +53,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e5e504421b4b63f24b7cc24e4a02ac0cc6d45d8ce85297c885fafddf651b1492",
+    "chunk_hash": "82e53f0e50932296c407a6c9d1659bd12da7dd80e859aac419860fd256b373fc",
     "containerPath": "",
     "content": "# Source external scripts",
     "created_at": "[TIMESTAMP]",
@@ -70,8 +68,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Source external scripts",
@@ -81,7 +78,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "10a37aa1a8b56a9f37496451d0890e0320fe68a96fc3eee77109709d2eb60673",
+    "chunk_hash": "2a1d725e7a8f48396544b8dd7334af6e58e7c5a079f80ce1f44d514a71886820",
     "containerPath": "",
     "content": "source ./lib/utils.sh",
     "created_at": "[TIMESTAMP]",
@@ -102,8 +99,7 @@ kind: comment
     ],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 source ./lib/utils.sh",
@@ -119,7 +115,7 @@ source ./lib/utils.sh",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "5b60da9dfea653dbdce7345aa27aa6452f9fa04527eb99a6d6abc44056e3b957",
+    "chunk_hash": "a936ec77258b5ac4f87b1aabd0818afc74de500fee35dca34c370dc06e149639",
     "containerPath": "",
     "content": ". ./lib/helpers.sh",
     "created_at": "[TIMESTAMP]",
@@ -140,8 +136,7 @@ source ./lib/utils.sh",
     ],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 . ./lib/helpers.sh",
@@ -157,7 +152,7 @@ kind: command
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "30fa2bfd9ac9a06ec81f676f613d734dee572d6def16d7be9ce966933ea43740",
+    "chunk_hash": "3b17f9c2456f9ac71509c50a152f3edf45e7263a2b3e138faaddf67f82ff086a",
     "containerPath": "",
     "content": "# Global constants",
     "created_at": "[TIMESTAMP]",
@@ -172,8 +167,7 @@ kind: command
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Global constants",
@@ -183,7 +177,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "9390ed6d3cd9254d79dbe135e34ff0ca59bf6c59ef05a7a6dcaad4cfca04c851",
+    "chunk_hash": "36b72039d718f39ee20a4242de33c7a4d5a13a5126e9a439360c22534b50c541",
     "containerPath": "",
     "content": "readonly SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
     "created_at": "[TIMESTAMP]",
@@ -198,8 +192,7 @@ kind: comment
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 readonly SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
@@ -240,7 +233,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2f1b6bbbc466d05645c1895cded08d6567fe4773212539cb090ea096aa743779",
+    "chunk_hash": "6e97174799973abb9c9c3cc69eb0301ae7ab9086d0b79f692241ad7aae1553d5",
     "containerPath": "",
     "content": "SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
     "created_at": "[TIMESTAMP]",
@@ -255,8 +248,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
@@ -297,7 +289,7 @@ SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "c148214da3f21cee21e74c4d15be2dd7ffd7d9ba902cba5a6bfd876f9c1cb7c7",
+    "chunk_hash": "9954e39e66b0c2fbe381e3f12847009f4ba501371b0ff1ae6387e2d4c72ce3a2",
     "containerPath": "",
     "content": "$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)",
     "created_at": "[TIMESTAMP]",
@@ -312,8 +304,7 @@ SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"",
     "imports": [],
     "kind": "command_substitution",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command_substitution
 
 $(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)",
@@ -354,7 +345,7 @@ $(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "5646fbd023e7cacf1ebc614bfaa57bed6b0c33e7bce09da0abb5f31b47d9c72e",
+    "chunk_hash": "6006632ca9c84b37c0d43f1dd0f4589826ec14ac4dfc529bf16fe280a195f152",
     "containerPath": "",
     "content": "cd "$(dirname "\${BASH_SOURCE[0]}")"",
     "created_at": "[TIMESTAMP]",
@@ -369,8 +360,7 @@ $(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 cd "$(dirname "\${BASH_SOURCE[0]}")"",
@@ -411,7 +401,7 @@ cd "$(dirname "\${BASH_SOURCE[0]}")"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "bc1ed2924b9a5cfc1abf9bc357be873ad3f965fc0d6220d64fb4dbc75911116d",
+    "chunk_hash": "bc94b90c1bf5c0b4c749c905ac166ed715e3e05c9d74489f82aae928db60682c",
     "containerPath": "",
     "content": "$(dirname "\${BASH_SOURCE[0]}")",
     "created_at": "[TIMESTAMP]",
@@ -426,8 +416,7 @@ cd "$(dirname "\${BASH_SOURCE[0]}")"",
     "imports": [],
     "kind": "command_substitution",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command_substitution
 
 $(dirname "\${BASH_SOURCE[0]}")",
@@ -468,7 +457,7 @@ $(dirname "\${BASH_SOURCE[0]}")",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "de97c651ce384b3da1253fe6e6f8aea45b1dec68741333b1ae38ec468effaf80",
+    "chunk_hash": "91d4a1ecd42257f911857fb4d574f141b4fa713643e93eac7bdebc1c8e0d0771",
     "containerPath": "",
     "content": "dirname "\${BASH_SOURCE[0]}"",
     "created_at": "[TIMESTAMP]",
@@ -483,8 +472,7 @@ $(dirname "\${BASH_SOURCE[0]}")",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 dirname "\${BASH_SOURCE[0]}"",
@@ -525,7 +513,7 @@ dirname "\${BASH_SOURCE[0]}"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a1159e9df3670d549d04524532629f5477ceb7deec9b45e47e8c009506ecb2c8",
+    "chunk_hash": "1b2dcc2517a0accab7d4c0f25ab9a4c3ad3a274db4dcfeb3ec4db8828fa33b80",
     "containerPath": "",
     "content": "pwd",
     "created_at": "[TIMESTAMP]",
@@ -540,8 +528,7 @@ dirname "\${BASH_SOURCE[0]}"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 pwd",
@@ -582,7 +569,7 @@ pwd",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "39932dadb0ff701e874013b7aa5cc37be8a74429dec998d2230f346edb2b6330",
+    "chunk_hash": "eeab2db303fbb632c66526ccc772e50592b817e737b3021620d67c35c76aefb8",
     "containerPath": "",
     "content": "readonly VERSION="1.0.0"",
     "created_at": "[TIMESTAMP]",
@@ -597,8 +584,7 @@ pwd",
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 readonly VERSION="1.0.0"",
@@ -619,7 +605,7 @@ readonly VERSION="1.0.0"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2a5591de6d4384e16d964885b81081784c5403c8a0afdbc13d9980d7eabf8d67",
+    "chunk_hash": "b4bb3648e7dfed5c6fd2e30f12c659e40997f303442c0bdb6971003b044f55f0",
     "containerPath": "",
     "content": "VERSION="1.0.0"",
     "created_at": "[TIMESTAMP]",
@@ -634,8 +620,7 @@ readonly VERSION="1.0.0"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 VERSION="1.0.0"",
@@ -656,7 +641,7 @@ VERSION="1.0.0"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "72bf8865dc3dcb0093e1507dd70101d950a3da74287c460b164d3c462c82efe9",
+    "chunk_hash": "1bc1b4a3321884c67660752a73f963ad6c0d54154ef75bb8e926733f6f7c5900",
     "containerPath": "",
     "content": "# Global variables",
     "created_at": "[TIMESTAMP]",
@@ -671,8 +656,7 @@ VERSION="1.0.0"",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Global variables",
@@ -682,7 +666,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "958ee1aa4bf3f21ed5c6b62fda90ff34ca9f96c02abfcb1ad815bc5ebb62d4d1",
+    "chunk_hash": "1ed563e5dc2d9ad8250a19982fae17c4d97e457cb32e1a86af0f7a827d829ce3",
     "containerPath": "",
     "content": "VERBOSE=false",
     "created_at": "[TIMESTAMP]",
@@ -697,8 +681,7 @@ kind: comment
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 VERBOSE=false",
@@ -714,7 +697,7 @@ VERBOSE=false",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "88e9f8cf477be24d101d518f8d038de9bbcdabce5fb011fab22cd44c4c5c83a3",
+    "chunk_hash": "9b01fae947e175841507a5fc52970ef37e2010404221e85d7e0c8cbe1800cb0b",
     "containerPath": "",
     "content": "DEBUG_MODE=false",
     "created_at": "[TIMESTAMP]",
@@ -729,8 +712,7 @@ VERBOSE=false",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 DEBUG_MODE=false",
@@ -746,7 +728,7 @@ DEBUG_MODE=false",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "fc8f58129f2808f1ac6ee963edf72b113e0f6b4f28fc4149195a369702243496",
+    "chunk_hash": "07bba9f88ea10ac3000380e0c8c83c3aa5c8104f5974f6fb82afb2679bfc5906",
     "containerPath": "",
     "content": "# Export environment variables",
     "created_at": "[TIMESTAMP]",
@@ -761,8 +743,7 @@ DEBUG_MODE=false",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Export environment variables",
@@ -772,7 +753,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "c7ff8e6a9e1bb3a9d1a6ffdcb81d0333393979b0a2c64fbb3bfa6606132ab6a4",
+    "chunk_hash": "e9c528da338e113d2c32dd6376c4a6b0a68b56f50663c58becfb3a3b60e5367c",
     "containerPath": "",
     "content": "export PATH="/usr/local/bin:$PATH"",
     "created_at": "[TIMESTAMP]",
@@ -792,8 +773,7 @@ kind: comment
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 export PATH="/usr/local/bin:$PATH"",
@@ -819,7 +799,7 @@ export PATH="/usr/local/bin:$PATH"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a31c8ab7fb40e32f8cdf9204de8963b4370514b3a38da88fd734dc8c74079fb7",
+    "chunk_hash": "73ac5b84156e8135302e8f45ecd1ad9726818889d1c0b9423293997e8ea4ca3b",
     "containerPath": "",
     "content": "PATH="/usr/local/bin:$PATH"",
     "created_at": "[TIMESTAMP]",
@@ -839,8 +819,7 @@ export PATH="/usr/local/bin:$PATH"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 PATH="/usr/local/bin:$PATH"",
@@ -866,7 +845,7 @@ PATH="/usr/local/bin:$PATH"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "dd3fa5059251be7f920433521512bf17771ec40262a13bd8d1eb656fb3a4bbbb",
+    "chunk_hash": "8566ed8edbb072b34ae04abb1e582b6dc5549441acb5a6d867ca22de94b8d10c",
     "containerPath": "",
     "content": "export LOG_LEVEL="info"",
     "created_at": "[TIMESTAMP]",
@@ -886,8 +865,7 @@ PATH="/usr/local/bin:$PATH"",
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 export LOG_LEVEL="info"",
@@ -908,7 +886,7 @@ export LOG_LEVEL="info"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "425988f61ba3755a454be7336a3fcc167306a8e989639622a907fad637cc051b",
+    "chunk_hash": "2275405ecf8e8de268e005ae51efd001138084bd9810467a8f4ac8726d3b4efc",
     "containerPath": "",
     "content": "LOG_LEVEL="info"",
     "created_at": "[TIMESTAMP]",
@@ -928,8 +906,7 @@ export LOG_LEVEL="info"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 LOG_LEVEL="info"",
@@ -950,7 +927,7 @@ LOG_LEVEL="info"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "245d847de194a705a063cf55f2dcb34c8487d51336b18cc646d158dcfb5b14fa",
+    "chunk_hash": "3f45c5538bf7c453d5170f5b6b73862357b2532abb4ac7bfe9ea7f95dec1bc8d",
     "containerPath": "",
     "content": "# Function with documentation",
     "created_at": "[TIMESTAMP]",
@@ -965,8 +942,7 @@ LOG_LEVEL="info"",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Function with documentation",
@@ -976,7 +952,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "86020010fdbb0f477f87a57d2af617dde188ec162bb406eb0973a946e470d6d4",
+    "chunk_hash": "88ed0cbd6d333a0c4601b9ae1836e530da6ed312d2eb6a8dbb43f7f07e32f848",
     "containerPath": "",
     "content": "# Prints a greeting message",
     "created_at": "[TIMESTAMP]",
@@ -991,8 +967,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Prints a greeting message",
@@ -1002,7 +977,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "7b0b7177285b89a8100dfa66a62d316fc5b4d34611b48fd9c38ffb03eb342311",
+    "chunk_hash": "2b6fa213bec31bf5ab19ed4bff3736a784422fd614fd98471a5b0ae551ca7c87",
     "containerPath": "",
     "content": "# Arguments:",
     "created_at": "[TIMESTAMP]",
@@ -1017,8 +992,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Arguments:",
@@ -1028,7 +1002,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6a706b3d4b17d2caceb70580308abc138077a299f72caf089d9317055f4ffa47",
+    "chunk_hash": "d7c0083f21713a3cab92b4e2d2cf0551d62a16e7f35d64c1d249a2244e15bcf8",
     "containerPath": "",
     "content": "#   $1 - Name to greet",
     "created_at": "[TIMESTAMP]",
@@ -1043,8 +1017,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 #   $1 - Name to greet",
@@ -1054,7 +1027,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f459ca1d3f39d4ab7fd71b423734ed009879f38c1ace70c25172e66bab202665",
+    "chunk_hash": "14d26391d5af5449d6d3b25e21b627ad1896f8cb855f58b9b8bc5cb591f01251",
     "containerPath": "",
     "content": "# Returns:",
     "created_at": "[TIMESTAMP]",
@@ -1069,8 +1042,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Returns:",
@@ -1080,7 +1052,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8e9c4f379c11617a495122c5098ff99e88c70417e238b930f31ef91daa1b9e8d",
+    "chunk_hash": "8c4ece997bfa37631e3bc265de4a0792f7b20cc08476fb5315a475a5ad3f6a10",
     "containerPath": "",
     "content": "#   0 on success",
     "created_at": "[TIMESTAMP]",
@@ -1095,8 +1067,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 #   0 on success",
@@ -1106,7 +1077,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "25ff838c1504ba6a8ae15ab63a1585462eaba00fe91c468adbe287ffa784be02",
+    "chunk_hash": "ea1a749b43ef263e3e9b5fb1f9f682d5a09e3209a75f02415453d74ef1cf058d",
     "containerPath": "",
     "content": "function greet() {
     local name="$1"
@@ -1125,8 +1096,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 function greet() {
@@ -1176,7 +1146,7 @@ function greet() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b1cddccb0588e21410414579dfdaf6e3bcf64a0d0959581f796358cb5202ecac",
+    "chunk_hash": "0fc24dbd7ae3e72f7a5e55300ff336016ff43b7559c95ccbe91438735df0d0c4",
     "containerPath": "",
     "content": "local name="$1"",
     "created_at": "[TIMESTAMP]",
@@ -1191,8 +1161,7 @@ function greet() {
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 local name="$1"",
@@ -1218,7 +1187,7 @@ local name="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "84266abce62040a7cf849db595a07d7fddffbd194b296782193ffce83121d499",
+    "chunk_hash": "9819cad25c4b1a088da7e9d77146358ba3f426ebdf82494b669d24b760f87e8f",
     "containerPath": "",
     "content": "name="$1"",
     "created_at": "[TIMESTAMP]",
@@ -1233,8 +1202,7 @@ local name="$1"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 name="$1"",
@@ -1260,7 +1228,7 @@ name="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cb357e398978a6582be16289c02c89139b3cd0c9436d7452f84a6fee37a66f50",
+    "chunk_hash": "c57e5df7527217c5468041454a81a01aa3cc41ddfae0250836954b283ac8b794",
     "containerPath": "",
     "content": "echo "Hello, $name!"",
     "created_at": "[TIMESTAMP]",
@@ -1275,8 +1243,7 @@ name="$1"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Hello, $name!"",
@@ -1297,7 +1264,7 @@ echo "Hello, $name!"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "30945f342ad5ab6c0823be6d0a24400b85ecf17eecbe678f5780b426b1815170",
+    "chunk_hash": "9c3845e4636717082982c7e23de15700971ea48c5fae4a65c6bc22619006f521",
     "containerPath": "",
     "content": "return 0",
     "created_at": "[TIMESTAMP]",
@@ -1312,8 +1279,7 @@ echo "Hello, $name!"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 return 0",
@@ -1329,7 +1295,7 @@ return 0",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "d3de966fd3f097be6ba4cfc665b438327ab70411cdf221868026a3cc56290b09",
+    "chunk_hash": "857f7430d67e438a0fb5e40176e65fb4b96376fba42c7cefebf68dff5112641b",
     "containerPath": "",
     "content": "# Another function style (without 'function' keyword)",
     "created_at": "[TIMESTAMP]",
@@ -1344,8 +1310,7 @@ return 0",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Another function style (without 'function' keyword)",
@@ -1355,7 +1320,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a3617f9b51b5cdf545595c5e977ff26b9bb4354fc86eef59a1a6afd6313b13fc",
+    "chunk_hash": "299f00af7c23a4c194e303f08782dd4ecd329890c8b7e728264e95899529cefd",
     "containerPath": "",
     "content": "# Process files in a directory",
     "created_at": "[TIMESTAMP]",
@@ -1370,8 +1335,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Process files in a directory",
@@ -1381,7 +1345,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1668187d2ba4e616f28262ce936a9e6301d8b6372a4b4f822d048dfa2698155d",
+    "chunk_hash": "9688f975c6086695a95d95decf8f7e5d6a78ad427848db7ca72b5941e959e5cc",
     "containerPath": "",
     "content": "process_files() {
     local dir="$1"
@@ -1409,8 +1373,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 process_files() {
@@ -1499,7 +1462,7 @@ process_files() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8030e7f4c8722f5e959af9cd638ca2abf5f7b54b6acbf8c6dd15e280d99cf0ea",
+    "chunk_hash": "d877d23019b076e68c36b02be4cf9d1d650b7b0e85bde9f08ae17ca003777f52",
     "containerPath": "",
     "content": "local dir="$1"",
     "created_at": "[TIMESTAMP]",
@@ -1514,8 +1477,7 @@ process_files() {
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 local dir="$1"",
@@ -1541,7 +1503,7 @@ local dir="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "75e638976f2dd96b92adbd34818a0722525a3154d4ff918f257b7338eaafe05d",
+    "chunk_hash": "7953fab4117c7b04c8f464c1962cef75822177ac70991cbdd9373c3b018ee53b",
     "containerPath": "",
     "content": "dir="$1"",
     "created_at": "[TIMESTAMP]",
@@ -1556,8 +1518,7 @@ local dir="$1"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 dir="$1"",
@@ -1583,7 +1544,7 @@ dir="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "716e0d712c34ada459a95ed06d133a9c94fcaa731a8ee7d01832fdbfc92c4af7",
+    "chunk_hash": "d7dfa592d1c56ab104bde8ac3e0ebcb2bd32b2dbdcf3f1b2b4c3eb1354a3c7c0",
     "containerPath": "",
     "content": "if [[ ! -d "$dir" ]]; then
         echo "Error: Directory not found: $dir" >&2
@@ -1601,8 +1562,7 @@ dir="$1"",
     "imports": [],
     "kind": "if_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: if_statement
 
 if [[ ! -d "$dir" ]]; then
@@ -1636,7 +1596,7 @@ if [[ ! -d "$dir" ]]; then
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "eb9a23e82f013b8d085c6d07faa9a38049765acde2df9a1cc5d854ce58d5f7ba",
+    "chunk_hash": "e90a9b5dd8afbc3327f084677af4ad99f8639430b856c88e7b00ef2c6b53f2b2",
     "containerPath": "",
     "content": "echo "Error: Directory not found: $dir"",
     "created_at": "[TIMESTAMP]",
@@ -1651,8 +1611,7 @@ if [[ ! -d "$dir" ]]; then
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Error: Directory not found: $dir"",
@@ -1673,7 +1632,7 @@ echo "Error: Directory not found: $dir"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1f48cd0abf4194bbeb453c95d80ccf9179d7b66eba30faded52e8aa374db4a04",
+    "chunk_hash": "15dfa1f4d07bc5e41f32734d122cd95377271282c824ba1bc9a0a0a53d63c192",
     "containerPath": "",
     "content": ">&2",
     "created_at": "[TIMESTAMP]",
@@ -1688,8 +1647,7 @@ echo "Error: Directory not found: $dir"",
     "imports": [],
     "kind": "file_redirect",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: file_redirect
 
 >&2",
@@ -1710,7 +1668,7 @@ kind: file_redirect
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "486d9affb60dbb0063b03d8e23a6ccf6364ce203dc3a9f56f20e750eb41ecade",
+    "chunk_hash": "b26473bd0b746e6ce4b92ac866575e588228065440bfdf06eb256b2a4cbd01ed",
     "containerPath": "",
     "content": "return 1",
     "created_at": "[TIMESTAMP]",
@@ -1725,8 +1683,7 @@ kind: file_redirect
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 return 1",
@@ -1742,7 +1699,7 @@ return 1",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cebee2df73afd3066d71ddb72701ad4ed39a835f4c0e327d173463958cc972ae",
+    "chunk_hash": "773051d7adcc2b90f223e9be96829b28238a9be4a336f87e41d14036c785c208",
     "containerPath": "",
     "content": "for file in "$dir"/*; do
         if [[ -f "$file" ]]; then
@@ -1761,8 +1718,7 @@ return 1",
     "imports": [],
     "kind": "for_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: for_statement
 
 for file in "$dir"/*; do
@@ -1802,7 +1758,7 @@ for file in "$dir"/*; do
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "84b1743a6d289dbb6dc7e5f0390063e760108251d9187dbcfe7cc699ce428843",
+    "chunk_hash": "39b87b75f2e4facccd4846458e4aec67c413397bd9ed0e3edce2bb8fafe76eef",
     "containerPath": "",
     "content": "if [[ -f "$file" ]]; then
             echo "Processing: $(basename "$file")"
@@ -1819,8 +1775,7 @@ for file in "$dir"/*; do
     "imports": [],
     "kind": "if_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: if_statement
 
 if [[ -f "$file" ]]; then
@@ -1853,7 +1808,7 @@ if [[ -f "$file" ]]; then
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "14e7774418ed4ce0d6b093311c596710c9cb55e73cb24d16f208b67617bbcf61",
+    "chunk_hash": "164849183f16608cd7c78a76a4fc4f825025679602c14179adf7e3e4cd4245b1",
     "containerPath": "",
     "content": "echo "Processing: $(basename "$file")"",
     "created_at": "[TIMESTAMP]",
@@ -1868,8 +1823,7 @@ if [[ -f "$file" ]]; then
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Processing: $(basename "$file")"",
@@ -1895,7 +1849,7 @@ echo "Processing: $(basename "$file")"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "5ad1f4c22747b06c0b962a874ea8f5213510d34afa9d90292df645b32f5c94ca",
+    "chunk_hash": "4a144704c903bb70514a79993dfaa703256914f92fae8cace67a86105725b76f",
     "containerPath": "",
     "content": "$(basename "$file")",
     "created_at": "[TIMESTAMP]",
@@ -1910,8 +1864,7 @@ echo "Processing: $(basename "$file")"",
     "imports": [],
     "kind": "command_substitution",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command_substitution
 
 $(basename "$file")",
@@ -1937,7 +1890,7 @@ $(basename "$file")",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8fb82b27b84539d0b03619370ef0fe5625dafec7e339d1cc7947a2973f68a6da",
+    "chunk_hash": "a23e68c7a49a97a41fb90e99b40baa344717fd6a50f56948dd27f4b60799b846",
     "containerPath": "",
     "content": "basename "$file"",
     "created_at": "[TIMESTAMP]",
@@ -1952,8 +1905,7 @@ $(basename "$file")",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 basename "$file"",
@@ -1979,7 +1931,7 @@ basename "$file"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cfe69e4cce8362b0a797b870860a9a55a88564a70fc5ce71aaf89b2a6a00e635",
+    "chunk_hash": "685d8a07c01943b7e7adc0ec79c7892894adf16480fa63e98eded3cc06d7bb0c",
     "containerPath": "",
     "content": "# Function with complex logic",
     "created_at": "[TIMESTAMP]",
@@ -1994,8 +1946,7 @@ basename "$file"",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Function with complex logic",
@@ -2005,7 +1956,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ccf326227346a73adc7d6a7d9a6762872c708b18f173bac02e4bd11b2336f40c",
+    "chunk_hash": "39f9c1e4d2acafd1db843e992b58467b4c563da473a18786c9fcb0f56a8ace45",
     "containerPath": "",
     "content": "calculate() {
     local a="$1"
@@ -2042,8 +1993,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 calculate() {
@@ -2151,7 +2101,7 @@ calculate() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "78cf017e8ab1f0322be045f9080f980b0b37cc4b75a59afdff7f4428db5b79e9",
+    "chunk_hash": "91cd0ad255c684d1e58aa27c00c88d410520a6d98da78f88a06d0f078984b2d3",
     "containerPath": "",
     "content": "local a="$1"",
     "created_at": "[TIMESTAMP]",
@@ -2166,8 +2116,7 @@ calculate() {
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 local a="$1"",
@@ -2193,7 +2142,7 @@ local a="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a7c2d4782bfd8b1f9827422cec8413c2e36b647f0d397e6afd22ca11d86ad354",
+    "chunk_hash": "8bbbb2c8d5a081fc9a697503aae8f040fdbc71ee4a56ab33bc6f66cf6a18a2ac",
     "containerPath": "",
     "content": "a="$1"",
     "created_at": "[TIMESTAMP]",
@@ -2208,8 +2157,7 @@ local a="$1"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 a="$1"",
@@ -2235,7 +2183,7 @@ a="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "fcff8c682c12d98510854dedc0728f8817e5120b49d378a3e4b5fe3bee04fc27",
+    "chunk_hash": "0ae804bd74fa8c4af219f94ed1040c4da5d68f5852f914d3a1ce0b3afda44188",
     "containerPath": "",
     "content": "local b="$2"",
     "created_at": "[TIMESTAMP]",
@@ -2250,8 +2198,7 @@ a="$1"",
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 local b="$2"",
@@ -2277,7 +2224,7 @@ local b="$2"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0401563d31467e62805f06f0ff1945a33829387958a6f3d141b0d355a8344441",
+    "chunk_hash": "0658ae39cd147edd139f19d34407cae0477b6f69a0a23907d1fb81e6f12ccc13",
     "containerPath": "",
     "content": "b="$2"",
     "created_at": "[TIMESTAMP]",
@@ -2292,8 +2239,7 @@ local b="$2"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 b="$2"",
@@ -2319,7 +2265,7 @@ b="$2"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e2000fe8755291c05457dbf073bcb665d846014817f701ba0f387d8289928231",
+    "chunk_hash": "762161a9802db3f4299cc4db8b28b0f56ce2eeaaa998f82f49023c21ea409281",
     "containerPath": "",
     "content": "local result",
     "created_at": "[TIMESTAMP]",
@@ -2334,8 +2280,7 @@ b="$2"",
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 local result",
@@ -2345,7 +2290,7 @@ local result",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6e8ffc374a1503f5e3f0765c712769e89a1774e986aea77cb255db0bdef1ba34",
+    "chunk_hash": "579ace031fb7a070b7a353a81fff53f9d3a518bce7b8ea8feecf2c9172b3f376",
     "containerPath": "",
     "content": "case "$3" in
         add)
@@ -2374,8 +2319,7 @@ local result",
     "imports": [],
     "kind": "case_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: case_statement
 
 case "$3" in
@@ -2430,7 +2374,7 @@ case "$3" in
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "76d7482b06137228501bb4780e9e510963eca189f9dec62d9c5f5641f52dd53e",
+    "chunk_hash": "8e0cc5d1e002edec6b8935a364029bb17cd00e3a6aa78621b4cf958b9ebd939c",
     "containerPath": "",
     "content": "result=$((a + b))",
     "created_at": "[TIMESTAMP]",
@@ -2445,8 +2389,7 @@ case "$3" in
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 result=$((a + b))",
@@ -2462,7 +2405,7 @@ result=$((a + b))",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "70733f64c41be771d4c99c7cb5b4e1d4e45777814860cbc55d168bb3010f138c",
+    "chunk_hash": "fc4e9d32e367674f6edc64af6fd4915c87fa918960600f626ddfff29bbe1966f",
     "containerPath": "",
     "content": "result=$((a - b))",
     "created_at": "[TIMESTAMP]",
@@ -2477,8 +2420,7 @@ result=$((a + b))",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 result=$((a - b))",
@@ -2494,7 +2436,7 @@ result=$((a - b))",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e8871ef954f4f4d161507656dfe84f8cfa4b0a48ffc0805fd6b141ce0b2ed2d3",
+    "chunk_hash": "be6bc85331e4dc3164b630e5970bbb17db9be3aa51f7edff60372ee42a662e0b",
     "containerPath": "",
     "content": "result=$((a * b))",
     "created_at": "[TIMESTAMP]",
@@ -2509,8 +2451,7 @@ result=$((a - b))",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 result=$((a * b))",
@@ -2526,7 +2467,7 @@ result=$((a * b))",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "4fc13328b92411c703f18246a614d00da4f569f2ba5f6289f425cc1f5f2237b0",
+    "chunk_hash": "d4e5901b291b4c28608f5a6b02369141e452e6ce70cb0b67505be0c90ce23130",
     "containerPath": "",
     "content": "echo "Unknown operation"",
     "created_at": "[TIMESTAMP]",
@@ -2541,8 +2482,7 @@ result=$((a * b))",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Unknown operation"",
@@ -2558,7 +2498,7 @@ echo "Unknown operation"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1f48cd0abf4194bbeb453c95d80ccf9179d7b66eba30faded52e8aa374db4a04",
+    "chunk_hash": "15dfa1f4d07bc5e41f32734d122cd95377271282c824ba1bc9a0a0a53d63c192",
     "containerPath": "",
     "content": ">&2",
     "created_at": "[TIMESTAMP]",
@@ -2573,8 +2513,7 @@ echo "Unknown operation"",
     "imports": [],
     "kind": "file_redirect",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: file_redirect
 
 >&2",
@@ -2590,7 +2529,7 @@ kind: file_redirect
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "486d9affb60dbb0063b03d8e23a6ccf6364ce203dc3a9f56f20e750eb41ecade",
+    "chunk_hash": "b26473bd0b746e6ce4b92ac866575e588228065440bfdf06eb256b2a4cbd01ed",
     "containerPath": "",
     "content": "return 1",
     "created_at": "[TIMESTAMP]",
@@ -2605,8 +2544,7 @@ kind: file_redirect
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 return 1",
@@ -2622,7 +2560,7 @@ return 1",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "fc408f7ad64e28172ab75039255f3188a9a94bcc0e3f549b12997931d8767ef9",
+    "chunk_hash": "d446a5fdff1b27aefa6b3f4a0de5004ee816751a91a89cdb596fab0f23ce4e83",
     "containerPath": "",
     "content": "echo "$result"",
     "created_at": "[TIMESTAMP]",
@@ -2637,8 +2575,7 @@ return 1",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "$result"",
@@ -2659,7 +2596,7 @@ echo "$result"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "fb2b68d2fcc69ef8adfd1c520f55a21ffe8d084725c6aaa6cff6f882b63897a8",
+    "chunk_hash": "a8e804cd1831bceddf5aaa6ad1fb7071051f7fcd5512159d0ece4b8dac80b50d",
     "containerPath": "",
     "content": "# Function using pipelines",
     "created_at": "[TIMESTAMP]",
@@ -2674,8 +2611,7 @@ echo "$result"",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Function using pipelines",
@@ -2685,7 +2621,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ac596c5d438a8ceab0bb1b676e299c8f103892184ea26558cc30bbec860e58c8",
+    "chunk_hash": "a6ebe5e958039ad984dfeeabbc91eb0256ca3900e69619280ca795b0807c1840",
     "containerPath": "",
     "content": "filter_logs() {
     local log_file="$1"
@@ -2703,8 +2639,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 filter_logs() {
@@ -2763,7 +2698,7 @@ filter_logs() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "bd9bd776021cf265d10c1f11e7ed275fe8d18b496ffbecbc4e79d16b622aa019",
+    "chunk_hash": "e97f0869312abfbb3b8db8f5ef7877700c023d4b8b3e38ede8c19f25e77eb697",
     "containerPath": "",
     "content": "local log_file="$1"",
     "created_at": "[TIMESTAMP]",
@@ -2778,8 +2713,7 @@ filter_logs() {
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 local log_file="$1"",
@@ -2805,7 +2739,7 @@ local log_file="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "da6de95ddd098141b39b695dff0ef6b033a7bd79c0809be8f1816932aae5ca41",
+    "chunk_hash": "a4c78434c2fd8f422db9401525fcbf84ccd0801186bd5c003b1a27072f4d34bc",
     "containerPath": "",
     "content": "log_file="$1"",
     "created_at": "[TIMESTAMP]",
@@ -2820,8 +2754,7 @@ local log_file="$1"",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 log_file="$1"",
@@ -2847,7 +2780,7 @@ log_file="$1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "523e0ced0610040c5fb23743065f54656443ff7c6433c292589059df7ba3af69",
+    "chunk_hash": "1df0f25f6c650856bef1b665ce5492f5cf3ad1e718767e8ada95badbfec42f18",
     "containerPath": "",
     "content": "cat "$log_file" | grep ERROR | sort | uniq",
     "created_at": "[TIMESTAMP]",
@@ -2862,8 +2795,7 @@ log_file="$1"",
     "imports": [],
     "kind": "pipeline",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: pipeline
 
 cat "$log_file" | grep ERROR | sort | uniq",
@@ -2899,7 +2831,7 @@ cat "$log_file" | grep ERROR | sort | uniq",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "271ebdff960c0f67c9d59432a54e883ce295e042c9fe249a58c60fc30c3cf1c1",
+    "chunk_hash": "90d8a4054928ba5da0ec9c1a06266eacc9a498275de6fb1aa24cb9b09c27941b",
     "containerPath": "",
     "content": "cat "$log_file"",
     "created_at": "[TIMESTAMP]",
@@ -2914,8 +2846,7 @@ cat "$log_file" | grep ERROR | sort | uniq",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 cat "$log_file"",
@@ -2951,7 +2882,7 @@ cat "$log_file"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b10665d19c9174db70ffff9f9a6d1a7493038a2835127ca9295b2e59ca5a9d3d",
+    "chunk_hash": "f472d61f61bd6d14be7ca26eca663c0e0043285fb1aedc1d3b5047a11d074cd2",
     "containerPath": "",
     "content": "grep ERROR",
     "created_at": "[TIMESTAMP]",
@@ -2966,8 +2897,7 @@ cat "$log_file"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 grep ERROR",
@@ -3003,7 +2933,7 @@ grep ERROR",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "646964943fd2271187dbe29287f57e0238491c029cc6d8ce76f25ae240474294",
+    "chunk_hash": "49c33227ce97b7f66e278cd2180740305f580d72c5d252d2417f1d3dbddb1088",
     "containerPath": "",
     "content": "sort",
     "created_at": "[TIMESTAMP]",
@@ -3018,8 +2948,7 @@ grep ERROR",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 sort",
@@ -3055,7 +2984,7 @@ sort",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "d81b294034bae18f4659d7e764e5ebf91de5a3fa6a63121e5c8de536ab7a8409",
+    "chunk_hash": "d8f3530ccee9a7474032d6d1697f12ab4b075c847d66feee4938168aa43d7b61",
     "containerPath": "",
     "content": "uniq",
     "created_at": "[TIMESTAMP]",
@@ -3070,8 +2999,7 @@ sort",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 uniq",
@@ -3107,7 +3035,7 @@ uniq",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8d0aa215585a4b9a66b383aef49cf46b07036828c59f3e3314d69fffa8447722",
+    "chunk_hash": "5756b60be3ee915d7445cc4235f57d5725ae8e4b11e2c2ddaab48ce5f9a6f92a",
     "containerPath": "",
     "content": "# Function with command substitution",
     "created_at": "[TIMESTAMP]",
@@ -3122,8 +3050,7 @@ uniq",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Function with command substitution",
@@ -3133,7 +3060,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1549d1a352faf651267a7fcbe256ca7d87e89299141d042928113f619242c126",
+    "chunk_hash": "79599e878d0b9724ebbdc9301dd2272aa169f59ca48d5916e987fa67c50d46bb",
     "containerPath": "",
     "content": "get_timestamp() {
     echo "$(date +%Y-%m-%d_%H:%M:%S)"
@@ -3150,8 +3077,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 get_timestamp() {
@@ -3179,7 +3105,7 @@ get_timestamp() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "335580f5ab2c9852d7d2f35e010e5fb79776e8180601462f9f6ebb67290ae744",
+    "chunk_hash": "877761c1dfcd8c756dd5447c31c9180e751b7e9dcc1e7c26bcd55b4389804fb1",
     "containerPath": "",
     "content": "echo "$(date +%Y-%m-%d_%H:%M:%S)"",
     "created_at": "[TIMESTAMP]",
@@ -3194,8 +3120,7 @@ get_timestamp() {
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "$(date +%Y-%m-%d_%H:%M:%S)"",
@@ -3216,7 +3141,7 @@ echo "$(date +%Y-%m-%d_%H:%M:%S)"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "13ba086e185b19b95689a192d85549a2287520f48fe5d22fb2869a7b7acfec06",
+    "chunk_hash": "50d0ec6a06884d720bbbb2aa8273d60d9b697ebc1b5d169876612979c893537f",
     "containerPath": "",
     "content": "$(date +%Y-%m-%d_%H:%M:%S)",
     "created_at": "[TIMESTAMP]",
@@ -3231,8 +3156,7 @@ echo "$(date +%Y-%m-%d_%H:%M:%S)"",
     "imports": [],
     "kind": "command_substitution",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command_substitution
 
 $(date +%Y-%m-%d_%H:%M:%S)",
@@ -3253,7 +3177,7 @@ $(date +%Y-%m-%d_%H:%M:%S)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f4e2038710accbfe2eb29b07b392069a8bcfabf17890c084cd77d5e61b66075c",
+    "chunk_hash": "1d60e19a21ddddd136ff5c1f6f34d23e45a20cc69c6e9c391a9a582b9b68da3c",
     "containerPath": "",
     "content": "date +%Y-%m-%d_%H:%M:%S",
     "created_at": "[TIMESTAMP]",
@@ -3268,8 +3192,7 @@ $(date +%Y-%m-%d_%H:%M:%S)",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 date +%Y-%m-%d_%H:%M:%S",
@@ -3290,7 +3213,7 @@ date +%Y-%m-%d_%H:%M:%S",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "20ee4b51efe391cf58749dd7cec9fe74e5a87132b5f306ebfa78f65ed9bd38b5",
+    "chunk_hash": "04a12f245541455f34d24d9e49e69300428b962d6c4f1d409d927641407b4b20",
     "containerPath": "",
     "content": "# Parse command line arguments",
     "created_at": "[TIMESTAMP]",
@@ -3305,8 +3228,7 @@ date +%Y-%m-%d_%H:%M:%S",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Parse command line arguments",
@@ -3316,7 +3238,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8111fa1e1c760caea126d050d54be5972db1406d8555326bf0a6ef9b5f18ff13",
+    "chunk_hash": "ca5773698635e31a314a89806f25ebb89301d60ae43a91886294b5bbc2b46074",
     "containerPath": "",
     "content": "parse_args() {
     while [[ $# -gt 0 ]]; do
@@ -3352,8 +3274,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 parse_args() {
@@ -3440,7 +3361,7 @@ parse_args() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "51bf0de5693ec40a276e5c7678e36fc8f99d0abda5b3bb10ab95d049e4c9d59f",
+    "chunk_hash": "146d4856ce862c8cbce9a69005f64d730aa38ec0e3f1bde472a9f3f492781ddf",
     "containerPath": "",
     "content": "while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -3474,8 +3395,7 @@ parse_args() {
     "imports": [],
     "kind": "while_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: while_statement
 
 while [[ $# -gt 0 ]]; do
@@ -3555,7 +3475,7 @@ while [[ $# -gt 0 ]]; do
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2da642292567ebbf8043f16f090d9e510b5617e8684a747fcc225ba3f7b0f6c3",
+    "chunk_hash": "402aa590c5f0019c8e441c57b8dbe763b36668d8d999715741a5a7f34f05b3d8",
     "containerPath": "",
     "content": "case "$1" in
             -v|--verbose)
@@ -3587,8 +3507,7 @@ while [[ $# -gt 0 ]]; do
     "imports": [],
     "kind": "case_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: case_statement
 
 case "$1" in
@@ -3666,7 +3585,7 @@ case "$1" in
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "817ddaec9b9d018ce80129446f9fc8b89669c94d1def7fb5ef007c7fe20db6de",
+    "chunk_hash": "809c3c23894b74bcb7654d10965618a26ed248cbfff6c43892e451b2612afe98",
     "containerPath": "",
     "content": "VERBOSE=true",
     "created_at": "[TIMESTAMP]",
@@ -3681,8 +3600,7 @@ case "$1" in
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 VERBOSE=true",
@@ -3698,7 +3616,7 @@ VERBOSE=true",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ecd3fad7a4d35d7130c6748352d88f164f156375925f87464afe21b344af97dd",
+    "chunk_hash": "822f77346ef607d435ea54ef77e91dfcb1d2c79534587cd95075fb244133a239",
     "containerPath": "",
     "content": "shift",
     "created_at": "[TIMESTAMP]",
@@ -3713,8 +3631,7 @@ VERBOSE=true",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 shift",
@@ -3730,7 +3647,7 @@ shift",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b9694a32bfc82b7da2d0c5f56a0737861bce79f941b657dcd7176402ee208746",
+    "chunk_hash": "a0aa33df744cf29a739abf01a430c0263db8c91c0c8e6a1b62f77a4a920d43ac",
     "containerPath": "",
     "content": "DEBUG_MODE=true",
     "created_at": "[TIMESTAMP]",
@@ -3745,8 +3662,7 @@ shift",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 DEBUG_MODE=true",
@@ -3762,7 +3678,7 @@ DEBUG_MODE=true",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ecd3fad7a4d35d7130c6748352d88f164f156375925f87464afe21b344af97dd",
+    "chunk_hash": "822f77346ef607d435ea54ef77e91dfcb1d2c79534587cd95075fb244133a239",
     "containerPath": "",
     "content": "shift",
     "created_at": "[TIMESTAMP]",
@@ -3777,8 +3693,7 @@ DEBUG_MODE=true",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 shift",
@@ -3794,7 +3709,7 @@ shift",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "eb22f1ceaf5b679fe1835928c2358db451ab905b4d353d0ccaeb2f594e352e14",
+    "chunk_hash": "0539d3c4827011ef1ab6d4d3e9ee580553aee135c33c1dc518a341bfab7a9346",
     "containerPath": "",
     "content": "show_help",
     "created_at": "[TIMESTAMP]",
@@ -3809,8 +3724,7 @@ shift",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 show_help",
@@ -3826,7 +3740,7 @@ show_help",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "c22995adc29757a99bc9242926a5d5b5a8007ecc78f30943161cf072af42d9d2",
+    "chunk_hash": "b5193e12d2e8eefb21c62ab6a87b9ee432a80660b71a6c7b0c9271e681d8004f",
     "containerPath": "",
     "content": "exit 0",
     "created_at": "[TIMESTAMP]",
@@ -3841,8 +3755,7 @@ show_help",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 exit 0",
@@ -3858,7 +3771,7 @@ exit 0",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "450eac37f955c4f7c887ded6feb7eff6fdcfab84c78d4f02a403191a9f208b04",
+    "chunk_hash": "554f37034ebfc9c14aa199f6b72919f74bf9f7dc62072c389242844d9b7e3c6c",
     "containerPath": "",
     "content": "echo "Unknown option: $1"",
     "created_at": "[TIMESTAMP]",
@@ -3873,8 +3786,7 @@ exit 0",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Unknown option: $1"",
@@ -3895,7 +3807,7 @@ echo "Unknown option: $1"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1f48cd0abf4194bbeb453c95d80ccf9179d7b66eba30faded52e8aa374db4a04",
+    "chunk_hash": "15dfa1f4d07bc5e41f32734d122cd95377271282c824ba1bc9a0a0a53d63c192",
     "containerPath": "",
     "content": ">&2",
     "created_at": "[TIMESTAMP]",
@@ -3910,8 +3822,7 @@ echo "Unknown option: $1"",
     "imports": [],
     "kind": "file_redirect",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: file_redirect
 
 >&2",
@@ -3932,7 +3843,7 @@ kind: file_redirect
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1a21be8bb1dc4721d30cc1850ead617faa55ae9aebf416da4369668bdeaf0824",
+    "chunk_hash": "2ab31e6f5ef190e2a6e6556bb173aa2230f29d6b0a32b886fcde1f22d91bbace",
     "containerPath": "",
     "content": "exit 1",
     "created_at": "[TIMESTAMP]",
@@ -3947,8 +3858,7 @@ kind: file_redirect
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 exit 1",
@@ -3964,7 +3874,7 @@ exit 1",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0a05c78d8a7041ec8d8f9d9b63b082f9c854a186da04f3665e1d313d3dd06403",
+    "chunk_hash": "76ba97fa1a8cbcf138ec6a8cc7b66dc05cf1edd753efe213ae8e8aa87144752a",
     "containerPath": "",
     "content": "# Show help message",
     "created_at": "[TIMESTAMP]",
@@ -3979,8 +3889,7 @@ exit 1",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Show help message",
@@ -3990,7 +3899,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cef79d578521dd2e080759b3c15da843744adbc24658d38bd89d6735a6327086",
+    "chunk_hash": "65ef880a3712a17b6bc624b9ff7062cfd93248d4a64cf836c9fd1f83d9beccff",
     "containerPath": "",
     "content": "show_help() {
     cat << EOF
@@ -4015,8 +3924,7 @@ EOF
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 show_help() {
@@ -4052,7 +3960,7 @@ EOF
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "77af778b51abd4a3c51c5ddd97204a9c3ae614ebccb75a606c3b6865aed6744e",
+    "chunk_hash": "e634f705e0a1e825de4a017acebb1d8150855573bbd529f30233bb595062e918",
     "containerPath": "",
     "content": "cat",
     "created_at": "[TIMESTAMP]",
@@ -4067,8 +3975,7 @@ EOF
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 cat",
@@ -4084,7 +3991,7 @@ cat",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1dfc932d982a659ae9843fb142f60f4c7a4aa51f517d3f7e4f283155d3c30570",
+    "chunk_hash": "2090ee669aa9d02f6795bc842dba28d89e79c7568d273eed3dd76c5cd813e12f",
     "containerPath": "",
     "content": "$(basename "$0")",
     "created_at": "[TIMESTAMP]",
@@ -4099,8 +4006,7 @@ cat",
     "imports": [],
     "kind": "command_substitution",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command_substitution
 
 $(basename "$0")",
@@ -4116,7 +4022,7 @@ $(basename "$0")",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "3344e9933b0acd89cf836ed598ab1351658ff49d20541226da09dad6b0aecb27",
+    "chunk_hash": "40254d387de4c5dcc96a8b927ab63468df1b334e1127ed3e43175d14d191682b",
     "containerPath": "",
     "content": "basename "$0"",
     "created_at": "[TIMESTAMP]",
@@ -4131,8 +4037,7 @@ $(basename "$0")",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 basename "$0"",
@@ -4148,7 +4053,7 @@ basename "$0"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "352a7cd0fccb25a35609802fee7c2f30d80d49126187d139a60c34cf0bd7aa7c",
+    "chunk_hash": "8cd81b85f9ef5767a3bced617c54f360fa79c7dee47da7d1290c7bab7bfc2ae3",
     "containerPath": "",
     "content": "# Main function",
     "created_at": "[TIMESTAMP]",
@@ -4163,8 +4068,7 @@ basename "$0"",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Main function",
@@ -4174,7 +4078,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "21c77111ad5dd129e126d74bc801613ff28c0d6107fe3f82ce1de8e0f6d92323",
+    "chunk_hash": "8811133b0b701e747dab453b0e3f900d36e9635826d0ac8298f615078f76efd8",
     "containerPath": "",
     "content": "main() {
     parse_args "$@"
@@ -4205,8 +4109,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: function_definition
 
 main() {
@@ -4308,7 +4211,7 @@ main() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2849c4ed7f07766b39a4e6e40861f37cfac733aca3a697256952264b4db52305",
+    "chunk_hash": "f2e61c279d99dffc5f6c3991d47fc9aefed6c4ff24ee654b8dd546ba01e08081",
     "containerPath": "",
     "content": "parse_args "$@"",
     "created_at": "[TIMESTAMP]",
@@ -4323,8 +4226,7 @@ main() {
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 parse_args "$@"",
@@ -4340,7 +4242,7 @@ parse_args "$@"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "4582bec181db9a708906b1932e3fc32f12ab3659be70b505eb837d3cc418eb03",
+    "chunk_hash": "c41032acbb0b0635db9d7aaf168c56532b8b065bc032d38b6ad418b2a3140bb7",
     "containerPath": "",
     "content": "if [[ "$VERBOSE" == true ]]; then
         echo "Script version: $VERSION"
@@ -4358,8 +4260,7 @@ parse_args "$@"",
     "imports": [],
     "kind": "if_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: if_statement
 
 if [[ "$VERBOSE" == true ]]; then
@@ -4398,7 +4299,7 @@ if [[ "$VERBOSE" == true ]]; then
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "25f0fe6271149c8b4aaac1ce5507564c71233c903542dd3cb5d3350b59bc9470",
+    "chunk_hash": "4640d55048243674f5fe7b0604d1c8bdc92844c3264c1a03f90ea35a23711a5e",
     "containerPath": "",
     "content": "echo "Script version: $VERSION"",
     "created_at": "[TIMESTAMP]",
@@ -4413,8 +4314,7 @@ if [[ "$VERBOSE" == true ]]; then
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Script version: $VERSION"",
@@ -4435,7 +4335,7 @@ echo "Script version: $VERSION"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a5c3cebf31493d799d7e58908c330e332d73b634624e357b43920bad3c27a839",
+    "chunk_hash": "83882bf3b70be5ffd5b46fd9f4ed0980c376fb594ed0846276d4724a57516dfc",
     "containerPath": "",
     "content": "echo "Script directory: $SCRIPT_DIR"",
     "created_at": "[TIMESTAMP]",
@@ -4450,8 +4350,7 @@ echo "Script version: $VERSION"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Script directory: $SCRIPT_DIR"",
@@ -4472,7 +4371,7 @@ echo "Script directory: $SCRIPT_DIR"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "3d1b79eab2f98298a4db616d123f66eb79b1996bc013af158844823c84eb0e20",
+    "chunk_hash": "80f5ebeba8be899f396712d80a805b1d3f50c383b93995f9e8036a24dc532744",
     "containerPath": "",
     "content": "greet "World"",
     "created_at": "[TIMESTAMP]",
@@ -4487,8 +4386,7 @@ echo "Script directory: $SCRIPT_DIR"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 greet "World"",
@@ -4504,7 +4402,7 @@ greet "World"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "d6040dd0ae5274b8d19679ef23a0130a005074d38323499aef82004a6bb1b867",
+    "chunk_hash": "9d99d3b5a848a480157ad834b6e959a6a90b0ed747eba7eb94e515602e3c1147",
     "containerPath": "",
     "content": "process_files "/tmp"",
     "created_at": "[TIMESTAMP]",
@@ -4519,8 +4417,7 @@ greet "World"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 process_files "/tmp"",
@@ -4536,7 +4433,7 @@ process_files "/tmp"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e2000fe8755291c05457dbf073bcb665d846014817f701ba0f387d8289928231",
+    "chunk_hash": "762161a9802db3f4299cc4db8b28b0f56ce2eeaaa998f82f49023c21ea409281",
     "containerPath": "",
     "content": "local result",
     "created_at": "[TIMESTAMP]",
@@ -4551,8 +4448,7 @@ process_files "/tmp"",
     "imports": [],
     "kind": "declaration_command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: declaration_command
 
 local result",
@@ -4562,7 +4458,7 @@ local result",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b2245db697b2a85a8948e79b8c7f16d4332e4df17942d62d4fe5560a7399afbe",
+    "chunk_hash": "49006d3a30279a7b39fb1d516b0562ff4ebe028b4fecaa5cbc1084489b8c83bb",
     "containerPath": "",
     "content": "result=$(calculate 10 5 add)",
     "created_at": "[TIMESTAMP]",
@@ -4577,8 +4473,7 @@ local result",
     "imports": [],
     "kind": "variable_assignment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: variable_assignment
 
 result=$(calculate 10 5 add)",
@@ -4599,7 +4494,7 @@ result=$(calculate 10 5 add)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cd7b4555692b0df0474c93302d5cc7e74e8c57e993b772ce771daa9e08a5bffd",
+    "chunk_hash": "ee6d1e30cad83405d165d486fa6a8ea5bc4867d8fdbb09ebc9af57856dc1afbe",
     "containerPath": "",
     "content": "$(calculate 10 5 add)",
     "created_at": "[TIMESTAMP]",
@@ -4614,8 +4509,7 @@ result=$(calculate 10 5 add)",
     "imports": [],
     "kind": "command_substitution",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command_substitution
 
 $(calculate 10 5 add)",
@@ -4636,7 +4530,7 @@ $(calculate 10 5 add)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ae825d089c883ce3a20106a6df05d4606a4e9e0a6fa23ef58fb0b8e3e06208b8",
+    "chunk_hash": "ac9d6a6406b350bdfc3af09c33e204e2e798c62b91d7d86a893699b0e8ca9dd0",
     "containerPath": "",
     "content": "calculate 10 5 add",
     "created_at": "[TIMESTAMP]",
@@ -4651,8 +4545,7 @@ $(calculate 10 5 add)",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 calculate 10 5 add",
@@ -4673,7 +4566,7 @@ calculate 10 5 add",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0df1e1c02fed81a630396cb7e1ccddbd91fb1e521457150ee17d18a9e10fdda5",
+    "chunk_hash": "986b50ab20d649aaca347be871a93a7701beed9253a23ac079c7eb39c578348d",
     "containerPath": "",
     "content": "echo "Calculation result: $result"",
     "created_at": "[TIMESTAMP]",
@@ -4688,8 +4581,7 @@ calculate 10 5 add",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Calculation result: $result"",
@@ -4710,7 +4602,7 @@ echo "Calculation result: $result"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "74df59a9b515cf2d6465452ba52401fe81196493260c5754ecd5a9442ca1f63f",
+    "chunk_hash": "e658149107513575e0076f4853e18563851013c7d2cb9009abce32aab8d7d5f7",
     "containerPath": "",
     "content": "echo "Timestamp: $(get_timestamp)"",
     "created_at": "[TIMESTAMP]",
@@ -4725,8 +4617,7 @@ echo "Calculation result: $result"",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 echo "Timestamp: $(get_timestamp)"",
@@ -4747,7 +4638,7 @@ echo "Timestamp: $(get_timestamp)"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "24320c3220ce0ee8a2d3e49aea73ab787ff76143f22670742f8e4cc6821e9482",
+    "chunk_hash": "236c6b7bd50d69cf4d70fe4a772ae8bc852ebf4e9df1f3e7d06ebace7dabef49",
     "containerPath": "",
     "content": "$(get_timestamp)",
     "created_at": "[TIMESTAMP]",
@@ -4762,8 +4653,7 @@ echo "Timestamp: $(get_timestamp)"",
     "imports": [],
     "kind": "command_substitution",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command_substitution
 
 $(get_timestamp)",
@@ -4784,7 +4674,7 @@ $(get_timestamp)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "05720ff81f1ee25a01e24dbaa302ff9b45e467108dd2efa2a86b15de988a5f8b",
+    "chunk_hash": "8e73d2f1671003ea8d57c499c71bbaeb41405098d05fcc0b21f261df7a6c36d8",
     "containerPath": "",
     "content": "get_timestamp",
     "created_at": "[TIMESTAMP]",
@@ -4799,8 +4689,7 @@ $(get_timestamp)",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 get_timestamp",
@@ -4821,7 +4710,7 @@ get_timestamp",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "bd68b48383a60b4a7fbc2fb32d5d610254531b9e8542f82b0537fc1a095e4c75",
+    "chunk_hash": "3070295bde922f85c35a8b92f36acfcc437bd8c666e76c309d2a0175dc2b398b",
     "containerPath": "",
     "content": "# Trap signals",
     "created_at": "[TIMESTAMP]",
@@ -4836,8 +4725,7 @@ get_timestamp",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Trap signals",
@@ -4847,7 +4735,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e1d96fb15cf0c969e30cbac7f7450dab7ef0813e317c4ebce5be959989316f05",
+    "chunk_hash": "f9bf79d53eab407c4e9577def309f80e050c91066344388f376ca63d72a0eb7b",
     "containerPath": "",
     "content": "trap 'echo "Script interrupted"; exit 130' INT TERM",
     "created_at": "[TIMESTAMP]",
@@ -4862,8 +4750,7 @@ kind: comment
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 trap 'echo "Script interrupted"; exit 130' INT TERM",
@@ -4879,7 +4766,7 @@ trap 'echo "Script interrupted"; exit 130' INT TERM",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "928f7e8d687aeec7c718a772700c6324c8e106b3be1ad84e9e786edb2d455ce8",
+    "chunk_hash": "9edad99c07cf6f63606b96b7db05a506d3d1a6db057071836c2fecaccdde1e98",
     "containerPath": "",
     "content": "# Run main function if script is executed directly",
     "created_at": "[TIMESTAMP]",
@@ -4894,8 +4781,7 @@ trap 'echo "Script interrupted"; exit 130' INT TERM",
     "imports": [],
     "kind": "comment",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: comment
 
 # Run main function if script is executed directly",
@@ -4905,7 +4791,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "9ca2935d6914d6db6e7e53f299fdaf0ec9a7b9967180c06fa06297cbf97a268d",
+    "chunk_hash": "2d071df9cf3acb7c1ce3e01c6331582194c184a3f8f94c7f237b359a424e7b4b",
     "containerPath": "",
     "content": "if [[ "\${BASH_SOURCE[0]}" == "\${0}" ]]; then
     main "$@"
@@ -4922,8 +4808,7 @@ fi",
     "imports": [],
     "kind": "if_statement",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: if_statement
 
 if [[ "\${BASH_SOURCE[0]}" == "\${0}" ]]; then
@@ -4946,7 +4831,7 @@ fi",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f08fe42a2330966a1e9ebe5f18e613b0b241bf44ad853a2dcc70dff3aff8a084",
+    "chunk_hash": "a0bcfd20a86b25c8aac6071356519ac13da89fd14e8482835586dabbea7a9be3",
     "containerPath": "",
     "content": "main "$@"",
     "created_at": "[TIMESTAMP]",
@@ -4961,8 +4846,7 @@ fi",
     "imports": [],
     "kind": "command",
     "language": "bash",
-    "semantic_text": "filePath: tests/fixtures/bash.sh
-directoryPath: tests/fixtures
+    "semantic_text": "language: bash
 kind: command
 
 main "$@"",
@@ -4983,7 +4867,7 @@ main "$@"",
 exports[`LanguageParser > should parse C fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "d3139b187138b0a2b1fd9b889746cb293f2dfc1ec526153bb345b1617eca9ef4",
+    "chunk_hash": "061a38b17aaffaea2b4ca60ecb15b39a8220fb10b1436a23d452b9d3761e4eac",
     "containerPath": "",
     "content": "#include <stdio.h>
 ",
@@ -5005,8 +4889,7 @@ exports[`LanguageParser > should parse C fixtures correctly 1`] = `
     ],
     "kind": "preproc_include",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: preproc_include
 
 #include <stdio.h>
@@ -5017,7 +4900,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0255684c4d6c1527072949458c753df8cd146612251d4ba3fe3b22a7e063cec1",
+    "chunk_hash": "5c6ebed0517accfbd80142d325545a83dc410d90f487ed9ab21db49e2343957d",
     "containerPath": "",
     "content": "#include <stdlib.h>
 ",
@@ -5039,8 +4922,7 @@ kind: preproc_include
     ],
     "kind": "preproc_include",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: preproc_include
 
 #include <stdlib.h>
@@ -5051,7 +4933,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "3115917369112cd0b7e3e12f7342203c28651f9404c2d267e04221c68f7f634a",
+    "chunk_hash": "1df19f336dd4cde972b3542ba22dd68bdd580cb28cb9047924227e97ed5aca58",
     "containerPath": "",
     "content": "#include "header.h"
 ",
@@ -5073,8 +4955,7 @@ kind: preproc_include
     ],
     "kind": "preproc_include",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: preproc_include
 
 #include "header.h"
@@ -5085,7 +4966,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6391967cec4446059ae4be79dd990c353df3600c801693aeae62d8fd75cd8414",
+    "chunk_hash": "f4204f5059a3fdc7fa4ae9ce0b7222e977e54a6612070a9c0fa8af5986c4695e",
     "containerPath": "",
     "content": "/* Function comment */",
     "created_at": "[TIMESTAMP]",
@@ -5100,8 +4981,7 @@ kind: preproc_include
     "imports": [],
     "kind": "comment",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: comment
 
 /* Function comment */",
@@ -5111,7 +4991,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a5de93fa2c1b5dc347958d3cbba7522092b1889eac3a357b3aa8c231b28ab611",
+    "chunk_hash": "09f111d2eed2bc0e0ea1024dbbc18d197721640d9d7da0e8c2416eedb6dc84fb",
     "containerPath": "",
     "content": "int add(int a, int b) {
     return a + b;
@@ -5133,8 +5013,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 int add(int a, int b) {
@@ -5162,7 +5041,7 @@ int add(int a, int b) {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "800b20fd97b1508b0b22078816a57ea174dc54356f23d8f1ee126c58623efa26",
+    "chunk_hash": "308437f29e868ab6269f0515d329bdcbbad104a9b76c3b94db58b087c017e306",
     "containerPath": "",
     "content": "return a + b;",
     "created_at": "[TIMESTAMP]",
@@ -5177,8 +5056,7 @@ int add(int a, int b) {
     "imports": [],
     "kind": "return_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: return_statement
 
 return a + b;",
@@ -5188,7 +5066,7 @@ return a + b;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cd67cf751677832c63b8a1673f9614b84c41ab1380cd9dab1ca47f85027307f9",
+    "chunk_hash": "02ef6636b4c2c9708b839dcba6963ecc0bd6eec8cbd934ce83c1e87908d23ba1",
     "containerPath": "",
     "content": "// Variable comment",
     "created_at": "[TIMESTAMP]",
@@ -5203,8 +5081,7 @@ return a + b;",
     "imports": [],
     "kind": "comment",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: comment
 
 // Variable comment",
@@ -5214,7 +5091,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b6a5307438c05e5187b5cf483af541cf761033cacf01041fe296f286837df7fb",
+    "chunk_hash": "404385e9c4c2866f78d049a010092e69fe13cc7ba7d9e7594078d937e264311c",
     "containerPath": "",
     "content": "int global_var = 10;",
     "created_at": "[TIMESTAMP]",
@@ -5229,8 +5106,7 @@ kind: comment
     "imports": [],
     "kind": "declaration",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: declaration
 
 int global_var = 10;",
@@ -5246,7 +5122,7 @@ int global_var = 10;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "71ebfbf29d510c5d078fb62eaab6b19b037c3096fe38e819393b5f2bb61365bc",
+    "chunk_hash": "eaba5acd3427e2928f6782bd40f9efedd156ac7277434b6b517b141a73d6dbed",
     "containerPath": "",
     "content": "struct Point {
     int x;
@@ -5269,8 +5145,7 @@ int global_var = 10;",
     "imports": [],
     "kind": "struct_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: struct_specifier
 
 struct Point {
@@ -5299,7 +5174,7 @@ struct Point {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "20ac4138ead844d262720cedb8c067af80e60d8914ceb4d70fc88196a97c49e6",
+    "chunk_hash": "bbfe0ed9be09f721d8c31cd0dee6302225299d02a50bc047efdbc5f24771de4e",
     "containerPath": "",
     "content": "union Data {
     int i;
@@ -5323,8 +5198,7 @@ struct Point {
     "imports": [],
     "kind": "union_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: union_specifier
 
 union Data {
@@ -5359,7 +5233,7 @@ union Data {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2cfbf1a4fd02f26c5eceb63f6c7291ef5a2d956eac8cabcc1f6295a8a7a7522b",
+    "chunk_hash": "888809ac1da64854c0445b1e4c4fb7ce1b62a371655a330e473de027d2fddccb",
     "containerPath": "",
     "content": "enum Color {
     RED,
@@ -5383,8 +5257,7 @@ union Data {
     "imports": [],
     "kind": "enum_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: enum_specifier
 
 enum Color {
@@ -5404,7 +5277,7 @@ enum Color {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "54eff1362b3f3e8df41e735470743dcfbfaf8ac270fbec7e6c5e135a4701a70b",
+    "chunk_hash": "e924f3c3ce589e34e99a44b51fa7f97029d26c89aaff099fd25ed4d35954e807",
     "containerPath": "",
     "content": "typedef struct Point Point_t;",
     "created_at": "[TIMESTAMP]",
@@ -5428,8 +5301,7 @@ enum Color {
     "imports": [],
     "kind": "type_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: type_definition
 
 typedef struct Point Point_t;",
@@ -5450,7 +5322,7 @@ typedef struct Point Point_t;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e368b95d8219535f8cdac40d314348f3545ee9779bdd4e39e539160b2c5d08ce",
+    "chunk_hash": "87199407fa4cabcfdbfd210afd26d56ff468be45bac208b31e499f4dcbe267a3",
     "containerPath": "",
     "content": "struct Point",
     "created_at": "[TIMESTAMP]",
@@ -5474,8 +5346,7 @@ typedef struct Point Point_t;",
     "imports": [],
     "kind": "struct_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: struct_specifier
 
 struct Point",
@@ -5496,7 +5367,7 @@ struct Point",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "91718fd1a7eac854dd3d8a1597fa0f35d66abe172af9f4352636cd2af65c5983",
+    "chunk_hash": "f5811f13739f4f3557c453e3a22641baae3cd0ad31536ab082055308d0ba3bf1",
     "containerPath": "",
     "content": "/* Documented function */",
     "created_at": "[TIMESTAMP]",
@@ -5511,8 +5382,7 @@ struct Point",
     "imports": [],
     "kind": "comment",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: comment
 
 /* Documented function */",
@@ -5522,7 +5392,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "3596ee31a7138e3971a471c3f6164e0efc22e7a829284808e50a94114f14b6fb",
+    "chunk_hash": "f45f0500c9e9b43a1a4fd39c0794634d64c0a5174c7461f9e46bf25eeae785cb",
     "containerPath": "",
     "content": "void test_function() {
     int result = add(1, 2);
@@ -5545,8 +5415,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 void test_function() {
@@ -5580,7 +5449,7 @@ void test_function() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "adb31437b363f6a9807e9a26becac4a885e94f4f6282ef37403c58ca571f0c19",
+    "chunk_hash": "4b5a2ea2697fcb6235d9e2bd60dc5551e9af4fdbf6c6559218e865f50d9b6604",
     "containerPath": "",
     "content": "int result = add(1, 2);",
     "created_at": "[TIMESTAMP]",
@@ -5595,8 +5464,7 @@ void test_function() {
     "imports": [],
     "kind": "declaration",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: declaration
 
 int result = add(1, 2);",
@@ -5617,7 +5485,7 @@ int result = add(1, 2);",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a56efe1f333bca523861d4b5a5b63a99fb46ede74bc7816ac68debf5bc107a84",
+    "chunk_hash": "48911278b26ee833400ddf8d534ec5b7db09f3322c93da8fc5f9ffb41f7eb434",
     "containerPath": "",
     "content": "add(1, 2)",
     "created_at": "[TIMESTAMP]",
@@ -5632,8 +5500,7 @@ int result = add(1, 2);",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 add(1, 2)",
@@ -5654,7 +5521,7 @@ add(1, 2)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "abe75c3adb6c9a7fa1b6643a22c77027e69c5412e99b4b06131e093fd203f45a",
+    "chunk_hash": "4c792d40ac3bfd89ffa494e6f612dec24e1f87d24bad53a8674f0e629b95a17f",
     "containerPath": "",
     "content": "printf("Result: %d\\n", result);",
     "created_at": "[TIMESTAMP]",
@@ -5669,8 +5536,7 @@ add(1, 2)",
     "imports": [],
     "kind": "expression_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: expression_statement
 
 printf("Result: %d\\n", result);",
@@ -5686,7 +5552,7 @@ printf("Result: %d\\n", result);",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "c4c9715f19ead1252f2f6244da180086a967971acb020334c511590845e628c1",
+    "chunk_hash": "2e48ee927523a7e68aaa4de53bc3277543d82e2e4e6019b4ffa52688c35d7ba3",
     "containerPath": "",
     "content": "printf("Result: %d\\n", result)",
     "created_at": "[TIMESTAMP]",
@@ -5701,8 +5567,7 @@ printf("Result: %d\\n", result);",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 printf("Result: %d\\n", result)",
@@ -5718,7 +5583,7 @@ printf("Result: %d\\n", result)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "60e0608f3c9d3f5bc71e0d7cc05fb6a9e605f8a651aed592d330136af13f8752",
+    "chunk_hash": "5d9f616b648c6f2b7224855238352d94536d416bbe815276cf4fd3d8c148aa0d",
     "containerPath": "",
     "content": "static void private_function() {
     printf("Private\\n");
@@ -5740,8 +5605,7 @@ printf("Result: %d\\n", result)",
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 static void private_function() {
@@ -5764,7 +5628,7 @@ static void private_function() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6f2fb0ca22c4e3ada754e910875de93ad508bc2231cd727a226194dcbf9f6cc6",
+    "chunk_hash": "ae28fa617cfd0a9ce5d8066dc64fe7dc8c5ba2ba84ca4d8c004871fd574ae4d2",
     "containerPath": "",
     "content": "printf("Private\\n");",
     "created_at": "[TIMESTAMP]",
@@ -5779,8 +5643,7 @@ static void private_function() {
     "imports": [],
     "kind": "expression_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: expression_statement
 
 printf("Private\\n");",
@@ -5796,7 +5659,7 @@ printf("Private\\n");",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "375f51f559da9030a5eecab6fcb05439d71ad440c02b45920151f84198cd1fbe",
+    "chunk_hash": "3f735e153de7fefff672f0b1362d2460b5c3aa79b4fea64237a881ba8d5da8ee",
     "containerPath": "",
     "content": "printf("Private\\n")",
     "created_at": "[TIMESTAMP]",
@@ -5811,8 +5674,7 @@ printf("Private\\n");",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 printf("Private\\n")",
@@ -5828,7 +5690,7 @@ printf("Private\\n")",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b59c05467ff70488c92fb7a1ac40de3cac911656ac08f683980e617fe3027d0b",
+    "chunk_hash": "fee014d423a1c258cadfd633d6ea81274bd264e8454368d0d55abc3e3ee8d7bb",
     "containerPath": "",
     "content": "int main(int argc, char *argv[]) {
     Point_t point = { .x = 10, .y = 20 };
@@ -5852,8 +5714,7 @@ printf("Private\\n")",
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 int main(int argc, char *argv[]) {
@@ -5888,7 +5749,7 @@ int main(int argc, char *argv[]) {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "089b9349dbdffe6db26fac83a13ca9dd897ba2b7248436a7b8c66ebeae72dbc9",
+    "chunk_hash": "4157e0733c66769fa0f85dfe86b9acfb22ad4551f1b040aaeb3541e58ff723cb",
     "containerPath": "",
     "content": "Point_t point = { .x = 10, .y = 20 };",
     "created_at": "[TIMESTAMP]",
@@ -5903,8 +5764,7 @@ int main(int argc, char *argv[]) {
     "imports": [],
     "kind": "declaration",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: declaration
 
 Point_t point = { .x = 10, .y = 20 };",
@@ -5920,7 +5780,7 @@ Point_t point = { .x = 10, .y = 20 };",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "642f39792a77c0acb727ad01ff92c7b3779cd02d4372f156610632ffa63baa74",
+    "chunk_hash": "1fad96667a25f8df436821d38f0b89c3f975c4c8a8fb2003c9672fadccfd8080",
     "containerPath": "",
     "content": "test_function();",
     "created_at": "[TIMESTAMP]",
@@ -5935,8 +5795,7 @@ Point_t point = { .x = 10, .y = 20 };",
     "imports": [],
     "kind": "expression_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: expression_statement
 
 test_function();",
@@ -5952,7 +5811,7 @@ test_function();",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2151bd4b921222ae3b9010a32eb971621dfc07a3897e7b36fc03f0364fcbf807",
+    "chunk_hash": "0e4653a06c07e094acb5681ea737d98a6f23cd7616ed3d2b3d40311a089ddfb4",
     "containerPath": "",
     "content": "test_function()",
     "created_at": "[TIMESTAMP]",
@@ -5967,8 +5826,7 @@ test_function();",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 test_function()",
@@ -5984,7 +5842,7 @@ test_function()",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6be2e46a3d0765fd4d08def164c35b75afcc481db6fd11cc5118c4e2c20b634d",
+    "chunk_hash": "91cd8ea1ee5ade1a52f281e407a43f7ac04dbf5730520f72655435dd375fa542",
     "containerPath": "",
     "content": "return 0;",
     "created_at": "[TIMESTAMP]",
@@ -5999,8 +5857,7 @@ test_function()",
     "imports": [],
     "kind": "return_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: return_statement
 
 return 0;",
@@ -6015,7 +5872,7 @@ return 0;",
 exports[`LanguageParser > should parse C fixtures correctly 2`] = `
 [
   {
-    "chunk_hash": "d3139b187138b0a2b1fd9b889746cb293f2dfc1ec526153bb345b1617eca9ef4",
+    "chunk_hash": "061a38b17aaffaea2b4ca60ecb15b39a8220fb10b1436a23d452b9d3761e4eac",
     "containerPath": "",
     "content": "#include <stdio.h>
 ",
@@ -6037,8 +5894,7 @@ exports[`LanguageParser > should parse C fixtures correctly 2`] = `
     ],
     "kind": "preproc_include",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: preproc_include
 
 #include <stdio.h>
@@ -6049,7 +5905,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0255684c4d6c1527072949458c753df8cd146612251d4ba3fe3b22a7e063cec1",
+    "chunk_hash": "5c6ebed0517accfbd80142d325545a83dc410d90f487ed9ab21db49e2343957d",
     "containerPath": "",
     "content": "#include <stdlib.h>
 ",
@@ -6071,8 +5927,7 @@ kind: preproc_include
     ],
     "kind": "preproc_include",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: preproc_include
 
 #include <stdlib.h>
@@ -6083,7 +5938,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "3115917369112cd0b7e3e12f7342203c28651f9404c2d267e04221c68f7f634a",
+    "chunk_hash": "1df19f336dd4cde972b3542ba22dd68bdd580cb28cb9047924227e97ed5aca58",
     "containerPath": "",
     "content": "#include "header.h"
 ",
@@ -6105,8 +5960,7 @@ kind: preproc_include
     ],
     "kind": "preproc_include",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: preproc_include
 
 #include "header.h"
@@ -6117,7 +5971,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6391967cec4446059ae4be79dd990c353df3600c801693aeae62d8fd75cd8414",
+    "chunk_hash": "f4204f5059a3fdc7fa4ae9ce0b7222e977e54a6612070a9c0fa8af5986c4695e",
     "containerPath": "",
     "content": "/* Function comment */",
     "created_at": "[TIMESTAMP]",
@@ -6132,8 +5986,7 @@ kind: preproc_include
     "imports": [],
     "kind": "comment",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: comment
 
 /* Function comment */",
@@ -6143,7 +5996,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a5de93fa2c1b5dc347958d3cbba7522092b1889eac3a357b3aa8c231b28ab611",
+    "chunk_hash": "09f111d2eed2bc0e0ea1024dbbc18d197721640d9d7da0e8c2416eedb6dc84fb",
     "containerPath": "",
     "content": "int add(int a, int b) {
     return a + b;
@@ -6165,8 +6018,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 int add(int a, int b) {
@@ -6194,7 +6046,7 @@ int add(int a, int b) {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "800b20fd97b1508b0b22078816a57ea174dc54356f23d8f1ee126c58623efa26",
+    "chunk_hash": "308437f29e868ab6269f0515d329bdcbbad104a9b76c3b94db58b087c017e306",
     "containerPath": "",
     "content": "return a + b;",
     "created_at": "[TIMESTAMP]",
@@ -6209,8 +6061,7 @@ int add(int a, int b) {
     "imports": [],
     "kind": "return_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: return_statement
 
 return a + b;",
@@ -6220,7 +6071,7 @@ return a + b;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cd67cf751677832c63b8a1673f9614b84c41ab1380cd9dab1ca47f85027307f9",
+    "chunk_hash": "02ef6636b4c2c9708b839dcba6963ecc0bd6eec8cbd934ce83c1e87908d23ba1",
     "containerPath": "",
     "content": "// Variable comment",
     "created_at": "[TIMESTAMP]",
@@ -6235,8 +6086,7 @@ return a + b;",
     "imports": [],
     "kind": "comment",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: comment
 
 // Variable comment",
@@ -6246,7 +6096,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b6a5307438c05e5187b5cf483af541cf761033cacf01041fe296f286837df7fb",
+    "chunk_hash": "404385e9c4c2866f78d049a010092e69fe13cc7ba7d9e7594078d937e264311c",
     "containerPath": "",
     "content": "int global_var = 10;",
     "created_at": "[TIMESTAMP]",
@@ -6261,8 +6111,7 @@ kind: comment
     "imports": [],
     "kind": "declaration",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: declaration
 
 int global_var = 10;",
@@ -6278,7 +6127,7 @@ int global_var = 10;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "71ebfbf29d510c5d078fb62eaab6b19b037c3096fe38e819393b5f2bb61365bc",
+    "chunk_hash": "eaba5acd3427e2928f6782bd40f9efedd156ac7277434b6b517b141a73d6dbed",
     "containerPath": "",
     "content": "struct Point {
     int x;
@@ -6301,8 +6150,7 @@ int global_var = 10;",
     "imports": [],
     "kind": "struct_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: struct_specifier
 
 struct Point {
@@ -6331,7 +6179,7 @@ struct Point {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "20ac4138ead844d262720cedb8c067af80e60d8914ceb4d70fc88196a97c49e6",
+    "chunk_hash": "bbfe0ed9be09f721d8c31cd0dee6302225299d02a50bc047efdbc5f24771de4e",
     "containerPath": "",
     "content": "union Data {
     int i;
@@ -6355,8 +6203,7 @@ struct Point {
     "imports": [],
     "kind": "union_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: union_specifier
 
 union Data {
@@ -6391,7 +6238,7 @@ union Data {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2cfbf1a4fd02f26c5eceb63f6c7291ef5a2d956eac8cabcc1f6295a8a7a7522b",
+    "chunk_hash": "888809ac1da64854c0445b1e4c4fb7ce1b62a371655a330e473de027d2fddccb",
     "containerPath": "",
     "content": "enum Color {
     RED,
@@ -6415,8 +6262,7 @@ union Data {
     "imports": [],
     "kind": "enum_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: enum_specifier
 
 enum Color {
@@ -6436,7 +6282,7 @@ enum Color {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "54eff1362b3f3e8df41e735470743dcfbfaf8ac270fbec7e6c5e135a4701a70b",
+    "chunk_hash": "e924f3c3ce589e34e99a44b51fa7f97029d26c89aaff099fd25ed4d35954e807",
     "containerPath": "",
     "content": "typedef struct Point Point_t;",
     "created_at": "[TIMESTAMP]",
@@ -6460,8 +6306,7 @@ enum Color {
     "imports": [],
     "kind": "type_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: type_definition
 
 typedef struct Point Point_t;",
@@ -6482,7 +6327,7 @@ typedef struct Point Point_t;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e368b95d8219535f8cdac40d314348f3545ee9779bdd4e39e539160b2c5d08ce",
+    "chunk_hash": "87199407fa4cabcfdbfd210afd26d56ff468be45bac208b31e499f4dcbe267a3",
     "containerPath": "",
     "content": "struct Point",
     "created_at": "[TIMESTAMP]",
@@ -6506,8 +6351,7 @@ typedef struct Point Point_t;",
     "imports": [],
     "kind": "struct_specifier",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: struct_specifier
 
 struct Point",
@@ -6528,7 +6372,7 @@ struct Point",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "91718fd1a7eac854dd3d8a1597fa0f35d66abe172af9f4352636cd2af65c5983",
+    "chunk_hash": "f5811f13739f4f3557c453e3a22641baae3cd0ad31536ab082055308d0ba3bf1",
     "containerPath": "",
     "content": "/* Documented function */",
     "created_at": "[TIMESTAMP]",
@@ -6543,8 +6387,7 @@ struct Point",
     "imports": [],
     "kind": "comment",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: comment
 
 /* Documented function */",
@@ -6554,7 +6397,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "3596ee31a7138e3971a471c3f6164e0efc22e7a829284808e50a94114f14b6fb",
+    "chunk_hash": "f45f0500c9e9b43a1a4fd39c0794634d64c0a5174c7461f9e46bf25eeae785cb",
     "containerPath": "",
     "content": "void test_function() {
     int result = add(1, 2);
@@ -6577,8 +6420,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 void test_function() {
@@ -6612,7 +6454,7 @@ void test_function() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "adb31437b363f6a9807e9a26becac4a885e94f4f6282ef37403c58ca571f0c19",
+    "chunk_hash": "4b5a2ea2697fcb6235d9e2bd60dc5551e9af4fdbf6c6559218e865f50d9b6604",
     "containerPath": "",
     "content": "int result = add(1, 2);",
     "created_at": "[TIMESTAMP]",
@@ -6627,8 +6469,7 @@ void test_function() {
     "imports": [],
     "kind": "declaration",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: declaration
 
 int result = add(1, 2);",
@@ -6649,7 +6490,7 @@ int result = add(1, 2);",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a56efe1f333bca523861d4b5a5b63a99fb46ede74bc7816ac68debf5bc107a84",
+    "chunk_hash": "48911278b26ee833400ddf8d534ec5b7db09f3322c93da8fc5f9ffb41f7eb434",
     "containerPath": "",
     "content": "add(1, 2)",
     "created_at": "[TIMESTAMP]",
@@ -6664,8 +6505,7 @@ int result = add(1, 2);",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 add(1, 2)",
@@ -6686,7 +6526,7 @@ add(1, 2)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "abe75c3adb6c9a7fa1b6643a22c77027e69c5412e99b4b06131e093fd203f45a",
+    "chunk_hash": "4c792d40ac3bfd89ffa494e6f612dec24e1f87d24bad53a8674f0e629b95a17f",
     "containerPath": "",
     "content": "printf("Result: %d\\n", result);",
     "created_at": "[TIMESTAMP]",
@@ -6701,8 +6541,7 @@ add(1, 2)",
     "imports": [],
     "kind": "expression_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: expression_statement
 
 printf("Result: %d\\n", result);",
@@ -6718,7 +6557,7 @@ printf("Result: %d\\n", result);",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "c4c9715f19ead1252f2f6244da180086a967971acb020334c511590845e628c1",
+    "chunk_hash": "2e48ee927523a7e68aaa4de53bc3277543d82e2e4e6019b4ffa52688c35d7ba3",
     "containerPath": "",
     "content": "printf("Result: %d\\n", result)",
     "created_at": "[TIMESTAMP]",
@@ -6733,8 +6572,7 @@ printf("Result: %d\\n", result);",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 printf("Result: %d\\n", result)",
@@ -6750,7 +6588,7 @@ printf("Result: %d\\n", result)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "60e0608f3c9d3f5bc71e0d7cc05fb6a9e605f8a651aed592d330136af13f8752",
+    "chunk_hash": "5d9f616b648c6f2b7224855238352d94536d416bbe815276cf4fd3d8c148aa0d",
     "containerPath": "",
     "content": "static void private_function() {
     printf("Private\\n");
@@ -6772,8 +6610,7 @@ printf("Result: %d\\n", result)",
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 static void private_function() {
@@ -6796,7 +6633,7 @@ static void private_function() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6f2fb0ca22c4e3ada754e910875de93ad508bc2231cd727a226194dcbf9f6cc6",
+    "chunk_hash": "ae28fa617cfd0a9ce5d8066dc64fe7dc8c5ba2ba84ca4d8c004871fd574ae4d2",
     "containerPath": "",
     "content": "printf("Private\\n");",
     "created_at": "[TIMESTAMP]",
@@ -6811,8 +6648,7 @@ static void private_function() {
     "imports": [],
     "kind": "expression_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: expression_statement
 
 printf("Private\\n");",
@@ -6828,7 +6664,7 @@ printf("Private\\n");",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "375f51f559da9030a5eecab6fcb05439d71ad440c02b45920151f84198cd1fbe",
+    "chunk_hash": "3f735e153de7fefff672f0b1362d2460b5c3aa79b4fea64237a881ba8d5da8ee",
     "containerPath": "",
     "content": "printf("Private\\n")",
     "created_at": "[TIMESTAMP]",
@@ -6843,8 +6679,7 @@ printf("Private\\n");",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 printf("Private\\n")",
@@ -6860,7 +6695,7 @@ printf("Private\\n")",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b59c05467ff70488c92fb7a1ac40de3cac911656ac08f683980e617fe3027d0b",
+    "chunk_hash": "fee014d423a1c258cadfd633d6ea81274bd264e8454368d0d55abc3e3ee8d7bb",
     "containerPath": "",
     "content": "int main(int argc, char *argv[]) {
     Point_t point = { .x = 10, .y = 20 };
@@ -6884,8 +6719,7 @@ printf("Private\\n")",
     "imports": [],
     "kind": "function_definition",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: function_definition
 
 int main(int argc, char *argv[]) {
@@ -6920,7 +6754,7 @@ int main(int argc, char *argv[]) {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "089b9349dbdffe6db26fac83a13ca9dd897ba2b7248436a7b8c66ebeae72dbc9",
+    "chunk_hash": "4157e0733c66769fa0f85dfe86b9acfb22ad4551f1b040aaeb3541e58ff723cb",
     "containerPath": "",
     "content": "Point_t point = { .x = 10, .y = 20 };",
     "created_at": "[TIMESTAMP]",
@@ -6935,8 +6769,7 @@ int main(int argc, char *argv[]) {
     "imports": [],
     "kind": "declaration",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: declaration
 
 Point_t point = { .x = 10, .y = 20 };",
@@ -6952,7 +6785,7 @@ Point_t point = { .x = 10, .y = 20 };",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "642f39792a77c0acb727ad01ff92c7b3779cd02d4372f156610632ffa63baa74",
+    "chunk_hash": "1fad96667a25f8df436821d38f0b89c3f975c4c8a8fb2003c9672fadccfd8080",
     "containerPath": "",
     "content": "test_function();",
     "created_at": "[TIMESTAMP]",
@@ -6967,8 +6800,7 @@ Point_t point = { .x = 10, .y = 20 };",
     "imports": [],
     "kind": "expression_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: expression_statement
 
 test_function();",
@@ -6984,7 +6816,7 @@ test_function();",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2151bd4b921222ae3b9010a32eb971621dfc07a3897e7b36fc03f0364fcbf807",
+    "chunk_hash": "0e4653a06c07e094acb5681ea737d98a6f23cd7616ed3d2b3d40311a089ddfb4",
     "containerPath": "",
     "content": "test_function()",
     "created_at": "[TIMESTAMP]",
@@ -6999,8 +6831,7 @@ test_function();",
     "imports": [],
     "kind": "call_expression",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: call_expression
 
 test_function()",
@@ -7016,7 +6847,7 @@ test_function()",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6be2e46a3d0765fd4d08def164c35b75afcc481db6fd11cc5118c4e2c20b634d",
+    "chunk_hash": "91cd8ea1ee5ade1a52f281e407a43f7ac04dbf5730520f72655435dd375fa542",
     "containerPath": "",
     "content": "return 0;",
     "created_at": "[TIMESTAMP]",
@@ -7031,8 +6862,7 @@ test_function()",
     "imports": [],
     "kind": "return_statement",
     "language": "c",
-    "semantic_text": "filePath: tests/fixtures/c.c
-directoryPath: tests/fixtures
+    "semantic_text": "language: c
 kind: return_statement
 
 return 0;",
@@ -7047,7 +6877,7 @@ return 0;",
 exports[`LanguageParser > should parse C++ fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "1d16dd7f0fd2b47dbbb09527ae4ea4cf8928e30e888d1e41b019357d2797e247",
+    "chunk_hash": "7b14394ffc27c8ce4c28bde0ed498181110ba5bd4df68ed84868e74bf62823e9",
     "containerPath": "",
     "content": "#include <iostream>
 ",
@@ -7069,8 +6899,7 @@ exports[`LanguageParser > should parse C++ fixtures correctly 1`] = `
     ],
     "kind": "preproc_include",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: preproc_include
 
 #include <iostream>
@@ -7081,7 +6910,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f1a77777c57c0babeec118594be43192bc9b72aacd7709d746067dc654bbabe2",
+    "chunk_hash": "18c11e7f5a2561dbc3148121d897d75ff38d563d06121647d7e3504688c6f7ec",
     "containerPath": "",
     "content": "#include <vector>
 ",
@@ -7103,8 +6932,7 @@ kind: preproc_include
     ],
     "kind": "preproc_include",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: preproc_include
 
 #include <vector>
@@ -7115,7 +6943,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ecb3f933fee8d81c79096ed3681d368da0356c9e0bb7f61f03732812017233cd",
+    "chunk_hash": "cc12ff1e346bd0b09950113fa671c32b15a8dd71699098187ce5e70572e4fee1",
     "containerPath": "",
     "content": "#include "myheader.hpp"
 ",
@@ -7137,8 +6965,7 @@ kind: preproc_include
     ],
     "kind": "preproc_include",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: preproc_include
 
 #include "myheader.hpp"
@@ -7149,7 +6976,7 @@ kind: preproc_include
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e543bc5f1c0a65859792fa4d16ecead75cd97eb1318252c126bfac68b266fe2d",
+    "chunk_hash": "30f6ef029cf00f1d222cf881a362e0eb3a154d0ed4ff3447b6666628f33cf341",
     "containerPath": "",
     "content": "namespace MyNamespace {
     /* Class documentation */
@@ -7218,8 +7045,7 @@ kind: preproc_include
     "imports": [],
     "kind": "namespace_definition",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: namespace_definition
 
 namespace MyNamespace {
@@ -7379,7 +7205,7 @@ namespace MyNamespace {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f305e553681213c677070f609c690b6928f436876b5f1484c64e534ee0479a9d",
+    "chunk_hash": "9f076d8dd4889f468743756f0870d32ba264e6987b754643fd274fb7418d16ae",
     "containerPath": "",
     "content": "/* Class documentation */",
     "created_at": "[TIMESTAMP]",
@@ -7394,8 +7220,7 @@ namespace MyNamespace {
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 /* Class documentation */",
@@ -7405,7 +7230,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "fcd898d1f035f4feec29f3332ab83d6766597aa9a7bec80e551964f2e96b2dea",
+    "chunk_hash": "928e4a43829126eddf730a2943557144be1d09ab14c159199b0549cc17cd34c5",
     "containerPath": "",
     "content": "class MyClass {
     public:
@@ -7441,8 +7266,7 @@ kind: comment
     "imports": [],
     "kind": "class_specifier",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: class_specifier
 
 class MyClass {
@@ -7494,7 +7318,7 @@ class MyClass {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b5eadf1b7bbf1dde62e59439d6ddae8123e19e52f69ac9cf150ed77dbbd0cc40",
+    "chunk_hash": "a4a5c2a592e274d9ba4f4b1721ce1874367bd3fb6dd92c7df8b3ca595583e28f",
     "containerPath": "",
     "content": "MyClass();",
     "created_at": "[TIMESTAMP]",
@@ -7509,8 +7333,7 @@ class MyClass {
     "imports": [],
     "kind": "declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: declaration
 
 MyClass();",
@@ -7520,7 +7343,7 @@ MyClass();",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "377403e43e40c44b3a4b17241bc1aaba3642671cf3ce45530cee38904bd0cf30",
+    "chunk_hash": "f7af28e6946550074f3a2386473d5198f9a87e5f9096823062e3177fe5428073",
     "containerPath": "",
     "content": "~MyClass();",
     "created_at": "[TIMESTAMP]",
@@ -7535,8 +7358,7 @@ MyClass();",
     "imports": [],
     "kind": "declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: declaration
 
 ~MyClass();",
@@ -7546,7 +7368,7 @@ kind: declaration
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "999b53464bac9d5008f7f49943beccec7c6682986d38dfa696725441dc8dbcdb",
+    "chunk_hash": "e86d04d2b0abd8dcbe3f65b5780322c77b53454a1824b8c340a09a51f8cb3822",
     "containerPath": "",
     "content": "// Method documentation",
     "created_at": "[TIMESTAMP]",
@@ -7561,8 +7383,7 @@ kind: declaration
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Method documentation",
@@ -7572,7 +7393,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "483f650d81c36e502e9b774c033603e9888d47329f949cdfc06bc5dfbd5e4d5a",
+    "chunk_hash": "e3c838cecd6abb7c2cc54d1a2a5dc1dba36f59bd842ac888cccae87f12932dbf",
     "containerPath": "",
     "content": "template<typename T>
         T templateMethod(T value) {
@@ -7590,8 +7411,7 @@ kind: comment
     "imports": [],
     "kind": "template_declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: template_declaration
 
 template<typename T>
@@ -7620,7 +7440,7 @@ template<typename T>
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "9c0da362014477c81a8916ee268a4bbe12fd12114cabb628c27689c45104a62a",
+    "chunk_hash": "600534100c48d7e3d2252607f42e373358f1bfaf65a31850824b8dad0946820a",
     "containerPath": "",
     "content": "T templateMethod(T value) {
             return value;
@@ -7646,8 +7466,7 @@ template<typename T>
     "imports": [],
     "kind": "function_definition",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: function_definition
 
 T templateMethod(T value) {
@@ -7675,7 +7494,7 @@ T templateMethod(T value) {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "5d53d5b5321d350fd4fb82525e091d7e11f9eecdaaf39f27e2f4fa5b7e9475d7",
+    "chunk_hash": "4fb36d6a72c79492262062d78211e15139ae65dc52b9935b1f9546026949790f",
     "containerPath": "",
     "content": "return value;",
     "created_at": "[TIMESTAMP]",
@@ -7690,8 +7509,7 @@ T templateMethod(T value) {
     "imports": [],
     "kind": "return_statement",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: return_statement
 
 return value;",
@@ -7701,7 +7519,7 @@ return value;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8109ab6d50e7a822bfe9f61e0db2dbc85514288a067ba02a3884281bc5191434",
+    "chunk_hash": "c23bbe475cbd811a735618e41c4cec5925217519b36d09a42dac4c65a888d8f9",
     "containerPath": "",
     "content": "// Struct documentation",
     "created_at": "[TIMESTAMP]",
@@ -7716,8 +7534,7 @@ return value;",
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Struct documentation",
@@ -7727,7 +7544,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "a2df93090846724c218685d821cf2dff89f04d044599bab9014b2877a7cf4ba2",
+    "chunk_hash": "0fb5afdb6a2507e3c7677f9da7ebbb263191628ca0cc9b091994a9bb787c6f01",
     "containerPath": "",
     "content": "struct Point {
         int x;
@@ -7752,8 +7569,7 @@ kind: comment
     "imports": [],
     "kind": "struct_specifier",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: struct_specifier
 
 struct Point {
@@ -7799,7 +7615,7 @@ struct Point {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "76fd96261366e520a31c1801418d4113eca926d03c21582effaf2d152ddf5aab",
+    "chunk_hash": "2cb70d980421bc8d6134d16729a733c905507c0347254a2d2bb525ff647d976e",
     "containerPath": "",
     "content": "Point(int x, int y) : x(x), y(y) {}",
     "created_at": "[TIMESTAMP]",
@@ -7819,8 +7635,7 @@ struct Point {
     "imports": [],
     "kind": "function_definition",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: function_definition
 
 Point(int x, int y) : x(x), y(y) {}",
@@ -7846,7 +7661,7 @@ Point(int x, int y) : x(x), y(y) {}",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "88c9b940c83cb09077b1a58e20368e0b4d68ff5fa80805e3ad7f59eddcb8ab5b",
+    "chunk_hash": "d62e12d2301a4537ba9d549ebfd04c7c9a03b77766ba56b47b5127ce75d8d85e",
     "containerPath": "",
     "content": "// Enum documentation",
     "created_at": "[TIMESTAMP]",
@@ -7861,8 +7676,7 @@ Point(int x, int y) : x(x), y(y) {}",
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Enum documentation",
@@ -7872,7 +7686,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "c0458cec7f58735abf71211fa1afc3fda9f8d13ae2a5a1457299b6a6dad82c82",
+    "chunk_hash": "e9abd874fcc0c0eb500c4c90e5117ddda841a51bc518c38c15552abbe56845bb",
     "containerPath": "",
     "content": "enum class Color {
         RED,
@@ -7896,8 +7710,7 @@ kind: comment
     "imports": [],
     "kind": "enum_specifier",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: enum_specifier
 
 enum class Color {
@@ -7917,7 +7730,7 @@ enum class Color {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "88c8d3748bed0bc71ca240dd5b27ff7460195fcfda079644bc4535b02a3fbb97",
+    "chunk_hash": "afb671c57005a52958817536af6f7afa0ed2ebdb1b3434665e3fe68c59da4b9f",
     "containerPath": "",
     "content": "// Function documentation",
     "created_at": "[TIMESTAMP]",
@@ -7932,8 +7745,7 @@ enum class Color {
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Function documentation",
@@ -7943,7 +7755,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "63631de9bcb1f702f54cde572aa61356c297ff26f1c4ef90fb5732b82114a066",
+    "chunk_hash": "6e2eda2155fa6ff6c80dcc706e785e305bafcb6fef55df7e8f9d678f406f95e5",
     "containerPath": "",
     "content": "template<typename T>
     T add(T a, T b) {
@@ -7961,8 +7773,7 @@ kind: comment
     "imports": [],
     "kind": "template_declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: template_declaration
 
 template<typename T>
@@ -7996,7 +7807,7 @@ template<typename T>
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "9acecb8e2a9f05d4f5ee960e4afe53c5923d1a388e3373083be3a7c8b27e796b",
+    "chunk_hash": "4e58ed2dc1169c766835c8e6bca59b94060f2800ef7a9b797845c62f3da11925",
     "containerPath": "",
     "content": "T add(T a, T b) {
         return a + b;
@@ -8022,8 +7833,7 @@ template<typename T>
     "imports": [],
     "kind": "function_definition",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: function_definition
 
 T add(T a, T b) {
@@ -8056,7 +7866,7 @@ T add(T a, T b) {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "800b20fd97b1508b0b22078816a57ea174dc54356f23d8f1ee126c58623efa26",
+    "chunk_hash": "bd2d1f6b44ec1a4a822ef80e677c9be1b68230063e026bce041f268c88259a2e",
     "containerPath": "",
     "content": "return a + b;",
     "created_at": "[TIMESTAMP]",
@@ -8071,8 +7881,7 @@ T add(T a, T b) {
     "imports": [],
     "kind": "return_statement",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: return_statement
 
 return a + b;",
@@ -8082,7 +7891,7 @@ return a + b;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "cce1410f3bd0869f50c4cf883a991b2ff52786b232909b70bdb0dd109bce23a6",
+    "chunk_hash": "642116beed14d5d135ee94aa2e18005ad56f95fb352b4049bf0e6300c0979fd0",
     "containerPath": "",
     "content": "// Variable documentation",
     "created_at": "[TIMESTAMP]",
@@ -8097,8 +7906,7 @@ return a + b;",
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Variable documentation",
@@ -8108,7 +7916,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ef131c574320bbf120a0672b8127e6c51690b200556a78af539ca9d12c1831a2",
+    "chunk_hash": "9bf047459cb148d45850211fd3a68df2892ac5265f85e84a8b5fcbb0621d9708",
     "containerPath": "",
     "content": "const int CONSTANT = 42;",
     "created_at": "[TIMESTAMP]",
@@ -8123,8 +7931,7 @@ kind: comment
     "imports": [],
     "kind": "declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: declaration
 
 const int CONSTANT = 42;",
@@ -8140,7 +7947,7 @@ const int CONSTANT = 42;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "52487327ebc0742d1f1ae12c211a575d5b531eb8d073891db30296b99c63966d",
+    "chunk_hash": "2a40342de31d1a3af045cfd51fead3fe15b0ac24ddd4889c292d41abb6211bc3",
     "containerPath": "",
     "content": "// Typedef documentation",
     "created_at": "[TIMESTAMP]",
@@ -8155,8 +7962,7 @@ const int CONSTANT = 42;",
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Typedef documentation",
@@ -8166,7 +7972,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8e44732e8fefdab8142649cb90dc519d490756894865e86ea542980501ae70b0",
+    "chunk_hash": "ee69db8dd39bf7c17bfc8493864bc898aa423f76222eca0f001e5d0f38f81b72",
     "containerPath": "",
     "content": "typedef std::vector<int> IntVector;",
     "created_at": "[TIMESTAMP]",
@@ -8186,8 +7992,7 @@ kind: comment
     "imports": [],
     "kind": "type_definition",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: type_definition
 
 typedef std::vector<int> IntVector;",
@@ -8203,7 +8008,7 @@ typedef std::vector<int> IntVector;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "91a718117a268e756a916585e39f70710a8d647de8dca5189d51888ce49bffbe",
+    "chunk_hash": "10c16b1cc11953c3b2ddf04af500a957fcc31161231b71025eb5017bf3906f7f",
     "containerPath": "",
     "content": "// Using declaration",
     "created_at": "[TIMESTAMP]",
@@ -8218,8 +8023,7 @@ typedef std::vector<int> IntVector;",
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Using declaration",
@@ -8229,7 +8033,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0d9f891af363d62cc4953ceb571452820650ed0c4184d00fe46eeb31bb119876",
+    "chunk_hash": "d1921ec4fc55d8e3e5552d89815935e272ef66669402ebdf5dfd46a5a6bd0ee5",
     "containerPath": "",
     "content": "// Function with namespace",
     "created_at": "[TIMESTAMP]",
@@ -8244,8 +8048,7 @@ kind: comment
     "imports": [],
     "kind": "comment",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: comment
 
 // Function with namespace",
@@ -8255,7 +8058,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "9d31178565984f5ba61e4b10f63077d5f351bbf5657eb775ec93dd0c20b26f46",
+    "chunk_hash": "31dbff22f6942ce5653a44555155356f27fc82935832024c2327a96f29c08bf0",
     "containerPath": "",
     "content": "void MyNamespace::MyClass::publicMethod() {
     std::cout << "Hello" << std::endl;
@@ -8272,8 +8075,7 @@ kind: comment
     "imports": [],
     "kind": "function_definition",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: function_definition
 
 void MyNamespace::MyClass::publicMethod() {
@@ -8285,7 +8087,7 @@ void MyNamespace::MyClass::publicMethod() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "d69ffc6b1182356b5d1a54264de2c3098992ed760c9f05e4ac4a8437e5170946",
+    "chunk_hash": "60920fb906339ef275fd885bfc73098c6e3d4af5357d9b4277425fa05c4aa4ca",
     "containerPath": "",
     "content": "std::cout << "Hello" << std::endl;",
     "created_at": "[TIMESTAMP]",
@@ -8300,8 +8102,7 @@ void MyNamespace::MyClass::publicMethod() {
     "imports": [],
     "kind": "expression_statement",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: expression_statement
 
 std::cout << "Hello" << std::endl;",
@@ -8311,7 +8112,7 @@ std::cout << "Hello" << std::endl;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "c1c8639ac91635a793a22920604247a2b7d9cc00dea66dad787678587205b09f",
+    "chunk_hash": "944e31498caa5ee0d391e4c5b1493a547475adec08f414671ebe8f746235b7ea",
     "containerPath": "",
     "content": "int main(int argc, char* argv[]) {
     MyNamespace::MyClass obj;
@@ -8339,8 +8140,7 @@ std::cout << "Hello" << std::endl;",
     "imports": [],
     "kind": "function_definition",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: function_definition
 
 int main(int argc, char* argv[]) {
@@ -8394,7 +8194,7 @@ int main(int argc, char* argv[]) {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2436b24ed34dec124a26354b798d2ce273193c0c59ff4feca9d742a4e2e04648",
+    "chunk_hash": "183f3c20fe0889f982127ae054dd8883bff8feaf19660f10f7ae526823b89114",
     "containerPath": "",
     "content": "MyNamespace::MyClass obj;",
     "created_at": "[TIMESTAMP]",
@@ -8409,8 +8209,7 @@ int main(int argc, char* argv[]) {
     "imports": [],
     "kind": "declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: declaration
 
 MyNamespace::MyClass obj;",
@@ -8426,7 +8225,7 @@ MyNamespace::MyClass obj;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "051b9a654f8aa6fcfd69cc0d2329975f58ffbda441529bcce0277f2c602cf156",
+    "chunk_hash": "ee97c7dfd749499e9e9d0dd75b7f0248b9609033a77e7b954cae4893b704fff7",
     "containerPath": "",
     "content": "obj.publicMethod();",
     "created_at": "[TIMESTAMP]",
@@ -8441,8 +8240,7 @@ MyNamespace::MyClass obj;",
     "imports": [],
     "kind": "expression_statement",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: expression_statement
 
 obj.publicMethod();",
@@ -8458,7 +8256,7 @@ obj.publicMethod();",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6d210117f6eecbca584d56d35bd066dbbf06f222d0724e8a31203a1d675a9db1",
+    "chunk_hash": "11a45a5739989239359ecae14b7b6c49995d2160b90c7ae591ea9ea5e704e063",
     "containerPath": "",
     "content": "obj.publicMethod()",
     "created_at": "[TIMESTAMP]",
@@ -8473,8 +8271,7 @@ obj.publicMethod();",
     "imports": [],
     "kind": "call_expression",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: call_expression
 
 obj.publicMethod()",
@@ -8490,7 +8287,7 @@ obj.publicMethod()",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "2a740da3ca5f77f0421cace84b5a7ff098d0922ec8843812af4c7c8a57f6fb1c",
+    "chunk_hash": "b52900c9aa9decdd63c41bb3df69435c39ffceb9a939e2a86e23b9234300a071",
     "containerPath": "",
     "content": "MyNamespace::Point p(10, 20);",
     "created_at": "[TIMESTAMP]",
@@ -8505,8 +8302,7 @@ obj.publicMethod()",
     "imports": [],
     "kind": "declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: declaration
 
 MyNamespace::Point p(10, 20);",
@@ -8522,7 +8318,7 @@ MyNamespace::Point p(10, 20);",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "36d2e320f01db6d6c27af0c6416d79e9910be94f3178d45b3f4baf9cf8c15e86",
+    "chunk_hash": "87ebe975d10bfc622279ef20b4a4742fe658328ffc35dc370d1145cd6affa0d9",
     "containerPath": "",
     "content": "int result = MyNamespace::add(1, 2);",
     "created_at": "[TIMESTAMP]",
@@ -8537,8 +8333,7 @@ MyNamespace::Point p(10, 20);",
     "imports": [],
     "kind": "declaration",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: declaration
 
 int result = MyNamespace::add(1, 2);",
@@ -8559,7 +8354,7 @@ int result = MyNamespace::add(1, 2);",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f8a92b55254e013eaf281cc283e6520367570fc0cc9608fb97e17c4187b5a67f",
+    "chunk_hash": "3884f3b0473b977ae3098e3c8725bd9e7222077ceab193bb5fdd819797ec6b3d",
     "containerPath": "",
     "content": "MyNamespace::add(1, 2)",
     "created_at": "[TIMESTAMP]",
@@ -8574,8 +8369,7 @@ int result = MyNamespace::add(1, 2);",
     "imports": [],
     "kind": "call_expression",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: call_expression
 
 MyNamespace::add(1, 2)",
@@ -8596,7 +8390,7 @@ MyNamespace::add(1, 2)",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6be2e46a3d0765fd4d08def164c35b75afcc481db6fd11cc5118c4e2c20b634d",
+    "chunk_hash": "8cd12ef4207adc0eddd03b477bc573eb478d2106f2dfdeb2cd668f31abdc137f",
     "containerPath": "",
     "content": "return 0;",
     "created_at": "[TIMESTAMP]",
@@ -8611,8 +8405,7 @@ MyNamespace::add(1, 2)",
     "imports": [],
     "kind": "return_statement",
     "language": "cpp",
-    "semantic_text": "filePath: tests/fixtures/cpp.cpp
-directoryPath: tests/fixtures
+    "semantic_text": "language: cpp
 kind: return_statement
 
 return 0;",
@@ -8627,7 +8420,7 @@ return 0;",
 exports[`LanguageParser > should parse Go fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "fd68edbadc1535917a1bca6848f45e93c6588249f923c24958981b6c28f2a045",
+    "chunk_hash": "cc7745758ff6440bfb2397fb132b9b1c25ebb542a00925cb5c5f4d31020a4fc4",
     "containerPath": "",
     "content": "import "fmt"",
     "created_at": "[TIMESTAMP]",
@@ -8648,8 +8441,7 @@ exports[`LanguageParser > should parse Go fixtures correctly 1`] = `
     ],
     "kind": "import_declaration",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: import_declaration
 
 import "fmt"",
@@ -8659,7 +8451,7 @@ import "fmt"",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0c01bc050a86f2516932d9c238e35e968f09510f2fa933e224bc9e66e4a3781c",
+    "chunk_hash": "bc4ad1aaffc378e9a3f5333145ad7c2cd52b770c31223c0efae493432099ef26",
     "containerPath": "",
     "content": "// Hello is a function that prints a greeting.",
     "created_at": "[TIMESTAMP]",
@@ -8674,8 +8466,7 @@ import "fmt"",
     "imports": [],
     "kind": "comment",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: comment
 
 // Hello is a function that prints a greeting.",
@@ -8685,7 +8476,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "381515bf0dd48f63c690606252b0806e51290234703b9dcbf7c034753fa96704",
+    "chunk_hash": "75c197906c800eadcfab868ebaa80078177adf1ef71fc6b12b3eea39e3416300",
     "containerPath": "",
     "content": "func Hello() {
 	fmt.Println("Hello, Go!")
@@ -8707,8 +8498,7 @@ kind: comment
     "imports": [],
     "kind": "function_declaration",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: function_declaration
 
 func Hello() {
@@ -8731,7 +8521,7 @@ func Hello() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "60182a39609bfe8bdda418af2ef400cdd9f97a08d48122566e1f760112d05b8d",
+    "chunk_hash": "3ff70b2a6199c64b5a1ad6105d7abe7c91d83fc2aaa98e5c8901ae287b4e42bd",
     "containerPath": "",
     "content": "fmt.Println("Hello, Go!")",
     "created_at": "[TIMESTAMP]",
@@ -8746,8 +8536,7 @@ func Hello() {
     "imports": [],
     "kind": "call_expression",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: call_expression
 
 fmt.Println("Hello, Go!")",
@@ -8763,7 +8552,7 @@ fmt.Println("Hello, Go!")",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "125de83243a2f4cb0869d974cf82881c1ea38b53de65ce3c8cf597555e74b6ac",
+    "chunk_hash": "4f91df207b77c9d245a94535d238e07d72c6e3b983df413c4dc973f89c7f5a94",
     "containerPath": "",
     "content": "type MyType struct {
     name string
@@ -8785,8 +8574,7 @@ fmt.Println("Hello, Go!")",
     "imports": [],
     "kind": "type_declaration",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: type_declaration
 
 type MyType struct {
@@ -8804,7 +8592,7 @@ type MyType struct {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "524f208577d30407883ed6d141b05a0779c5eea7b3412a92d5e2f0eed0be79de",
+    "chunk_hash": "c44c02e98262dc17384701cec0abe167ea4904bd6f806622c1481f891438fe0d",
     "containerPath": "",
     "content": "const MyConst = 42",
     "created_at": "[TIMESTAMP]",
@@ -8824,8 +8612,7 @@ type MyType struct {
     "imports": [],
     "kind": "const_declaration",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: const_declaration
 
 const MyConst = 42",
@@ -8835,7 +8622,7 @@ const MyConst = 42",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "e2d901d7cca13ca757edc02cfcaf2c5675fac6e1c10881e6294806d34a888983",
+    "chunk_hash": "c9023801a3ac6f5e03ff2812592e2c39ae658cce1f1842fcfe8e9ea4550a8bec",
     "containerPath": "",
     "content": "func privateFunc() {
 	fmt.Println("private")
@@ -8852,8 +8639,7 @@ const MyConst = 42",
     "imports": [],
     "kind": "function_declaration",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: function_declaration
 
 func privateFunc() {
@@ -8876,7 +8662,7 @@ func privateFunc() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "dbb43fffe413a3411b9f0ad27db07f606830f0bd6c3fe807c5fda0d27706afde",
+    "chunk_hash": "b906fb7db59b65cf9afd142772bfd9b78f0b4bb9d0cebb51ae50086fc29181af",
     "containerPath": "",
     "content": "fmt.Println("private")",
     "created_at": "[TIMESTAMP]",
@@ -8891,8 +8677,7 @@ func privateFunc() {
     "imports": [],
     "kind": "call_expression",
     "language": "go",
-    "semantic_text": "filePath: tests/fixtures/go.go
-directoryPath: tests/fixtures
+    "semantic_text": "language: go
 kind: call_expression
 
 fmt.Println("private")",
@@ -8913,7 +8698,7 @@ fmt.Println("private")",
 exports[`LanguageParser > should parse Gradle fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "14110e05d784ac5713d3433f9a03b2b56b8d57dbacea269ac848ac5e89f43672",
+    "chunk_hash": "7514cd05dcd33446991c28cc507a6576195177ae845a8d42c903dc81e2c158d8",
     "content": "// This is a gradle file
 apply plugin: 'java'
 ",
@@ -8926,8 +8711,7 @@ apply plugin: 'java'
     "git_branch": "main",
     "git_file_hash": "117a9e843f104c412bb5b4aaac1cd1b4dc931959",
     "language": "text",
-    "semantic_text": "filePath: tests/fixtures/gradle.gradle
-directoryPath: tests/fixtures
+    "semantic_text": "language: text
 
 // This is a gradle file
 apply plugin: 'java'
@@ -8942,7 +8726,7 @@ apply plugin: 'java'
 exports[`LanguageParser > should parse Handlebars fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "61df66d98e9a0be833927914091c3502e00208e6c255dbbc7431f219b8231806",
+    "chunk_hash": "adf4af233453606614903c98478be8ff7e19d71509e57cd9c85dc0b6f052d384",
     "content": "{{! This is a comprehensive Handlebars test fixture }}
 
 {{! Original user example - YAML with Handlebars }}
@@ -9029,8 +8813,7 @@ processors:
     "git_branch": "main",
     "git_file_hash": "b995d509148672a617312f7e94fe3909d6a7ba4d",
     "language": "handlebars",
-    "semantic_text": "filePath: tests/fixtures/handlebars.hbs
-directoryPath: tests/fixtures
+    "semantic_text": "language: handlebars
 
 {{! This is a comprehensive Handlebars test fixture }}
 
@@ -9119,7 +8902,7 @@ processors:
 exports[`LanguageParser > should parse JSON fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "0b09f5433be8c8c384a98272266af02b7291be5af2de159f09e9dd55ab7b54bb",
+    "chunk_hash": "95d51f86f762efbed616fd7b06d837d6e77cc73e1c2f23db4e0fd614ff3d92bc",
     "content": "{
   "name": "code-indexer",
   "version": "1.0.0",
@@ -9144,8 +8927,7 @@ exports[`LanguageParser > should parse JSON fixtures correctly 1`] = `
     "git_branch": "main",
     "git_file_hash": "141171aab783a33c011ac721eea8eafa7bb3211b",
     "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
+    "semantic_text": "language: json
 
 {
   "name": "code-indexer",
@@ -9167,7 +8949,7 @@ directoryPath: tests/fixtures
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b0d703f6718baa213abae8b4366fd1309c6bcd08b0bfd60b22df409ecd8d2069",
+    "chunk_hash": "177507f84bee2496adcf4b07748b476a716ce829016affb14ca280cac2ff40bc",
     "content": "    "indexer",
     "semantic",
     "search"
@@ -9192,8 +8974,7 @@ directoryPath: tests/fixtures
     "git_branch": "main",
     "git_file_hash": "141171aab783a33c011ac721eea8eafa7bb3211b",
     "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
+    "semantic_text": "language: json
 
     "indexer",
     "semantic",
@@ -9215,7 +8996,7 @@ directoryPath: tests/fixtures
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "46e051ad0214efd19292b23f412a67096c0b3a6cebf0f14a3cb123e7c4882842",
+    "chunk_hash": "77d0276a865a0f93c3ba2c0efd23a967812827e5da146819a654b0caf77372dc",
     "content": "    "@types/node": "^18.11.18",
     "typescript": "^4.9.4",
     "vitest": "^4.0.13",
@@ -9232,8 +9013,7 @@ directoryPath: tests/fixtures
     "git_branch": "main",
     "git_file_hash": "141171aab783a33c011ac721eea8eafa7bb3211b",
     "language": "json",
-    "semantic_text": "filePath: tests/fixtures/json.json
-directoryPath: tests/fixtures
+    "semantic_text": "language: json
 
     "@types/node": "^18.11.18",
     "typescript": "^4.9.4",
@@ -9252,7 +9032,7 @@ directoryPath: tests/fixtures
 exports[`LanguageParser > should parse Java fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "c7bf8cb907acb4b0d6e6fddaf47d772c5f0336e85f853a81815767441d7dff94",
+    "chunk_hash": "68a148996cbcd22a4d828b1da3f819a30a5bb90a063d6a52f757732798f45f5c",
     "containerPath": "",
     "content": "import java.util.List;",
     "created_at": "[TIMESTAMP]",
@@ -9275,8 +9055,7 @@ exports[`LanguageParser > should parse Java fixtures correctly 1`] = `
     ],
     "kind": "import_declaration",
     "language": "java",
-    "semantic_text": "filePath: tests/fixtures/java.java
-directoryPath: tests/fixtures
+    "semantic_text": "language: java
 kind: import_declaration
 
 import java.util.List;",
@@ -9286,7 +9065,7 @@ import java.util.List;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f3bdfe085b37fa68c4ce801bf52d37873eac07cf0623510f9f1003adabc5d936",
+    "chunk_hash": "1dc07e26f9f05464cf47b77843c805d91c045834761377993ce41a12d53f6705",
     "containerPath": "",
     "content": "public class MyClass {
     /**
@@ -9317,8 +9096,7 @@ import java.util.List;",
     "imports": [],
     "kind": "class_declaration",
     "language": "java",
-    "semantic_text": "filePath: tests/fixtures/java.java
-directoryPath: tests/fixtures
+    "semantic_text": "language: java
 kind: class_declaration
 
 public class MyClass {
@@ -9365,7 +9143,7 @@ public class MyClass {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "01fb998a1b76939bde6bbce21bbd358fe186be860339025492b71218b0248574",
+    "chunk_hash": "bd6e6e60aa8ac5b23a2202e0d66bc6db4b46a96d8ff52b5ad26f6cdd64e566e8",
     "containerPath": "MyClass",
     "content": "/**
      * This is a Javadoc comment.
@@ -9382,8 +9160,7 @@ public class MyClass {
     "imports": [],
     "kind": "block_comment",
     "language": "java",
-    "semantic_text": "filePath: tests/fixtures/java.java
-directoryPath: tests/fixtures
+    "semantic_text": "language: java
 kind: block_comment
 containerPath: MyClass
 
@@ -9396,7 +9173,7 @@ containerPath: MyClass
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0b64c9f2f3e7d8bc006ab2841e2516f7eb1752ced4fccf76b9ccf9aa4562376d",
+    "chunk_hash": "eeedc01bd96c5cc6319eb0294bc17b29cb47adbb27baa559fe7b69d422ea9f84",
     "containerPath": "MyClass",
     "content": "public void myMethod() {
         System.out.println("Hello, Java!");
@@ -9418,8 +9195,7 @@ containerPath: MyClass
     "imports": [],
     "kind": "method_declaration",
     "language": "java",
-    "semantic_text": "filePath: tests/fixtures/java.java
-directoryPath: tests/fixtures
+    "semantic_text": "language: java
 kind: method_declaration
 containerPath: MyClass
 
@@ -9443,7 +9219,7 @@ public void myMethod() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "25b48812095dbae033aae31d13e0d5eeb9452351a6a95d114d73c4b5e7e134c2",
+    "chunk_hash": "7a38c122a461d742466ee93be015377f6d9a1fa9af6d80d2383ab3c797340a9a",
     "containerPath": "MyClass",
     "content": "private void privateMethod() {
         System.out.println("Private");
@@ -9460,8 +9236,7 @@ public void myMethod() {
     "imports": [],
     "kind": "method_declaration",
     "language": "java",
-    "semantic_text": "filePath: tests/fixtures/java.java
-directoryPath: tests/fixtures
+    "semantic_text": "language: java
 kind: method_declaration
 containerPath: MyClass
 
@@ -9490,7 +9265,7 @@ private void privateMethod() {
 exports[`LanguageParser > should parse JavaScript fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "bfbce26d696921c2281b7e4c2eebed78128ac63be763d2b09fa054793a790934",
+    "chunk_hash": "01aec9f2a8f867d10511f430aaa3752efd0ac03e4e289a5616fc1e1982e41c9c",
     "containerPath": "",
     "content": "// This is a comment",
     "created_at": "[TIMESTAMP]",
@@ -9505,8 +9280,7 @@ exports[`LanguageParser > should parse JavaScript fixtures correctly 1`] = `
     "imports": [],
     "kind": "comment",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: comment
 
 // This is a comment",
@@ -9516,7 +9290,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "ed8291088a1a5a73b9864543d1ce1e9a65ff0a84fc7b2e84bb51d4394d593245",
+    "chunk_hash": "9508987421afc9b3286eb9e920ec15a2ba3bc5cf8f996be90db666966192ff0b",
     "containerPath": "",
     "content": "import { a } from 'b';",
     "created_at": "[TIMESTAMP]",
@@ -9544,8 +9318,7 @@ kind: comment
     ],
     "kind": "import_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: import_statement
 
 import { a } from 'b';",
@@ -9555,7 +9328,7 @@ import { a } from 'b';",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "7879ae4ab38bdc5513c4af4a422cd870415b4e829ebd550543748ead16e0f1a4",
+    "chunk_hash": "c992aa1955a1b0975082bf7a5629b5685683e4990c93eb10180bc861e843dcfc",
     "containerPath": "",
     "content": "/**
  * This is a JSDoc comment.
@@ -9572,8 +9345,7 @@ import { a } from 'b';",
     "imports": [],
     "kind": "comment",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: comment
 
 /**
@@ -9585,7 +9357,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "863f06bfe158d269234eff9d0167d4cbc6492a68f4cf705ef7a75811dc8c9ec3",
+    "chunk_hash": "ce365f4d8c066c3e2e11a782d0049aff35a4d7b34c939c712898c5fa868db9ee",
     "containerPath": "",
     "content": "function hello() {
   console.log('Hello, world!');
@@ -9602,8 +9374,7 @@ kind: comment
     "imports": [],
     "kind": "function_declaration",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: function_declaration
 
 function hello() {
@@ -9621,7 +9392,7 @@ function hello() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "eee7859f1f61de3723f1e42c8bc57adeec0c651524e3c74d96583d45096b8987",
+    "chunk_hash": "735058e8d364e5bd45280ee213591362153bb9fe33f2ffad92ac62c29d172e97",
     "containerPath": "",
     "content": "console.log('Hello, world!');",
     "created_at": "[TIMESTAMP]",
@@ -9636,8 +9407,7 @@ function hello() {
     "imports": [],
     "kind": "expression_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: expression_statement
 
 console.log('Hello, world!');",
@@ -9647,7 +9417,7 @@ console.log('Hello, world!');",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b8059cfb1ea623e79efbf432db31595df213c99c6534c58bec9d5f5e069344df",
+    "chunk_hash": "b87f3d57848d7c027e3fd89e911002c7790c9e4f9479e177b77f352a00257148",
     "containerPath": "",
     "content": "console.log('Hello, world!')",
     "created_at": "[TIMESTAMP]",
@@ -9662,8 +9432,7 @@ console.log('Hello, world!');",
     "imports": [],
     "kind": "call_expression",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: call_expression
 
 console.log('Hello, world!')",
@@ -9673,7 +9442,7 @@ console.log('Hello, world!')",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6a2b8546a9fc4bcc2bec82d3f9e91e0a720e144f2c41ac8adadb75b607b5a61e",
+    "chunk_hash": "64d088f91ffd5eb753fb4a96b36840df9e9cbb79669427ccfd72cf055adbad89",
     "containerPath": "",
     "content": "export class MyClass {
   myMethod() {
@@ -9697,8 +9466,7 @@ console.log('Hello, world!')",
     "imports": [],
     "kind": "export_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: export_statement
 
 export class MyClass {
@@ -9723,7 +9491,7 @@ export class MyClass {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6fd7f5fcd99232f0e49797bebada48669972e9c870171a3848c61eebca7f22dd",
+    "chunk_hash": "a17433c65f3c8c879c40fa2885b0d7e69704b4bc9a43ad71065d89da98215dac",
     "containerPath": "",
     "content": "class MyClass {
   myMethod() {
@@ -9747,8 +9515,7 @@ export class MyClass {
     "imports": [],
     "kind": "class_declaration",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: class_declaration
 
 class MyClass {
@@ -9773,7 +9540,7 @@ class MyClass {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "4f9ff60fb6e9d9218195c5b2af2e37c126497b9dbda6838356718ce7fe4d4b7a",
+    "chunk_hash": "e0453fb73f9af7793f57524411d52493296d9e863d8cc610921a767fa7d1a387",
     "containerPath": "MyClass",
     "content": "myMethod() {
     return 1;
@@ -9790,8 +9557,7 @@ class MyClass {
     "imports": [],
     "kind": "method_definition",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: method_definition
 containerPath: MyClass
 
@@ -9810,7 +9576,7 @@ myMethod() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "f58b7c3af621b52a2bb7dc67d4491f9ab6c6d16e3cfa1e46e670ff4f9a301fdc",
+    "chunk_hash": "a09ecc7e540d43f67bf85217c03f3968698f7e721439001bc046be2ef40d2ec2",
     "containerPath": "",
     "content": "return 1;",
     "created_at": "[TIMESTAMP]",
@@ -9825,8 +9591,7 @@ myMethod() {
     "imports": [],
     "kind": "return_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: return_statement
 
 return 1;",
@@ -9836,7 +9601,7 @@ return 1;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "4193195d714e9781a85bca9b894464e46e9283c271cf3521c47a3b28aa48a082",
+    "chunk_hash": "be1e70c4fc01079f63e16f986c268117e5801155466f165c6725bdd1e721cfbb",
     "containerPath": "",
     "content": "export const myVar = () => {};",
     "created_at": "[TIMESTAMP]",
@@ -9856,8 +9621,7 @@ return 1;",
     "imports": [],
     "kind": "export_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: export_statement
 
 export const myVar = () => {};",
@@ -9873,7 +9637,7 @@ export const myVar = () => {};",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b4debc24bebfb7484ed5e08c2e47765e7b7449130b923b7c89c7079823b5c73a",
+    "chunk_hash": "1751f400f0d34f02f0fc924fe52a5cb8ea6a85bc0faea9b0cce8f11fdb5a3d65",
     "containerPath": "",
     "content": "const myVar = () => {};",
     "created_at": "[TIMESTAMP]",
@@ -9893,8 +9657,7 @@ export const myVar = () => {};",
     "imports": [],
     "kind": "lexical_declaration",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: lexical_declaration
 
 const myVar = () => {};",
@@ -9910,7 +9673,7 @@ const myVar = () => {};",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "0bd07b8f4cd16fbf1b31cc0f797e242f3c3aed6e4ef33f81c3f7eb0c2b47fb48",
+    "chunk_hash": "b88cd695c95be50d2343598fa0789508bcf2705849a67d01333a2341f8b7572b",
     "containerPath": "",
     "content": "export function myFunction() {
   return 42;
@@ -9932,8 +9695,7 @@ const myVar = () => {};",
     "imports": [],
     "kind": "export_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: export_statement
 
 export function myFunction() {
@@ -9951,7 +9713,7 @@ export function myFunction() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "efc1b94606ac2d3d1104dc9ed840d9abfe221f600ff381e992bf54776f9470f6",
+    "chunk_hash": "76f7589862d1f6d3c28f760efab7cfc030ae1787210813c0c9e9066de7962946",
     "containerPath": "",
     "content": "function myFunction() {
   return 42;
@@ -9973,8 +9735,7 @@ export function myFunction() {
     "imports": [],
     "kind": "function_declaration",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: function_declaration
 
 function myFunction() {
@@ -9992,7 +9753,7 @@ function myFunction() {
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6a98d35093f15c84a9ccc34b0265e824ea49910551c181a250b362448204a253",
+    "chunk_hash": "8dcdb72130873f888d183e0757eb641d3f569b97860c0def498e88b8f10f5bd7",
     "containerPath": "",
     "content": "return 42;",
     "created_at": "[TIMESTAMP]",
@@ -10007,8 +9768,7 @@ function myFunction() {
     "imports": [],
     "kind": "return_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: return_statement
 
 return 42;",
@@ -10018,7 +9778,7 @@ return 42;",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "1aa103d3c9f3a73b52d91ca51822c4228730d040ad4c992945db2e91d26866c0",
+    "chunk_hash": "15d939853866411224f08abbf2c198ce0dfd5fe7b075f01d65ff857d803a21de",
     "containerPath": "",
     "content": "export default MyClass;",
     "created_at": "[TIMESTAMP]",
@@ -10038,8 +9798,7 @@ return 42;",
     "imports": [],
     "kind": "export_statement",
     "language": "javascript",
-    "semantic_text": "filePath: tests/fixtures/javascript.js
-directoryPath: tests/fixtures
+    "semantic_text": "language: javascript
 kind: export_statement
 
 export default MyClass;",
@@ -10054,7 +9813,7 @@ export default MyClass;",
 exports[`LanguageParser > should parse Markdown fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "ed09ca2736773c6ceb4e8e5499e71d1a80fd6a4a346efff7a88a2d6c3ff27274",
+    "chunk_hash": "b3aacf67f1148f8d24b7ae33f09e97fe2dc6cb8fff338245f06c8c05b16a590d",
     "content": "# Markdown Fixture",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
@@ -10065,8 +9824,7 @@ exports[`LanguageParser > should parse Markdown fixtures correctly 1`] = `
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
-    "semantic_text": "filePath: tests/fixtures/markdown.md
-directoryPath: tests/fixtures
+    "semantic_text": "language: markdown
 
 # Markdown Fixture",
     "startLine": 1,
@@ -10074,7 +9832,7 @@ directoryPath: tests/fixtures
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "152f882642f9c50be75eeade70c1ea1e2cfbe7901db4a0a46b2f9d25159c755f",
+    "chunk_hash": "fad840907a38c59948ab9600c315f8b44029b584eec94caebaae954d0a8a333f",
     "content": "This is a paragraph.",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
@@ -10085,8 +9843,7 @@ directoryPath: tests/fixtures
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
-    "semantic_text": "filePath: tests/fixtures/markdown.md
-directoryPath: tests/fixtures
+    "semantic_text": "language: markdown
 
 This is a paragraph.",
     "startLine": 3,
@@ -10094,7 +9851,7 @@ This is a paragraph.",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "6a71ffba5e7729a8faef7020e41476963c3a49ca90958e41ce8eb234ed005d08",
+    "chunk_hash": "8861d8ead910194245b0a04ace1d5493cd265ad06e7106e7f1586dc30d622e91",
     "content": "## This is a heading",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
@@ -10105,8 +9862,7 @@ This is a paragraph.",
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
-    "semantic_text": "filePath: tests/fixtures/markdown.md
-directoryPath: tests/fixtures
+    "semantic_text": "language: markdown
 
 ## This is a heading",
     "startLine": 5,
@@ -10114,7 +9870,7 @@ directoryPath: tests/fixtures
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "8dada63f9b5a079670e1e692f1790aa4334c5d920f6333a56d49d483eac7f42d",
+    "chunk_hash": "c2432d97044947160b1df6480b0773898666ea0049ad1cc6c9af7a51d421e07c",
     "content": "This is another paragraph.
 ",
     "created_at": "[TIMESTAMP]",
@@ -10126,8 +9882,7 @@ directoryPath: tests/fixtures
     "git_branch": "main",
     "git_file_hash": "897cccd1ed4fa835aedaa753ccef511d4be75898",
     "language": "markdown",
-    "semantic_text": "filePath: tests/fixtures/markdown.md
-directoryPath: tests/fixtures
+    "semantic_text": "language: markdown
 
 This is another paragraph.
 ",
@@ -10141,7 +9896,7 @@ This is another paragraph.
 exports[`LanguageParser > should parse Properties fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "621a201da38f18e6e3a964aa931de8dca5f29be30ca781c80145d0df560e114d",
+    "chunk_hash": "e21cb797a9c67eb0ea8219001c44921bc1b5f776c972e5496012e642004496cb",
     "containerPath": "",
     "content": "# This is a properties file",
     "created_at": "[TIMESTAMP]",
@@ -10156,8 +9911,7 @@ exports[`LanguageParser > should parse Properties fixtures correctly 1`] = `
     "imports": [],
     "kind": "comment",
     "language": "properties",
-    "semantic_text": "filePath: tests/fixtures/properties.properties
-directoryPath: tests/fixtures
+    "semantic_text": "language: properties
 kind: comment
 
 # This is a properties file",
@@ -10167,7 +9921,7 @@ kind: comment
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "563f0357118d05ef145d6bddf2966cc23e86ca8f2f013f915e565afdf09f7a23",
+    "chunk_hash": "9ca2ae9edccc0b83d85ca7fc5d6e450a62b7434fe7e7a68b22f93ccdd3cb9d10",
     "containerPath": "",
     "content": "key=value",
     "created_at": "[TIMESTAMP]",
@@ -10182,8 +9936,7 @@ kind: comment
     "imports": [],
     "kind": "property",
     "language": "properties",
-    "semantic_text": "filePath: tests/fixtures/properties.properties
-directoryPath: tests/fixtures
+    "semantic_text": "language: properties
 kind: property
 
 key=value",
@@ -10209,7 +9962,7 @@ key=value",
 exports[`LanguageParser > should parse Python fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "de2abade832c8e350a1bdc98cfcdb1e202ac4749c5fc51a4a970d41736b6df5c",
+    "chunk_hash": "8d2cc3aa51bfd29b8f1278d90d4dfc10676d3d60eba71b5d408c27da0d514763",
     "containerPath": "",
     "content": "import os",
     "created_at": "[TIMESTAMP]",
@@ -10230,8 +9983,7 @@ exports[`LanguageParser > should parse Python fixtures correctly 1`] = `
     ],
     "kind": "import_statement",
     "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-directoryPath: tests/fixtures
+    "semantic_text": "language: python
 kind: import_statement
 
 import os",
@@ -10241,7 +9993,7 @@ import os",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "4416cd8dd5bbde8d874fb5633b664d25cb2cf0056bb279836527e32e4dd1cf0e",
+    "chunk_hash": "e4454c81a62bffab61eef752982a1536a29bbca0469f9bd60fd6c1e3f6dc5769",
     "containerPath": "",
     "content": "class MyClass:
     def my_method(self):
@@ -10263,8 +10015,7 @@ import os",
     "imports": [],
     "kind": "class_definition",
     "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-directoryPath: tests/fixtures
+    "semantic_text": "language: python
 kind: class_definition
 
 class MyClass:
@@ -10292,7 +10043,7 @@ class MyClass:
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b8cb7ef3b47294cb6d26e1a0479dba320243ecd0cf40e6336775f3d049a1de70",
+    "chunk_hash": "3ad260507cfbcebe3b1c805381927a2e3c1d32a4dff814f2d447b2e6e72c2035",
     "containerPath": "",
     "content": "def my_method(self):
         print("Hello, Python!")",
@@ -10308,8 +10059,7 @@ class MyClass:
     "imports": [],
     "kind": "function_definition",
     "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-directoryPath: tests/fixtures
+    "semantic_text": "language: python
 kind: function_definition
 
 def my_method(self):
@@ -10331,7 +10081,7 @@ def my_method(self):
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "12bc33d9722a0828233d0d9bf5fa151caa0521f490ef4fe5ca7bcc3b6faeeaeb",
+    "chunk_hash": "a792cf9fd3434cb4419d7477e01ebf6dd00526ecff20edb10115dccb42c8a57c",
     "containerPath": "",
     "content": "print("Hello, Python!")",
     "created_at": "[TIMESTAMP]",
@@ -10346,8 +10096,7 @@ def my_method(self):
     "imports": [],
     "kind": "call",
     "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-directoryPath: tests/fixtures
+    "semantic_text": "language: python
 kind: call
 
 print("Hello, Python!")",
@@ -10363,7 +10112,7 @@ print("Hello, Python!")",
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "affe3cd249911aca1214a479053a5c8725ff99c14663998949812c3246efe906",
+    "chunk_hash": "124de6ef5a53bede37fb81673f635e14c27b3b66f2dc3c0e270566b7bdc7f73e",
     "containerPath": "",
     "content": "def my_function():
     """This is a docstring."""
@@ -10385,8 +10134,7 @@ print("Hello, Python!")",
     "imports": [],
     "kind": "function_definition",
     "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-directoryPath: tests/fixtures
+    "semantic_text": "language: python
 kind: function_definition
 
 def my_function():
@@ -10404,7 +10152,7 @@ def my_function():
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "3591cf9ebe4d74d7d64cd7ec1ca1a678d9f8b52cfc8a5995a734b417050fb00c",
+    "chunk_hash": "09aeace898ccfaf37bd965b1ea49ac11ebfe3fa8ab1465eaab801b8a1de6d562",
     "containerPath": "",
     "content": """"This is a docstring."""",
     "created_at": "[TIMESTAMP]",
@@ -10419,8 +10167,7 @@ def my_function():
     "imports": [],
     "kind": "expression_statement",
     "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-directoryPath: tests/fixtures
+    "semantic_text": "language: python
 kind: expression_statement
 
 """This is a docstring."""",
@@ -10430,7 +10177,7 @@ kind: expression_statement
     "updated_at": "[TIMESTAMP]",
   },
   {
-    "chunk_hash": "b1a6a7b99eae748d1ea44b9d3670d6043166d95855830d8b1db7924cf86eb00d",
+    "chunk_hash": "25c472bfe01a6d208b6f636631ccf87332b8be4998cb999b097cc6c12a970eff",
     "containerPath": "",
     "content": "MY_CONSTANT = 42",
     "created_at": "[TIMESTAMP]",
@@ -10450,8 +10197,7 @@ kind: expression_statement
     "imports": [],
     "kind": "expression_statement",
     "language": "python",
-    "semantic_text": "filePath: tests/fixtures/python.py
-directoryPath: tests/fixtures
+    "semantic_text": "language: python
 kind: expression_statement
 
 MY_CONSTANT = 42",
@@ -10472,7 +10218,7 @@ MY_CONSTANT = 42",
 exports[`LanguageParser > should parse Text fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "9be104294df7d5a59c328241d49ac062e2c7b9660636e7f511e3a1dc3d919377",
+    "chunk_hash": "49beb098b306f889b3e9bf284733d1e7300f6a95a1ddc02d12103090d0378ee9",
     "content": "This is a text file.",
     "created_at": "[TIMESTAMP]",
     "directoryDepth": 2,
@@ -10483,8 +10229,7 @@ exports[`LanguageParser > should parse Text fixtures correctly 1`] = `
     "git_branch": "main",
     "git_file_hash": "1cf9ef97c0c1e1b299d36fca0faef53a53c3c29f",
     "language": "text",
-    "semantic_text": "filePath: tests/fixtures/text.txt
-directoryPath: tests/fixtures
+    "semantic_text": "language: text
 
 This is a text file.",
     "startLine": 1,
@@ -10497,7 +10242,7 @@ This is a text file.",
 exports[`LanguageParser > should parse YAML fixtures correctly 1`] = `
 [
   {
-    "chunk_hash": "6fc1577d54d9234a3de72ea7fd5d56fb5670435ea20e2fa1aaf71646814d1138",
+    "chunk_hash": "acf48d84430e5fd2b50c4513f93569f98d3edf93432914b20d3d4c7e86a802a6",
     "content": "document: one
 pair:
   key: value
@@ -10515,8 +10260,7 @@ another_pair:
     "git_branch": "main",
     "git_file_hash": "e635a9db09a145f597bde1f8f5ab828c44b3134d",
     "language": "yaml",
-    "semantic_text": "filePath: tests/fixtures/yaml.yml
-directoryPath: tests/fixtures
+    "semantic_text": "language: yaml
 
 document: one
 pair:

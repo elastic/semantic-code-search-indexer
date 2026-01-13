@@ -38,7 +38,11 @@ const client = new Client({
 
 ## Index Schema
 
-The `code-indexer` creates an index with the name specified by the `ELASTICSEARCH_INDEX` environment variable (defaulting to `code-chunks`). This index stores parsed code chunks and their metadata.
+The `code-indexer` creates multiple Elasticsearch indices, derived from the base index name specified by `ELASTICSEARCH_INDEX` (defaulting to `code-chunks`):
+
+- `<index>` (e.g. `code-chunks`): primary chunk index (semantic search + metadata)
+- `<index>_settings` (e.g. `code-chunks_settings`): small settings/state index (e.g. last indexed commit per branch)
+- `<index>_locations` (e.g. `code-chunks_locations`): dedicated per-file location index (one document per chunk occurrence)
 
 ### Index Mapping
 
@@ -51,19 +55,34 @@ Here is the mapping for the `code-chunks` index:
       "type": { "type": "keyword" },
       "language": { "type": "keyword" },
       "kind": { "type": "keyword" },
-      "imports": { "type": "keyword" },
+      "imports": {
+        "type": "nested",
+        "properties": {
+          "path": { "type": "keyword" },
+          "type": { "type": "keyword" },
+          "symbols": { "type": "keyword" }
+        }
+      },
+      "symbols": {
+        "type": "nested",
+        "properties": {
+          "name": { "type": "keyword" },
+          "kind": { "type": "keyword" },
+          "line": { "type": "integer" }
+        }
+      },
+      "exports": {
+        "type": "nested",
+        "properties": {
+          "name": { "type": "keyword" },
+          "type": { "type": "keyword" },
+          "target": { "type": "keyword" }
+        }
+      },
       "containerPath": { "type": "text" },
-      "filePath": { "type": "keyword" },
-      "directoryPath": { "type": "keyword", "eager_global_ordinals": true },
-      "directoryName": { "type": "keyword" },
-      "directoryDepth": { "type": "integer" },
-      "git_file_hash": { "type": "keyword" },
-      "git_branch": { "type": "keyword" },
       "chunk_hash": { "type": "keyword" },
-      "startLine": { "type": "integer" },
-      "endLine": { "type": "integer" },
       "content": { "type": "text" },
-      "content_embedding": { "type": "sparse_vector" },
+      "semantic_text": { "type": "semantic_text" },
       "created_at": { "type": "date" },
       "updated_at": { "type": "date" }
     }
@@ -78,29 +97,51 @@ Here is the mapping for the `code-chunks` index:
 | `type` | `keyword` | The type of the code chunk (e.g., 'class', 'function'). |
 | `language` | `keyword` | The programming language of the code. |
 | `kind` | `keyword` | The specific kind of the code symbol (from LSP). |
-| `imports` | `keyword` | A list of imported modules or libraries. |
+| `imports` | `nested` | Import metadata (path, type, imported symbols). |
+| `symbols` | `nested` | Extracted symbol metadata (name, kind, line). |
+| `exports` | `nested` | Export metadata (named/default/namespace). |
 | `containerPath` | `text` | The path of the containing symbol (e.g., class name for a method). |
-| `filePath` | `keyword` | The repository-relative path to the source file. |
-| `directoryPath` | `keyword` | The directory path containing the file (e.g., 'src/utils'). Optimized with eager global ordinals for fast aggregations. |
-| `directoryName` | `keyword` | The name of the immediate parent directory. |
-| `directoryDepth` | `integer` | The depth of the directory in the file tree (0 for root-level files). |
-| `git_file_hash` | `keyword` | The Git hash of the file content. |
-| `git_branch` | `keyword` | The Git branch the file belongs to. |
 | `chunk_hash` | `keyword` | A hash of the content of the code chunk. |
-| `startLine` | `integer` | The starting line number of the chunk in the file. |
-| `endLine` | `integer` | The ending line number of the chunk in the file. |
 | `content` | `text` | The raw source code of the chunk. |
-| `content_embedding` | `sparse_vector` | The ELSER semantic embedding of the `content`. |
+| `semantic_text` | `semantic_text` | Semantic search field populated via Elasticsearch inference at ingest time. Note: it does **not** include file paths/directories; those live in `<index>_locations`. |
 | `created_at` | `date` | The timestamp when the document was created. |
 | `updated_at` | `date` | The timestamp when the document was last updated. |
 
+### Locations index (`<index>_locations`)
+
+To avoid “mega-documents” for boilerplate chunks (license headers, common imports, etc.), the indexer writes **one document per chunk occurrence** into `<index>_locations`.
+
+- `chunk_id` is the **`_id` of the chunk document** in the primary index (stable sha256 identity).
+- This store is the single source of truth for file paths, line ranges, directory fields, and git metadata.
+
+Example mapping (high-level):
+
+```json
+{
+  "mappings": {
+    "properties": {
+      "chunk_id": { "type": "keyword" },
+      "filePath": { "type": "wildcard" },
+      "startLine": { "type": "integer" },
+      "endLine": { "type": "integer" },
+      "directoryPath": { "type": "keyword", "eager_global_ordinals": true },
+      "directoryName": { "type": "keyword" },
+      "directoryDepth": { "type": "integer" },
+      "git_file_hash": { "type": "keyword" },
+      "git_branch": { "type": "keyword" },
+      "updated_at": { "type": "date" }
+    }
+  }
+}
+```
+
 ## How to Use the Index
 
-The primary intended use of this index is for semantic search over the codebase. The `code-indexer` uses the **ELSER (Elastic Learned Sparse EncodeR)** model to generate semantic embeddings for each code chunk.
+The primary intended use of this index is semantic search over the codebase. The index uses Elasticsearch’s `semantic_text` field type to perform ELSER-backed semantic queries.
 
 ### Semantic Search
 
-To perform a semantic search, you should use a `sparse_vector` query on the `content_embedding` field. This will find code chunks that are semantically similar to your query string.
+To perform a semantic search, use a `semantic` query against the `semantic_text` field.
 
 #### Example Search Query (Node.js)
 
@@ -109,11 +150,10 @@ async function searchCode(query) {
   const response = await client.search({
     index: 'code-chunks', // Or process.env.ELASTICSEARCH_INDEX
     query: {
-      sparse_vector: {
-        field: 'content_embedding',
-        inference_id: '.elser-2-elastic', // Or process.env.ELASTICSEARCH_INFERENCE_ID
-        query: query,
-      },
+      semantic: {
+        field: 'semantic_text',
+        query,
+      }
     },
   });
 
@@ -126,10 +166,19 @@ async function searchCode(query) {
 
 ### Other Queries
 
-While the primary focus is on semantic search, you can also perform traditional Elasticsearch queries on the other fields. For example, you could filter by `language`, `filePath`, or `kind`.
+While the primary focus is on semantic search, you can also perform traditional Elasticsearch queries on the other fields. For example, you can filter chunk docs by `language` or `kind`.
+
+For file-path filtering, query `<index>_locations` by `filePath` and join back to chunk docs using `chunk_id` (via `mget`).
+
+### Joining chunk docs to file locations (important)
+
+The indexer stores content-deduplicated chunk documents in `<index>` and per-file occurrences in `<index>_locations`:
+
+- Query `<index>_locations` to find relevant occurrences (by `filePath`, directory fields, etc.).
+- Use the resulting `chunk_id` values to fetch chunk documents from `<index>` (`mget`).
 
 ### Important Considerations
 
-*   **ELSER Model:** The `semantic_text` field in the index is configured with an `inference_id` that specifies which ELSER model to use for generating embeddings. Ensure that the ELSER model is available in your Elasticsearch cluster. The model ID is configurable via the `ELASTICSEARCH_INFERENCE_ID` environment variable (defaulting to `.elser-2-elastic`). Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility.
+*   **ELSER Model / inference:** The `semantic_text` field is configured with an `inference_id`. Configure this via `ELASTICSEARCH_INFERENCE_ID` (or legacy `ELASTICSEARCH_MODEL`).
 *   **Index Name:** Always use the `ELASTICSEARCH_INDEX` environment variable to refer to the index name to avoid mismatches.
 *   **Data Freshness:** The index is updated by running the `code-indexer` tool. For the MCP server to have the latest data, the index needs to be kept up-to-date by running the indexer regularly.

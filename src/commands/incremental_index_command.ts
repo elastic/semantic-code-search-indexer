@@ -1,5 +1,5 @@
-import { getLastIndexedCommit, deleteDocumentsByFilePath } from '../utils/elasticsearch';
-import { SUPPORTED_FILE_EXTENSIONS } from '../utils/constants';
+import { createLocationsIndex, deleteDocumentsByFilePaths, getLastIndexedCommit } from '../utils/elasticsearch';
+import { languageConfigurations, parseLanguageNames } from '../languages';
 import { indexingConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
@@ -45,6 +45,13 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
   const logger = createLogger({ name: repoName, branch: gitBranch });
   const metrics = createMetrics({ name: repoName, branch: gitBranch });
 
+  const supportedExtensions = new Set<string>();
+  const enabledLanguageNames = parseLanguageNames(process.env.SEMANTIC_CODE_INDEXER_LANGUAGES);
+  enabledLanguageNames.forEach((name) => {
+    const config = languageConfigurations[name];
+    config.fileSuffixes.forEach((suffix) => supportedExtensions.add(suffix));
+  });
+
   logger.info('Starting incremental indexing process', {
     directory,
     ...options,
@@ -56,6 +63,10 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     logger.warn('No previous commit hash found. Please run a full index first.', { gitBranch });
     return;
   }
+
+  // Ensure the locations store exists for this index. This allows upgrading existing deployments
+  // without requiring a full clean reindex just to create the new index.
+  await createLocationsIndex(options?.elasticsearchIndex);
 
   logger.info(`Last indexed commit hash: ${lastCommitHash}`, { gitBranch });
 
@@ -76,13 +87,13 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
       const oldFile = parts[1];
       const newFile = parts[2];
       filesToDelete.push(oldFile);
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(newFile))) {
+      if (supportedExtensions.has(path.extname(newFile))) {
         filesToIndex.push(newFile);
       }
     } else if (status.startsWith('C')) {
       // Handle Copy (CXXX)
       const newFile = parts[2];
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(newFile))) {
+      if (supportedExtensions.has(path.extname(newFile))) {
         filesToIndex.push(newFile);
       }
     } else if (status === 'D') {
@@ -90,13 +101,15 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
       filesToDelete.push(file);
     } else if (status === 'A') {
       const file = parts[1];
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(file))) {
+      if (supportedExtensions.has(path.extname(file))) {
         filesToIndex.push(file);
       }
     } else if (status === 'M') {
       const file = parts[1];
-      if (SUPPORTED_FILE_EXTENSIONS.includes(path.extname(file))) {
-        filesToDelete.push(file);
+      // Always remove stale indexed locations for changed files, even if this file type is no
+      // longer enabled. Otherwise changing SEMANTIC_CODE_INDEXER_LANGUAGES can leave stale docs.
+      filesToDelete.push(file);
+      if (supportedExtensions.has(path.extname(file))) {
         filesToIndex.push(file);
       }
     }
@@ -107,9 +120,10 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     toDelete: filesToDelete.length,
   });
 
-  for (const file of filesToDelete) {
-    await deleteDocumentsByFilePath(file, options?.elasticsearchIndex);
-    logger.info('Deleted documents for file', { file });
+  if (filesToDelete.length > 0) {
+    logger.info('Removing stale indexed locations for changed/deleted files...', { count: filesToDelete.length });
+    await deleteDocumentsByFilePaths(filesToDelete, options?.elasticsearchIndex);
+    logger.info('Removed stale indexed locations for changed/deleted files.', { count: filesToDelete.length });
   }
 
   if (filesToIndex.length === 0) {
@@ -120,95 +134,217 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     let successCount = 0;
     let failureCount = 0;
     const { cpuCores } = indexingConfig;
-    const producerQueue = new PQueue({ concurrency: cpuCores });
     const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
 
     const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
-    filesToIndex.forEach((file) => {
-      producerQueue.add(
-        () =>
-          new Promise<void>((resolve, reject) => {
-            const worker = new Worker(producerWorkerPath, {
-              workerData: { repoName, gitBranch },
-            });
-            const absolutePath = path.resolve(gitRoot, file);
-            worker.on('message', async (message) => {
-              if (message.status === MESSAGE_STATUS_SUCCESS) {
-                successCount++;
+    const configuredPoolSize = Number.isFinite(indexingConfig.producerWorkerPoolSize)
+      ? Math.floor(indexingConfig.producerWorkerPoolSize)
+      : cpuCores;
+    const poolSize = Math.max(1, Math.min(cpuCores, configuredPoolSize, filesToIndex.length));
 
-                // Record parser metrics from worker
-                if (message.metrics && metrics.parser) {
-                  const attrs = createAttributes(metrics, {
-                    language: message.metrics.language,
-                    parser_type: message.metrics.parserType,
-                  });
+    const producerQueue = new PQueue({ concurrency: poolSize });
 
-                  if (message.metrics.filesProcessed > 0) {
-                    metrics.parser.filesProcessed.add(message.metrics.filesProcessed, {
-                      ...attrs,
-                      status: METRIC_STATUS_SUCCESS,
-                    });
-                  }
+    const workers = Array.from(
+      { length: poolSize },
+      () =>
+        new Worker(producerWorkerPath, {
+          workerData: { repoName, gitBranch },
+        })
+    );
 
-                  if (message.metrics.chunksCreated > 0) {
-                    metrics.parser.chunksCreated.add(message.metrics.chunksCreated, attrs);
-                  }
+    const idleWorkers: Worker[] = workers.slice();
+    const waiters: Array<(worker: Worker) => void> = [];
 
-                  if (message.metrics.chunksSkipped > 0) {
-                    metrics.parser.chunksSkipped?.add(message.metrics.chunksSkipped, {
-                      ...attrs,
-                      size: 'oversized',
-                    });
-                  }
+    const acquireWorker = async (): Promise<Worker> => {
+      const worker = idleWorkers.pop();
+      if (worker) return worker;
+      return await new Promise<Worker>((resolve) => waiters.push(resolve));
+    };
 
-                  message.metrics.chunkSizes.forEach((size: number) => {
-                    metrics.parser?.chunkSize.record(size, attrs);
-                  });
-                }
+    const releaseWorker = (worker: Worker): void => {
+      const waiter = waiters.shift();
+      if (waiter) {
+        waiter(worker);
+      } else {
+        idleWorkers.push(worker);
+      }
+    };
 
-                if (message.data.length > 0) {
-                  await workQueue.enqueue(message.data);
-                }
-              } else if (message.status === MESSAGE_STATUS_FAILURE) {
-                failureCount++;
+    const addOneTimeListener = (
+      worker: Worker,
+      event: 'message' | 'error',
+      handler: (...args: unknown[]) => void
+    ): (() => void) => {
+      const w = worker as unknown as {
+        once?: (event: string, handler: (...args: unknown[]) => void) => void;
+        on: (event: string, handler: (...args: unknown[]) => void) => void;
+        off?: (event: string, handler: (...args: unknown[]) => void) => void;
+        removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
+      };
 
-                // Record failure metric
-                if (message.metrics && metrics.parser && message.metrics.filesFailed > 0) {
-                  metrics.parser.filesFailed.add(
-                    message.metrics.filesFailed,
-                    createAttributes(metrics, {
-                      language: message.metrics.language || LANGUAGE_UNKNOWN,
-                      status: METRIC_STATUS_FAILURE,
-                    })
-                  );
-                }
+      if (typeof w.once === 'function') {
+        w.once(event, handler);
+        // Critical: remove the listener when the opposite event wins the race.
+        // (On Node.js, removeListener(event, originalHandler) also removes the internal once wrapper.)
+        return () => {
+          if (typeof w.off === 'function') {
+            w.off(event, handler);
+          } else if (typeof w.removeListener === 'function') {
+            w.removeListener(event, handler);
+          }
+        };
+      }
 
-                logger.warn('Failed to parse file', {
-                  file: message.filePath,
-                  error: message.error,
-                });
-              }
-              worker.terminate();
-              resolve();
-            });
-            worker.on('error', (err) => {
-              failureCount++;
-              logger.error('Worker thread error', { file, error: err.message });
-              worker.terminate();
+      w.on(event, handler);
+      return () => {
+        if (typeof w.off === 'function') {
+          w.off(event, handler);
+        } else if (typeof w.removeListener === 'function') {
+          w.removeListener(event, handler);
+        }
+      };
+    };
+
+    const runParseJob = async (file: string): Promise<void> => {
+      const relativePath = file;
+      const absolutePath = path.resolve(gitRoot, file);
+
+      const worker = await acquireWorker();
+      try {
+        const message = await new Promise<unknown>((resolve, reject) => {
+          const cleanups: Array<() => void> = [];
+          const cleanup = () => cleanups.forEach((fn) => fn());
+
+          cleanups.push(
+            addOneTimeListener(worker, 'message', (msg: unknown) => {
+              cleanup();
+              resolve(msg);
+            })
+          );
+
+          cleanups.push(
+            addOneTimeListener(worker, 'error', (err: unknown) => {
+              cleanup();
               reject(err);
+            })
+          );
+
+          worker.postMessage({
+            filePath: absolutePath,
+            gitBranch,
+            relativePath,
+          });
+        });
+
+        const payload = message as {
+          status?: unknown;
+          data?: unknown;
+          metrics?: unknown;
+          error?: unknown;
+          filePath?: unknown;
+        };
+
+        const status = payload.status;
+        const metricsPayload = payload.metrics as
+          | {
+              filesProcessed?: unknown;
+              filesFailed?: unknown;
+              chunksCreated?: unknown;
+              chunksSkipped?: unknown;
+              chunkSizes?: unknown;
+              language?: unknown;
+              parserType?: unknown;
+            }
+          | undefined;
+
+        if (status === MESSAGE_STATUS_SUCCESS) {
+          successCount++;
+
+          // Record parser metrics from worker
+          if (metricsPayload && metrics.parser) {
+            const attrs = createAttributes(metrics, {
+              language: typeof metricsPayload.language === 'string' ? metricsPayload.language : LANGUAGE_UNKNOWN,
+              parser_type: typeof metricsPayload.parserType === 'string' ? metricsPayload.parserType : '',
             });
-            const relativePath = file;
-            worker.postMessage({
-              filePath: absolutePath,
-              gitBranch,
-              relativePath,
+
+            const filesProcessed =
+              typeof metricsPayload.filesProcessed === 'number' ? metricsPayload.filesProcessed : 0;
+            const chunksCreated = typeof metricsPayload.chunksCreated === 'number' ? metricsPayload.chunksCreated : 0;
+            const chunksSkipped = typeof metricsPayload.chunksSkipped === 'number' ? metricsPayload.chunksSkipped : 0;
+            const chunkSizes = Array.isArray(metricsPayload.chunkSizes) ? metricsPayload.chunkSizes : [];
+
+            if (filesProcessed > 0) {
+              metrics.parser.filesProcessed.add(filesProcessed, {
+                ...attrs,
+                status: METRIC_STATUS_SUCCESS,
+              });
+            }
+
+            if (chunksCreated > 0) {
+              metrics.parser.chunksCreated.add(chunksCreated, attrs);
+            }
+
+            if (chunksSkipped > 0) {
+              metrics.parser.chunksSkipped?.add(chunksSkipped, {
+                ...attrs,
+                size: 'oversized',
+              });
+            }
+
+            chunkSizes.forEach((size: unknown) => {
+              if (typeof size === 'number') {
+                metrics.parser?.chunkSize.record(size, attrs);
+              }
             });
-          })
-      );
+          }
+
+          if (Array.isArray(payload.data) && payload.data.length > 0) {
+            await workQueue.enqueue(payload.data);
+          }
+          return;
+        }
+
+        if (status === MESSAGE_STATUS_FAILURE) {
+          failureCount++;
+
+          // Record failure metric
+          const filesFailed = typeof metricsPayload?.filesFailed === 'number' ? metricsPayload.filesFailed : 0;
+          const language = typeof metricsPayload?.language === 'string' ? metricsPayload.language : LANGUAGE_UNKNOWN;
+          if (metricsPayload && metrics.parser && filesFailed > 0) {
+            metrics.parser.filesFailed.add(
+              filesFailed,
+              createAttributes(metrics, {
+                language,
+                status: METRIC_STATUS_FAILURE,
+              })
+            );
+          }
+
+          logger.warn('Failed to parse file', {
+            file: typeof payload.filePath === 'string' ? payload.filePath : absolutePath,
+            error: typeof payload.error === 'string' ? payload.error : 'Unknown error',
+          });
+          return;
+        }
+
+        failureCount++;
+        logger.warn('Unexpected worker response while parsing file', { file: relativePath, status });
+      } catch (err) {
+        failureCount++;
+        const message = err instanceof Error ? err.message : String(err);
+        logger.error('Worker thread error', { file, error: message });
+      } finally {
+        releaseWorker(worker);
+      }
+    };
+
+    filesToIndex.forEach((file) => {
+      producerQueue.add(() => runParseJob(file));
     });
 
     await producerQueue.onIdle();
+    await Promise.all(workers.map(async (w) => await w.terminate()));
 
     logger.info('--- Incremental Indexing Summary (Additions/Modifications) ---');
     logger.info(`Successfully processed: ${successCount} files`);

@@ -39,7 +39,7 @@
 </ul>
 </li>
 <li>
-<p><strong>Enrichment &amp; Embedding:</strong> Each chunk is enriched with metadata and then processed by ELSER to create a <code>sparse_vector</code> embedding of its content.</p>
+<p><strong>Enrichment &amp; Semantic Indexing:</strong> Each chunk is enriched with metadata and indexed to Elasticsearch. The <code>semantic_text</code> field is populated via ELSER inference so we can run natural language semantic queries.</p>
 </li>
 </ol>
 </section>
@@ -71,28 +71,24 @@ function getFlattenedObject(rootValue: Record&lt;string, any&gt;) {
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="5" lang="en-US">
 <h1 id="the-code-chunk-schema">The &quot;Code Chunk&quot; Schema</h1>
 <p>Each document in our index represents a single chunk of code or documentation, structured for powerful queries.</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">&quot;mappings&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-    <span class="hljs-attr">&quot;properties&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;language&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;kind&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;imports&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;containerPath&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;text&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;filePath&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;git_file_hash&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;git_branch&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;chunk_hash&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;keyword&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;startLine&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;integer&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;endLine&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;integer&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;content&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;text&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;content_embedding&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;sparse_vector&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;created_at&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;date&quot;</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">&quot;updated_at&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;date&quot;</span> <span class="hljs-punctuation">}</span>
-    <span class="hljs-punctuation">}</span>
-  <span class="hljs-punctuation">}</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-json">{
+  &quot;mappings&quot;: {
+    &quot;properties&quot;: {
+      &quot;type&quot;: { &quot;type&quot;: &quot;keyword&quot; },
+      &quot;language&quot;: { &quot;type&quot;: &quot;keyword&quot; },
+      &quot;kind&quot;: { &quot;type&quot;: &quot;keyword&quot; },
+      &quot;imports&quot;: { &quot;type&quot;: &quot;nested&quot; },
+      &quot;containerPath&quot;: { &quot;type&quot;: &quot;text&quot; },
+      &quot;filePath&quot;: { &quot;type&quot;: &quot;wildcard&quot; },
+      &quot;fileCount&quot;: { &quot;type&quot;: &quot;integer&quot; },
+      &quot;filePaths&quot;: { &quot;type&quot;: &quot;nested&quot; },
+      &quot;content&quot;: { &quot;type&quot;: &quot;text&quot; },
+      &quot;semantic_text&quot;: { &quot;type&quot;: &quot;semantic_text&quot; },
+      &quot;created_at&quot;: { &quot;type&quot;: &quot;date&quot; },
+      &quot;updated_at&quot;: { &quot;type&quot;: &quot;date&quot; }
+    }
+  }
+}</code></pre>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6" lang="en-US">
 <h1 id="useful-code-chunk-fields">Useful &quot;Code Chunk&quot; Fields</h1>
@@ -103,7 +99,8 @@ function getFlattenedObject(rootValue: Record&lt;string, any&gt;) {
 <li><strong>kind</strong>:  The specific kind of the code symbol (from LSP) (e.g., <code>call_expression</code>, <code>import_statement</code>, <code>comment</code>, <code>function_declaration</code>, <code>type_alias_declaration</code>, <code>interface_declaration</code>, <code>lexical_declaration</code>).</li>
 <li><strong>imports</strong>: A list of imported modules or libraries.</li>
 <li><strong>containerPath</strong>:  The path of the containing symbol (e.g., class name for a method).</li>
-<li><strong>filePath</strong>: The absolute path to the source file.</li>
+<li><strong>filePath</strong>: The repository-relative path(s) for the chunk (multi-valued under aggregation).</li>
+<li><strong>filePaths[]</strong>: Authoritative per-file locations for this chunk (used for reconstruction under aggregation).</li>
 <li><strong>startLine</strong>: The starting line number of the chunk in the file.</li>
 <li><strong>endLine</strong>: The ending line number of the chunk in the file.</li>
 </ul>
@@ -131,7 +128,7 @@ function getFlattenedObject(rootValue: Record&lt;string, any&gt;) {
 <ol>
 <li>It sets <code>size: 0</code> as it only needs aggregation results.</li>
 <li>It performs a <code>match</code> query on the <code>content</code> field for the target symbol.</li>
-<li>It uses a nested terms aggregation: it first aggregates by <code>filePath</code> and then runs sub-aggregations on <code>kind</code> and <code>language</code> for each file.</li>
+<li>It aggregates by file path and then runs sub-aggregations on <code>kind</code> and <code>language</code> for each file. Under aggregation, per-file locations are tracked in nested <code>filePaths.path</code>.</li>
 </ol>
 <p>This single query efficiently returns all files that mention the symbol, along with a categorized breakdown of <em>how</em> the symbol is used in each file.</p>
 </section>

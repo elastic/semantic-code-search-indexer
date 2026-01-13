@@ -45,7 +45,8 @@ export const listFailedCommand = new Command('queue:list-failed')
         try {
           const parsedDoc: CodeChunk = JSON.parse(doc.document);
           const contentSize = Buffer.byteLength(parsedDoc.content, 'utf8');
-          console.log(`ID: ${doc.id} | Size: ${formatBytes(contentSize)} | Path: ${parsedDoc.filePath}`);
+          const displayPath = parsedDoc.filePath ?? '(unknown)';
+          console.log(`ID: ${doc.id} | Size: ${formatBytes(contentSize)} | Path: ${displayPath}`);
         } catch {
           console.log(`ID: ${doc.id} | Error: Failed to parse document JSON.`);
         }

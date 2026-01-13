@@ -17,7 +17,7 @@ This project is a high-performance code indexer designed to provide deep, contex
 ### Prerequisites
 
 - Node.js v20+ (check with `node -v`)
-- Elasticsearch 8.0+ with **ELSER model deployed** (critical - indexing will fail without this)
+- Elasticsearch 8.0+ with **ELSER inference available** (critical - semantic search requires this)
 - Elasticsearch credentials (username/password or API key)
 
 ### Quick Start
@@ -30,9 +30,9 @@ npm install
 cp .env.example .env
 # Edit .env with your Elasticsearch URL, username, and password
 
-# 3. Deploy ELSER in Kibana (if not already done)
-# Go to Stack Management → Machine Learning → Trained Models
-# Find .elser_model_2 and click "Deploy"
+# 3. Ensure ELSER is available in your cluster
+# - If your cluster uses an inference endpoint, set ELASTICSEARCH_INFERENCE_ID to that endpoint id
+# - If you're using Elastic Cloud / Elastic Inference Service, ensure the endpoint is deployed and healthy
 
 # 4. (Optional) Add .indexerignore to your repository
 # Copy .indexerignore.example to your repo as .indexerignore to exclude files
@@ -320,6 +320,14 @@ This indexer is designed to be deployed on a server (e.g., a GCP Compute Engine 
 
 Configuration is managed via environment variables in a `.env` file.
 
+### Elasticsearch indices created
+
+Given a base index name (from `ELASTICSEARCH_INDEX` or CLI `repo[:index]`), the indexer creates and maintains:
+
+- `<index>`: the primary chunk index (semantic search + metadata)
+- `<index>_settings`: small settings/state index (e.g. last indexed commit per branch)
+- `<index>_locations`: dedicated per-file location index (one document per chunk occurrence)
+
 | Variable                              | Description                                                                                                                                                                                 | Default                                              |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | `ELASTICSEARCH_ENDPOINT`              | The endpoint URL for your Elasticsearch instance.                                                                                                                                           |                                                      |
@@ -328,7 +336,7 @@ Configuration is managed via environment variables in a `.env` file.
 | `ELASTICSEARCH_PASSWORD`              | The password for Elasticsearch authentication.                                                                                                                                              |                                                      |
 | `ELASTICSEARCH_API_KEY`               | An API key for Elasticsearch authentication.                                                                                                                                                |                                                      |
 | `ELASTICSEARCH_INDEX`                 | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts.                                                                                        | `code-chunks`                                        |
-| `ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility.                                              | `.elser-2-elastic`                                   |
+| `ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility.                                              | `.elser-2-elasticsearch`                             |
 | `OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                                                               | `false`                                              |
 | `OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`).                                                                                                                  | Same as `OTEL_LOGGING_ENABLED`                       |
 | `OTEL_SERVICE_NAME`                   | Service name for OpenTelemetry logs and metrics.                                                                                                                                            | `semantic-code-search-indexer`                       |
@@ -342,18 +350,21 @@ Configuration is managed via environment variables in a `.env` file.
 | `BATCH_SIZE`                          | The number of chunks to index in a single bulk request.                                                                                                                                     | `500`                                                |
 | `MAX_QUEUE_SIZE`                      | The maximum number of items to keep in the queue.                                                                                                                                           | `1000`                                               |
 | `CPU_CORES`                           | The number of CPU cores to use for file parsing.                                                                                                                                            | Half of the available cores                          |
+| `PRODUCER_WORKER_POOL_SIZE`           | Incremental parsing worker-pool size (reuses worker threads). Clamped to `CPU_CORES`.                                                                                                       | Half of the available cores                          |
 | `MAX_CHUNK_SIZE_BYTES`                | The maximum size of a code chunk in bytes.                                                                                                                                                  | `1000000`                                            |
 | `DEFAULT_CHUNK_LINES`                 | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs).                                                                                                     | `15`                                                 |
 | `CHUNK_OVERLAP_LINES`                 | Number of overlapping lines between chunks in line-based parsing.                                                                                                                           | `3`                                                  |
 | `MARKDOWN_CHUNK_DELIMITER`            | Regular expression pattern for splitting markdown files into chunks.                                                                                                                        | `\n\s*\n`                                            |
 | `ENABLE_DENSE_VECTORS`                | Whether to enable dense vectors for code similarity search.                                                                                                                                 | `false`                                              |
+| `AGGREGATION_LANE_COUNT`              | Parallelism for writes to aggregated documents (higher = more throughput, higher ES load).                                                                                                  | `8`                                                  |
+| `DELETE_DOCUMENTS_PAGE_SIZE`          | PIT pagination size for batched deletion of file-path locations during incremental updates.                                                                                                 | `500`                                                |
 | `GIT_PATH`                            | The path to the `git` executable.                                                                                                                                                           | `git`                                                |
 | `NODE_ENV`                            | The node environment.                                                                                                                                                                       | `development`                                        |
 | `SEMANTIC_CODE_INDEXER_LANGUAGES`     | A comma-separated list of languages to index.                                                                                                                                               | `typescript,javascript,markdown,yaml,java,go,python` |
 
 #### Elastic Inference Service (EIS) Rate Limits
 
-When using the default inference ID `.elser-2-elastic`, your deployment uses the Elastic Inference Service (EIS), which is GPU-backed and has specific rate limits:
+When using an Elastic-hosted inference endpoint, your deployment may be backed by the Elastic Inference Service (EIS), which is GPU-backed and has rate limits:
 
 - **Rate limits**: 6,000 documents/minute OR 6,000,000 tokens/minute (whichever is reached first)
 - **Recommended settings**: `BATCH_SIZE=14` with concurrency of `2`
