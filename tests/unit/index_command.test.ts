@@ -944,10 +944,19 @@ describe('index_command', () => {
       expect(updateSpy).toHaveBeenCalledWith('main', 'new-commit', repoName);
 
       // Verify high-level ordering: drain -> incremental -> drain -> update.
-      const workerOrder1 = workerSpy.mock.invocationCallOrder[0] ?? 0;
-      const workerOrder2 = workerSpy.mock.invocationCallOrder[1] ?? 0;
-      const incrementalOrder = incrementalSpy.mock.invocationCallOrder[0] ?? 0;
-      const updateOrder = updateSpy.mock.invocationCallOrder[updateSpy.mock.invocationCallOrder.length - 1] ?? 0;
+      const workerOrder1 = workerSpy.mock.invocationCallOrder[0];
+      const workerOrder2 = workerSpy.mock.invocationCallOrder[1];
+      const incrementalOrder = incrementalSpy.mock.invocationCallOrder[0];
+      const updateOrder = updateSpy.mock.invocationCallOrder[updateSpy.mock.invocationCallOrder.length - 1];
+
+      if (
+        workerOrder1 === undefined ||
+        workerOrder2 === undefined ||
+        incrementalOrder === undefined ||
+        updateOrder === undefined
+      ) {
+        throw new Error('Expected invocationCallOrder to contain entries for worker, incrementalIndex, and update.');
+      }
 
       expect(workerOrder1).toBeLessThan(incrementalOrder);
       expect(incrementalOrder).toBeLessThan(workerOrder2);

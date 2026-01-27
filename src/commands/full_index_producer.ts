@@ -15,7 +15,7 @@ import { execFileSync } from 'child_process';
 import fs from 'fs';
 import ignore from 'ignore';
 import { createLogger } from '../utils/logger';
-import { IQueue } from '../utils/queue';
+import { IQueueWithEnqueueMetadata } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 import { createMetrics, createAttributes } from '../utils/metrics';
 import {
@@ -34,7 +34,7 @@ export interface IndexOptions {
   token?: string;
 }
 
-async function getQueue(options: IndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
+async function getQueue(options: IndexOptions, repoName?: string, branch?: string): Promise<IQueueWithEnqueueMetadata> {
   const queueDbPath = path.join(options.queueDir, 'queue.db');
   const queue = new SqliteQueue({
     dbPath: queueDbPath,
@@ -72,7 +72,7 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
     await deleteLocationsIndex(options?.elasticsearchIndex);
 
     // Clear the queue when doing a clean reindex
-    const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
+    const workQueue: IQueueWithEnqueueMetadata = await getQueue(options, repoName, gitBranch);
     await workQueue.clear();
   }
 
@@ -132,11 +132,9 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   const { cpuCores } = indexingConfig;
   const producerQueue = new PQueue({ concurrency: cpuCores });
 
-  const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
+  const workQueue: IQueueWithEnqueueMetadata = await getQueue(options, repoName, gitBranch);
   // Ensure enqueue completion metadata reflects this run.
-  if (workQueue instanceof SqliteQueue) {
-    await workQueue.markEnqueueStarted();
-  }
+  await workQueue.markEnqueueStarted();
 
   const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
@@ -250,9 +248,7 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   logger.info('---');
   logger.info('File parsing and enqueueing complete.');
 
-  if (workQueue instanceof SqliteQueue) {
-    await workQueue.setEnqueueCommitHash(commitHash);
-  }
+  await workQueue.setEnqueueCommitHash(commitHash);
 
   // Mark enqueue as completed
   await workQueue.markEnqueueCompleted();

@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
-import { IQueue, QueuedDocument } from './queue';
+import { IQueueWithEnqueueMetadata, QueuedDocument } from './queue';
 import { CodeChunk } from './elasticsearch';
 import { logger, createLogger } from './logger';
 import { createMetrics, Metrics, createAttributes } from './metrics';
@@ -10,6 +10,9 @@ import { QUEUE_STATUS_PENDING, QUEUE_STATUS_PROCESSING, QUEUE_STATUS_FAILED } fr
 export const MAX_RETRIES = 3;
 const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 const WAL_CHECKPOINT_INTERVAL = 100; // Checkpoint every ~100 commits (10% probability per commit)
+
+const QUEUE_METADATA_KEY_ENQUEUE_COMPLETED = 'enqueue_completed';
+const QUEUE_METADATA_KEY_ENQUEUE_COMMIT_HASH = 'enqueue_commit_hash';
 
 /**
  * Check if a process with the given PID is currently running.
@@ -44,7 +47,7 @@ export interface SqliteQueueOptions {
 // Cache TTL for queue stats - prevents blocking event loop with frequent SQL queries
 const STATS_CACHE_TTL_MS = 5000; // 5 seconds
 
-export class SqliteQueue implements IQueue {
+export class SqliteQueue implements IQueueWithEnqueueMetadata {
   private db: Database.Database;
   private logger: ReturnType<typeof createLogger>;
   private metrics: Metrics;
@@ -427,9 +430,9 @@ export class SqliteQueue implements IQueue {
     const result = this.db.prepare('DELETE FROM queue').run();
     this.logger.info(`Cleared ${result.changes} items from queue`);
 
-    // Also clear the enqueue_completed flag
-    this.db.prepare("DELETE FROM queue_metadata WHERE key = 'enqueue_completed'").run();
-    this.db.prepare("DELETE FROM queue_metadata WHERE key = 'enqueue_commit_hash'").run();
+    // Also clear enqueue metadata
+    this.db.prepare('DELETE FROM queue_metadata WHERE key = ?').run(QUEUE_METADATA_KEY_ENQUEUE_COMPLETED);
+    this.db.prepare('DELETE FROM queue_metadata WHERE key = ?').run(QUEUE_METADATA_KEY_ENQUEUE_COMMIT_HASH);
   }
 
   /**
@@ -442,9 +445,9 @@ export class SqliteQueue implements IQueue {
     this.db
       .prepare(
         `INSERT OR REPLACE INTO queue_metadata (key, value, updated_at)
-         VALUES ('enqueue_completed', 'false', CURRENT_TIMESTAMP)`
+         VALUES (?, ?, CURRENT_TIMESTAMP)`
       )
-      .run();
+      .run(QUEUE_METADATA_KEY_ENQUEUE_COMPLETED, 'false');
     this.logger.info('Marked enqueue as started');
   }
 
@@ -455,9 +458,9 @@ export class SqliteQueue implements IQueue {
     this.db
       .prepare(
         `INSERT OR REPLACE INTO queue_metadata (key, value, updated_at)
-         VALUES ('enqueue_completed', 'true', CURRENT_TIMESTAMP)`
+         VALUES (?, ?, CURRENT_TIMESTAMP)`
       )
-      .run();
+      .run(QUEUE_METADATA_KEY_ENQUEUE_COMPLETED, 'true');
     this.logger.info('Marked enqueue as completed');
   }
 
@@ -472,15 +475,15 @@ export class SqliteQueue implements IQueue {
     this.db
       .prepare(
         `INSERT OR REPLACE INTO queue_metadata (key, value, updated_at)
-         VALUES ('enqueue_commit_hash', ?, CURRENT_TIMESTAMP)`
+         VALUES (?, ?, CURRENT_TIMESTAMP)`
       )
-      .run(commitHash);
+      .run(QUEUE_METADATA_KEY_ENQUEUE_COMMIT_HASH, commitHash);
   }
 
   getEnqueueCommitHash(): string | null {
-    const result = this.db.prepare("SELECT value FROM queue_metadata WHERE key = 'enqueue_commit_hash'").get() as
-      | { value: string }
-      | undefined;
+    const result = this.db
+      .prepare('SELECT value FROM queue_metadata WHERE key = ?')
+      .get(QUEUE_METADATA_KEY_ENQUEUE_COMMIT_HASH) as { value: string } | undefined;
     return typeof result?.value === 'string' && result.value.length > 0 ? result.value : null;
   }
 
@@ -488,9 +491,9 @@ export class SqliteQueue implements IQueue {
    * Check if enqueue was completed
    */
   isEnqueueCompleted(): boolean {
-    const result = this.db.prepare("SELECT value FROM queue_metadata WHERE key = 'enqueue_completed'").get() as
-      | { value: string }
-      | undefined;
+    const result = this.db
+      .prepare('SELECT value FROM queue_metadata WHERE key = ?')
+      .get(QUEUE_METADATA_KEY_ENQUEUE_COMPLETED) as { value: string } | undefined;
     return result?.value === 'true';
   }
 

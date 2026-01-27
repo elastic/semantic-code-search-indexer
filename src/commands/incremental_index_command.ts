@@ -5,6 +5,7 @@ import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
 import { createLogger } from '../utils/logger';
+import { IQueueWithEnqueueMetadata } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 import simpleGit from 'simple-git';
 import { createMetrics, createAttributes } from '../utils/metrics';
@@ -24,7 +25,11 @@ export interface IncrementalIndexOptions {
   branch?: string;
 }
 
-async function getQueue(options: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<SqliteQueue> {
+async function getQueue(
+  options: IncrementalIndexOptions,
+  repoName?: string,
+  branch?: string
+): Promise<IQueueWithEnqueueMetadata> {
   const queuePath = path.join(options.queueDir, 'queue.db');
   const queue = new SqliteQueue({
     dbPath: queuePath,
@@ -119,7 +124,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     toDelete: filesToDelete.length,
   });
 
-  let workQueue: SqliteQueue | undefined;
+  let workQueue: IQueueWithEnqueueMetadata | undefined;
 
   if (filesToDelete.length > 0) {
     logger.info('Removing stale indexed locations for changed/deleted files...', { count: filesToDelete.length });

@@ -304,8 +304,8 @@ async function indexRepos(
         '../utils/elasticsearch'
       );
       const lastCommitHashAtStart = await getLastIndexedCommit(gitBranch, config.indexName);
-      let resumeOnly = false;
-      let queueEnqueueCommitHash: string | null = null;
+      let isResumingQueue = false;
+      let enqueueCommitHashFromQueue: string | null = null;
 
       // Step 5: Decide what to do based on flags and queue state
       if (options.clean) {
@@ -322,7 +322,7 @@ async function indexRepos(
           branch: gitBranch,
         });
         await queue.initialize();
-        queueEnqueueCommitHash = queue.getEnqueueCommitHash();
+        enqueueCommitHashFromQueue = queue.getEnqueueCommitHash();
 
         if (!queue.isEnqueueCompleted()) {
           // Queue has items but enqueue was not completed - interrupted during enqueue
@@ -334,7 +334,7 @@ async function indexRepos(
         } else {
           // Normal resume - enqueue completed, just process the queue
           logger.info(`Queue has pending items for ${config.repoName}. Resuming...`);
-          resumeOnly = true;
+          isResumingQueue = true;
         }
       } else {
         // Queue is empty - try incremental, fall back to full index if no previous commit
@@ -362,23 +362,36 @@ async function indexRepos(
         // Step 7: If we resumed an existing queue, ensure we catch up to current HEAD before
         // advancing the settings commit hash. Otherwise incremental diffing can be skipped on
         // subsequent runs (settings would incorrectly claim we've indexed to HEAD).
-        const currentHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.repoPath }).toString().trim();
+        let currentHead: string | null = null;
+        try {
+          currentHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.repoPath }).toString().trim();
+        } catch (error) {
+          logger.warn(`Failed to read git HEAD for ${config.repoName}; skipping settings commit update.`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
 
-        if (resumeOnly) {
+        if (!currentHead) {
+          // Nothing more to do if we cannot identify the commit hash to persist.
+          logger.info(`--- Finished processing for: ${config.repoName} ---`);
+          continue;
+        }
+
+        if (isResumingQueue) {
           // Prefer the settings commit hash (authoritative baseline). If missing (e.g. first-time index
           // where the process died before updating settings), fall back to the queue's enqueue commit
           // hash if present.
-          const baselineCommit = lastCommitHashAtStart ?? queueEnqueueCommitHash;
+          const baselineCommit = lastCommitHashAtStart ?? enqueueCommitHashFromQueue;
 
           if (!baselineCommit) {
             logger.warn(
-              `Skipping settings commit update for ${config.repoName}: no baseline commit hash found (settings missing and queue has no enqueue_commit_hash).`
+              `Skipping settings commit update for ${config.repoName}: no baseline commit hash found (no previous commit reference in settings or queue).`
             );
           } else if (baselineCommit !== currentHead) {
             // If settings commit was missing but we have a queue baseline, persist it so incrementalIndex can run.
-            if (!lastCommitHashAtStart && queueEnqueueCommitHash) {
+            if (!lastCommitHashAtStart && enqueueCommitHashFromQueue) {
               await createSettingsIndex(config.indexName);
-              await updateLastIndexedCommit(gitBranch, queueEnqueueCommitHash, config.indexName);
+              await updateLastIndexedCommit(gitBranch, enqueueCommitHashFromQueue, config.indexName);
             }
 
             logger.info(
