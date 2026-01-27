@@ -54,11 +54,37 @@ describe('Enqueue Completion Tracking', () => {
       expect(queue.isEnqueueCompleted()).toBe(false);
     });
 
+    it('SHOULD mark enqueue as started (not completed)', async () => {
+      await queue.markEnqueueCompleted();
+      expect(queue.isEnqueueCompleted()).toBe(true);
+
+      await queue.markEnqueueStarted();
+      expect(queue.isEnqueueCompleted()).toBe(false);
+    });
+
     it('SHOULD mark enqueue as completed', async () => {
       expect(queue.isEnqueueCompleted()).toBe(false);
 
       await queue.markEnqueueCompleted();
       expect(queue.isEnqueueCompleted()).toBe(true);
+    });
+
+    it('SHOULD persist enqueue commit hash across queue instances', async () => {
+      expect(queue.getEnqueueCommitHash()).toBe(null);
+
+      await queue.setEnqueueCommitHash('abc123');
+      expect(queue.getEnqueueCommitHash()).toBe('abc123');
+      queue.close();
+
+      const queue2 = new SqliteQueue({
+        dbPath: queueDbPath,
+        repoName: 'test-repo',
+        branch: 'main',
+      });
+      await queue2.initialize();
+
+      expect(queue2.getEnqueueCommitHash()).toBe('abc123');
+      queue2.close();
     });
 
     it('SHOULD persist enqueue completion flag across queue instances', async () => {
@@ -84,6 +110,14 @@ describe('Enqueue Completion Tracking', () => {
 
       await queue.clear();
       expect(queue.isEnqueueCompleted()).toBe(false);
+    });
+
+    it('SHOULD clear enqueue commit hash when queue is cleared', async () => {
+      await queue.setEnqueueCommitHash('abc123');
+      expect(queue.getEnqueueCommitHash()).toBe('abc123');
+
+      await queue.clear();
+      expect(queue.getEnqueueCommitHash()).toBe(null);
     });
 
     it('SHOULD detect interrupted enqueue (items in queue but not completed)', async () => {

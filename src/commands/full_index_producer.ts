@@ -133,6 +133,10 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   const producerQueue = new PQueue({ concurrency: cpuCores });
 
   const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
+  // Ensure enqueue completion metadata reflects this run.
+  if (workQueue instanceof SqliteQueue) {
+    await workQueue.markEnqueueStarted();
+  }
 
   const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
@@ -245,6 +249,10 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   logger.info(`HEAD commit hash:     ${commitHash}`);
   logger.info('---');
   logger.info('File parsing and enqueueing complete.');
+
+  if (workQueue instanceof SqliteQueue) {
+    await workQueue.setEnqueueCommitHash(commitHash);
+  }
 
   // Mark enqueue as completed
   await workQueue.markEnqueueCompleted();

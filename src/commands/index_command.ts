@@ -300,6 +300,13 @@ async function indexRepos(
     };
 
     try {
+      const { getLastIndexedCommit, updateLastIndexedCommit, createSettingsIndex } = await import(
+        '../utils/elasticsearch'
+      );
+      const lastCommitHashAtStart = await getLastIndexedCommit(gitBranch, config.indexName);
+      let resumeOnly = false;
+      let queueEnqueueCommitHash: string | null = null;
+
       // Step 5: Decide what to do based on flags and queue state
       if (options.clean) {
         // Full clean reindex
@@ -315,6 +322,7 @@ async function indexRepos(
           branch: gitBranch,
         });
         await queue.initialize();
+        queueEnqueueCommitHash = queue.getEnqueueCommitHash();
 
         if (!queue.isEnqueueCompleted()) {
           // Queue has items but enqueue was not completed - interrupted during enqueue
@@ -326,13 +334,11 @@ async function indexRepos(
         } else {
           // Normal resume - enqueue completed, just process the queue
           logger.info(`Queue has pending items for ${config.repoName}. Resuming...`);
+          resumeOnly = true;
         }
       } else {
         // Queue is empty - try incremental, fall back to full index if no previous commit
-        const { getLastIndexedCommit } = await import('../utils/elasticsearch');
-        const lastCommitHash = await getLastIndexedCommit(gitBranch, config.indexName);
-
-        if (lastCommitHash) {
+        if (lastCommitHashAtStart) {
           // Previous index exists - do incremental
           logger.info(`Running incremental index for ${config.repoName}...`);
           await incrementalIndex(config.repoPath, indexOptions);
@@ -352,18 +358,42 @@ async function indexRepos(
       }
       await worker(concurrency, shouldWatch, indexOptions);
 
-      // Step 7: Update last indexed commit after successful worker completion
       if (!shouldWatch) {
-        try {
-          const commitHash = execFileSync('git', ['rev-parse', 'HEAD'], {
-            cwd: config.repoPath,
-          })
-            .toString()
-            .trim();
+        // Step 7: If we resumed an existing queue, ensure we catch up to current HEAD before
+        // advancing the settings commit hash. Otherwise incremental diffing can be skipped on
+        // subsequent runs (settings would incorrectly claim we've indexed to HEAD).
+        const currentHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.repoPath }).toString().trim();
 
-          const { updateLastIndexedCommit } = await import('../utils/elasticsearch');
-          await updateLastIndexedCommit(gitBranch, commitHash, config.indexName);
-          logger.info(`Updated last indexed commit to ${commitHash} for branch ${gitBranch}`);
+        if (resumeOnly) {
+          // Prefer the settings commit hash (authoritative baseline). If missing (e.g. first-time index
+          // where the process died before updating settings), fall back to the queue's enqueue commit
+          // hash if present.
+          const baselineCommit = lastCommitHashAtStart ?? queueEnqueueCommitHash;
+
+          if (!baselineCommit) {
+            logger.warn(
+              `Skipping settings commit update for ${config.repoName}: no baseline commit hash found (settings missing and queue has no enqueue_commit_hash).`
+            );
+          } else if (baselineCommit !== currentHead) {
+            // If settings commit was missing but we have a queue baseline, persist it so incrementalIndex can run.
+            if (!lastCommitHashAtStart && queueEnqueueCommitHash) {
+              await createSettingsIndex(config.indexName);
+              await updateLastIndexedCommit(gitBranch, queueEnqueueCommitHash, config.indexName);
+            }
+
+            logger.info(
+              `Detected HEAD advanced since last indexed commit (${baselineCommit} -> ${currentHead}). Running incremental catch-up...`
+            );
+            await incrementalIndex(config.repoPath, indexOptions);
+            await worker(concurrency, false, indexOptions);
+          }
+        }
+
+        // Step 8: Update last indexed commit after all indexing work completes successfully.
+        try {
+          await createSettingsIndex(config.indexName);
+          await updateLastIndexedCommit(gitBranch, currentHead, config.indexName);
+          logger.info(`Updated last indexed commit to ${currentHead} for branch ${gitBranch}`);
         } catch (error) {
           logger.warn(`Failed to update last indexed commit: ${error instanceof Error ? error.message : error}`);
         }

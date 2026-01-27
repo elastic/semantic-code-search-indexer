@@ -429,6 +429,23 @@ export class SqliteQueue implements IQueue {
 
     // Also clear the enqueue_completed flag
     this.db.prepare("DELETE FROM queue_metadata WHERE key = 'enqueue_completed'").run();
+    this.db.prepare("DELETE FROM queue_metadata WHERE key = 'enqueue_commit_hash'").run();
+  }
+
+  /**
+   * Mark enqueue as started for this queue.
+   *
+   * This is used to distinguish "queue has items but enqueue was interrupted" from a normal resume.
+   * We store a boolean-like value; `isEnqueueCompleted()` only returns true when the value is exactly "true".
+   */
+  async markEnqueueStarted(): Promise<void> {
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO queue_metadata (key, value, updated_at)
+         VALUES ('enqueue_completed', 'false', CURRENT_TIMESTAMP)`
+      )
+      .run();
+    this.logger.info('Marked enqueue as started');
   }
 
   /**
@@ -442,6 +459,29 @@ export class SqliteQueue implements IQueue {
       )
       .run();
     this.logger.info('Marked enqueue as completed');
+  }
+
+  /**
+   * Persist the repository HEAD commit hash for the enqueue session.
+   *
+   * When a run resumes an existing queue, this value represents the commit hash that the
+   * queued work was generated for. It allows the index command to safely catch up to a newer
+   * HEAD after draining the queue.
+   */
+  async setEnqueueCommitHash(commitHash: string): Promise<void> {
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO queue_metadata (key, value, updated_at)
+         VALUES ('enqueue_commit_hash', ?, CURRENT_TIMESTAMP)`
+      )
+      .run(commitHash);
+  }
+
+  getEnqueueCommitHash(): string | null {
+    const result = this.db.prepare("SELECT value FROM queue_metadata WHERE key = 'enqueue_commit_hash'").get() as
+      | { value: string }
+      | undefined;
+    return typeof result?.value === 'string' && result.value.length > 0 ? result.value : null;
   }
 
   /**

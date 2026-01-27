@@ -10,6 +10,8 @@ import * as workerModule from '../../src/commands/worker_command';
 import * as fullIndexModule from '../../src/commands/full_index_producer';
 import * as incrementalModule from '../../src/commands/incremental_index_command';
 import * as elasticsearchModule from '../../src/utils/elasticsearch';
+import { SqliteQueue } from '../../src/utils/sqlite_queue';
+import type { CodeChunk } from '../../src/utils/elasticsearch';
 import { execFileSync } from 'child_process';
 import * as otelProvider from '../../src/utils/otel_provider';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
@@ -845,6 +847,157 @@ describe('index_command', () => {
         expect(workerSpy).toHaveBeenCalledTimes(1);
         expect(process.exitCode).toBe(1);
       });
+    });
+  });
+
+  describe('queue resume incremental catch-up', () => {
+    const repoPath = '/path/to/my-repo';
+    const repoName = 'my-repo';
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const createQueuedChunk = (id: string): CodeChunk => ({
+      type: 'code',
+      language: 'text',
+      chunk_hash: `chunk-${id}`,
+      content: `content-${id}`,
+      semantic_text: `content-${id}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    const setupQueueWithPendingItem = async (options: { enqueueCompleted: boolean; enqueueCommitHash?: string }) => {
+      Object.defineProperty(appConfig, 'queueBaseDir', {
+        value: testQueuesDir,
+        writable: true,
+        configurable: true,
+      });
+
+      const queueDir = path.join(testQueuesDir, repoName);
+      fs.mkdirSync(queueDir, { recursive: true });
+
+      const queue = new SqliteQueue({ dbPath: path.join(queueDir, 'queue.db'), repoName, branch: 'main' });
+      await queue.initialize();
+
+      // Ensure the queue is non-empty so `hasQueueItems()` returns true.
+      await queue.enqueue([createQueuedChunk('1')]);
+
+      if (typeof options.enqueueCommitHash === 'string') {
+        await queue.setEnqueueCommitHash(options.enqueueCommitHash);
+      }
+      if (options.enqueueCompleted) {
+        await queue.markEnqueueCompleted();
+      }
+
+      queue.close();
+    };
+
+    const mockRepoExists = () => {
+      const originalExistsSync = fs.existsSync;
+      vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+        const pathStr = p.toString();
+        if (pathStr === repoPath) return true;
+        return originalExistsSync(p);
+      });
+    };
+
+    const mockGitBranchAndHead = (head: string) => {
+      vi.mocked(execFileSync).mockImplementation((cmd: string, args?: readonly string[]) => {
+        if (cmd === 'git' && Array.isArray(args) && args[0] === 'rev-parse' && args[1] === '--abbrev-ref') {
+          return Buffer.from('main\n');
+        }
+        if (cmd === 'git' && Array.isArray(args) && args[0] === 'rev-parse' && args[1] === 'HEAD') {
+          return Buffer.from(`${head}\n`);
+        }
+        return Buffer.from('');
+      });
+    };
+
+    it('WHEN resuming a completed queue and HEAD advanced SHOULD run incremental catch-up before updating settings', async () => {
+      await setupQueueWithPendingItem({ enqueueCompleted: true, enqueueCommitHash: 'old-commit' });
+      mockRepoExists();
+      mockGitBranchAndHead('new-commit');
+
+      const workerSpy = vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+      const incrementalSpy = vi.spyOn(incrementalModule, 'incrementalIndex').mockResolvedValue(undefined);
+      vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+
+      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue('old-commit');
+      const createSettingsSpy = vi.spyOn(elasticsearchModule, 'createSettingsIndex').mockResolvedValue(undefined);
+      const updateSpy = vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+      await indexCommand.parseAsync(['node', 'test', repoPath]);
+
+      // First: drain existing queue. Second: drain incremental catch-up work.
+      expect(workerSpy).toHaveBeenCalledTimes(2);
+      expect(incrementalSpy).toHaveBeenCalledTimes(1);
+
+      // Final: settings commit advanced to HEAD.
+      expect(createSettingsSpy).toHaveBeenCalled();
+      expect(updateSpy).toHaveBeenCalledWith('main', 'new-commit', repoName);
+
+      // Verify high-level ordering: drain -> incremental -> drain -> update.
+      const workerOrder1 = workerSpy.mock.invocationCallOrder[0] ?? 0;
+      const workerOrder2 = workerSpy.mock.invocationCallOrder[1] ?? 0;
+      const incrementalOrder = incrementalSpy.mock.invocationCallOrder[0] ?? 0;
+      const updateOrder = updateSpy.mock.invocationCallOrder[updateSpy.mock.invocationCallOrder.length - 1] ?? 0;
+
+      expect(workerOrder1).toBeLessThan(incrementalOrder);
+      expect(incrementalOrder).toBeLessThan(workerOrder2);
+      expect(workerOrder2).toBeLessThan(updateOrder);
+    });
+
+    it('WHEN resuming a completed queue and HEAD did not advance SHOULD not run incremental catch-up', async () => {
+      await setupQueueWithPendingItem({ enqueueCompleted: true, enqueueCommitHash: 'same-commit' });
+      mockRepoExists();
+      mockGitBranchAndHead('same-commit');
+
+      const workerSpy = vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+      const incrementalSpy = vi.spyOn(incrementalModule, 'incrementalIndex').mockResolvedValue(undefined);
+      vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+
+      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue('same-commit');
+      vi.spyOn(elasticsearchModule, 'createSettingsIndex').mockResolvedValue(undefined);
+      const updateSpy = vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+      await indexCommand.parseAsync(['node', 'test', repoPath]);
+
+      expect(workerSpy).toHaveBeenCalledTimes(1);
+      expect(incrementalSpy).not.toHaveBeenCalled();
+      expect(updateSpy).toHaveBeenCalledWith('main', 'same-commit', repoName);
+    });
+
+    it('WHEN resuming a completed queue and settings baseline is missing SHOULD seed baseline from queue before catch-up', async () => {
+      await setupQueueWithPendingItem({ enqueueCompleted: true, enqueueCommitHash: 'base-commit' });
+      mockRepoExists();
+      mockGitBranchAndHead('new-commit');
+
+      const workerSpy = vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+      const incrementalSpy = vi.spyOn(incrementalModule, 'incrementalIndex').mockResolvedValue(undefined);
+      vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+
+      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+      vi.spyOn(elasticsearchModule, 'createSettingsIndex').mockResolvedValue(undefined);
+      const updateSpy = vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+      await indexCommand.parseAsync(['node', 'test', repoPath]);
+
+      expect(workerSpy).toHaveBeenCalledTimes(2);
+      expect(incrementalSpy).toHaveBeenCalledTimes(1);
+
+      // 1) Seed baseline so incrementalIndex has a commit hash. 2) Advance to HEAD at the end.
+      expect(updateSpy).toHaveBeenCalledTimes(2);
+      expect(updateSpy).toHaveBeenNthCalledWith(1, 'main', 'base-commit', repoName);
+      expect(updateSpy).toHaveBeenNthCalledWith(2, 'main', 'new-commit', repoName);
     });
   });
 });
