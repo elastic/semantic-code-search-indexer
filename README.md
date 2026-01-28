@@ -26,7 +26,10 @@ This project is a high-performance code indexer designed to provide deep, contex
 # 1. Install dependencies
 npm install
 
-# 2. Configure Elasticsearch connection
+# 2. Build the project
+npm run build
+
+# 3. Configure Elasticsearch connection
 cp .env.example .env
 # Edit .env with your Elasticsearch URL, username, and password
 
