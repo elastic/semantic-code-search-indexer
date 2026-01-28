@@ -5,7 +5,7 @@ import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
 import { createLogger } from '../utils/logger';
-import { IQueue } from '../utils/queue';
+import { IQueueWithEnqueueMetadata } from '../utils/queue';
 import { SqliteQueue } from '../utils/sqlite_queue';
 import simpleGit from 'simple-git';
 import { createMetrics, createAttributes } from '../utils/metrics';
@@ -25,7 +25,11 @@ export interface IncrementalIndexOptions {
   branch?: string;
 }
 
-async function getQueue(options: IncrementalIndexOptions, repoName?: string, branch?: string): Promise<IQueue> {
+async function getQueue(
+  options: IncrementalIndexOptions,
+  repoName?: string,
+  branch?: string
+): Promise<IQueueWithEnqueueMetadata> {
   const queuePath = path.join(options.queueDir, 'queue.db');
   const queue = new SqliteQueue({
     dbPath: queuePath,
@@ -120,6 +124,8 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     toDelete: filesToDelete.length,
   });
 
+  let workQueue: IQueueWithEnqueueMetadata | undefined;
+
   if (filesToDelete.length > 0) {
     logger.info('Removing stale indexed locations for changed/deleted files...', { count: filesToDelete.length });
     await deleteDocumentsByFilePaths(filesToDelete, options?.elasticsearchIndex);
@@ -134,7 +140,11 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     let successCount = 0;
     let failureCount = 0;
     const { cpuCores } = indexingConfig;
-    const workQueue: IQueue = await getQueue(options, repoName, gitBranch);
+    const enqueueQueue = await getQueue(options, repoName, gitBranch);
+    workQueue = enqueueQueue;
+    // Ensure enqueue completion metadata reflects this run. If the process dies mid-enqueue,
+    // the index command can detect it and safely re-enqueue from scratch.
+    await enqueueQueue.markEnqueueStarted();
 
     const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
 
@@ -300,7 +310,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
           }
 
           if (Array.isArray(payload.data) && payload.data.length > 0) {
-            await workQueue.enqueue(payload.data);
+            await enqueueQueue.enqueue(payload.data);
           }
           return;
         }
@@ -352,6 +362,13 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
   }
 
   const newCommitHash = await git.revparse(['HEAD']);
+
+  // If we enqueued any work during this run, persist enqueue metadata for the resume path.
+  // (If there were no files to index, nothing is enqueued, so we do not touch enqueue metadata.)
+  if (workQueue) {
+    await workQueue.setEnqueueCommitHash(newCommitHash);
+    await workQueue.markEnqueueCompleted();
+  }
 
   logger.info('---');
   logger.info(`New HEAD commit hash: ${newCommitHash}`);

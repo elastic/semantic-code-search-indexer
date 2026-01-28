@@ -53,7 +53,11 @@ describe('incrementalIndex', () => {
       commit: vi.fn(),
       requeue: vi.fn(),
       clear: vi.fn(),
+      // Enqueue lifecycle markers (SqliteQueue-specific extensions used by incrementalIndex)
+      markEnqueueStarted: vi.fn(),
       markEnqueueCompleted: vi.fn(),
+      setEnqueueCommitHash: vi.fn(),
+      getEnqueueCommitHash: vi.fn().mockReturnValue(null),
       isEnqueueCompleted: vi.fn().mockReturnValue(true),
     };
 
