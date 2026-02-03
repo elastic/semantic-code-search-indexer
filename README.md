@@ -26,19 +26,22 @@ This project is a high-performance code indexer designed to provide deep, contex
 # 1. Install dependencies
 npm install
 
-# 2. Configure Elasticsearch connection
+# 2. Build the project
+npm run build
+
+# 3. Configure Elasticsearch connection
 cp .env.example .env
 # Edit .env with your Elasticsearch URL, username, and password
 
-# 3. Ensure ELSER is available in your cluster
+# 4. Ensure ELSER is available in your cluster
 # - If your cluster uses an inference endpoint, set ELASTICSEARCH_INFERENCE_ID to that endpoint id
 # - If you're using Elastic Cloud / Elastic Inference Service, ensure the endpoint is deployed and healthy
 
-# 4. (Optional) Add .indexerignore to your repository
+# 5. (Optional) Add .indexerignore to your repository
 # Copy .indexerignore.example to your repo as .indexerignore to exclude files
 # This reduces indexing time and improves relevance by excluding tests, build artifacts, etc.
 
-# 5. Index your repository
+# 6. Index your repository
 npm run index -- /path/to/your/repo --clean --watch --concurrency 8
 ```
 
