@@ -59,6 +59,7 @@ export const LANG_PYTHON = 'python';
 export const LANG_JAVA = 'java';
 export const LANG_GO = 'go';
 export const LANG_HANDLEBARS = 'handlebars';
+export const LANG_SQL = 'sql';
 
 /**
  * Parser type identifiers for metrics and logging.
@@ -69,6 +70,7 @@ export const PARSER_TYPE_YAML = 'yaml';
 export const PARSER_TYPE_JSON = 'json';
 export const PARSER_TYPE_TEXT = 'text';
 export const PARSER_TYPE_HANDLEBARS = 'handlebars';
+export const PARSER_TYPE_SQL = 'sql';
 
 /**
  * Worker message status values.
