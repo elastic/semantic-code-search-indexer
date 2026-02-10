@@ -113,6 +113,24 @@ describe('SQL Parser', () => {
         expect(macroChunks[i].startLine).toBeGreaterThan(macroChunks[i - 1].endLine);
       }
     });
+
+    it('should have dependency line numbers within macro chunk boundaries', () => {
+      const filePath = path.resolve(__dirname, '../fixtures/sql_dbt_macro.sql');
+      const result = parser.parseFile(filePath, 'main', 'macros/cents_to_dollars.sql');
+
+      const macroChunks = result.chunks.filter((c) => c.kind === 'macro');
+
+      // Verify that all symbol line numbers fall within the chunk's line range
+      for (const chunk of macroChunks) {
+        const symbols = chunk.symbols || [];
+        for (const symbol of symbols) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const line = Number((symbol as any).line);
+          expect(line).toBeGreaterThanOrEqual(chunk.startLine);
+          expect(line).toBeLessThanOrEqual(chunk.endLine);
+        }
+      }
+    });
   });
 
   describe('Pure SQL Parsing', () => {

@@ -731,9 +731,10 @@ export class LanguageParser {
    * Handles ref(), source(), macro calls, and table references.
    *
    * @param content - The SQL file content
+   * @param lineOffset - Offset to add to line numbers (for macro chunks)
    * @returns Array of SqlDependency objects
    */
-  private extractSqlDependencies(content: string): SqlDependency[] {
+  private extractSqlDependencies(content: string, lineOffset: number = 0): SqlDependency[] {
     const dependencies: SqlDependency[] = [];
     const lines = content.split('\n');
 
@@ -743,8 +744,9 @@ export class LanguageParser {
     // Pattern for {{ source('source_name', 'table_name') }}
     const sourcePattern = /\{\{\s*source\s*\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
 
-    // Pattern for {{ macro_name(...) }} - excluding built-in functions
-    const macroPattern = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+    // Pattern for {{ macro_name(...) }} or {{ namespace.macro_name(...) }}
+    // Captures optional namespace prefix and macro name
+    const macroPattern = /\{\{\s*(?:([a-zA-Z_][a-zA-Z0-9_]*)\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
     const builtinMacros = new Set([
       'ref',
       'source',
@@ -773,13 +775,15 @@ export class LanguageParser {
       'block',
       'filter',
     ]);
+    // Namespaces that contain built-in helpers (e.g., dbt.date_trunc)
+    const builtinNamespaces = new Set(['dbt', 'adapter', 'exceptions']);
 
     // Pattern for FROM/JOIN table references (handles schema.table)
     // Excludes Jinja expressions that start with {{
     const tablePattern = /\b(?:FROM|JOIN)\s+(?!\{\{)([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)\b/gi;
 
     lines.forEach((line, index) => {
-      const lineNum = index + 1;
+      const lineNum = index + 1 + lineOffset;
 
       // Extract refs
       let match;
@@ -803,15 +807,25 @@ export class LanguageParser {
       }
       sourcePattern.lastIndex = 0;
 
-      // Extract macro calls
+      // Extract macro calls (handles {{ macro() }} and {{ namespace.macro() }})
       while ((match = macroPattern.exec(line)) !== null) {
-        if (!builtinMacros.has(match[1].toLowerCase())) {
-          dependencies.push({
-            type: 'macro',
-            name: match[1],
-            line: lineNum,
-          });
+        const namespace = match[1]; // Optional namespace (e.g., 'dbt')
+        const macroName = match[2]; // Macro name
+
+        // Skip if it's a builtin namespace (dbt.*, adapter.*, exceptions.*)
+        if (namespace && builtinNamespaces.has(namespace.toLowerCase())) {
+          continue;
         }
+        // Skip if it's a builtin macro without namespace
+        if (!namespace && builtinMacros.has(macroName.toLowerCase())) {
+          continue;
+        }
+
+        dependencies.push({
+          type: 'macro',
+          name: namespace ? `${namespace}.${macroName}` : macroName,
+          line: lineNum,
+        });
       }
       macroPattern.lastIndex = 0;
 
@@ -1059,8 +1073,9 @@ export class LanguageParser {
     const macros: SqlChunkInfo[] = [];
     const lines = content.split('\n');
 
-    // Pattern for macro start: {% macro name(args) %} or {%- macro name(args) -%}
-    const macroStartPattern = /\{%[-\s]*macro\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/;
+    // Pattern for macro start: {% macro name(args) %} or {% macro name %}
+    // Supports both macros with arguments and without
+    const macroStartPattern = /\{%[-\s]*macro\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:\(|%\}|-?%\})/;
 
     // Pattern for macro end: {% endmacro %} or {%- endmacro -%}
     const macroEndPattern = /\{%[-\s]*endmacro\s*[-]?%\}/;
@@ -1076,7 +1091,8 @@ export class LanguageParser {
 
         if (macroEndPattern.test(line)) {
           const macroContent = currentMacro.content.join('\n');
-          const macroDeps = this.extractSqlDependencies(macroContent);
+          // Pass line offset so dependency line numbers are relative to file, not macro
+          const macroDeps = this.extractSqlDependencies(macroContent, currentMacro.startLine - 1);
 
           macros.push({
             content: macroContent,
@@ -1146,8 +1162,9 @@ export class LanguageParser {
       }));
 
     // Create symbols from dependency types
+    // Use fully-qualified names when schema is available to avoid collisions
     const symbols: SymbolInfo[] = params.dependencies.map((d) => ({
-      name: d.name,
+      name: d.schema ? `${d.schema}.${d.name}` : d.name,
       kind: `sql.${d.type}`,
       line: d.line,
     }));
