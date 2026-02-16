@@ -38,11 +38,31 @@ const client = new Client({
 
 ## Index Schema
 
-The `code-indexer` creates multiple Elasticsearch indices, derived from the base index name specified by `ELASTICSEARCH_INDEX` (defaulting to `code-chunks`):
+The `code-indexer` now uses an alias-first model. Given a base alias name from `ELASTICSEARCH_INDEX` (defaulting to `code-chunks`), the indexer maintains:
 
-- `<index>` (e.g. `code-chunks`): primary chunk index (semantic search + metadata)
-- `<index>_settings` (e.g. `code-chunks_settings`): small settings/state index (e.g. last indexed commit per branch)
-- `<index>_locations` (e.g. `code-chunks_locations`): dedicated per-file location index (one document per chunk occurrence)
+- `<alias>` (e.g. `code-chunks`): alias pointing to the active backing chunk index
+- `<alias>_locations` (e.g. `code-chunks_locations`): alias pointing to the active backing locations index
+- `<alias>_settings` (e.g. `code-chunks_settings`): stable settings/state index (e.g. last indexed commit per branch and maintenance lock)
+
+### Operational model (backing indices + atomic alias swap)
+
+The public names above (`<alias>`, `<alias>_locations`) are **Elasticsearch aliases**. On a clean rebuild (`npm run index -- <repo[:alias]> --clean`), the indexer:
+
+1. Creates new backing indices (example: `<alias>-scsi-<id>` and `<alias>-scsi-<id>_locations`)
+2. Indexes all documents into those backing indices
+3. Atomically swaps the aliases to point at the new backing indices
+4. By default, deletes the previous backing indices (use `--keep-old-indices` to retain them)
+
+This enables zero-downtime rebuilds where consumers only ever query the stable alias names.
+
+### Maintenance lock (skip incremental during rebuild)
+
+To avoid concurrent maintenance rebuilds (and to make GitOps-style scheduled jobs safe), `--clean` uses a per-alias lock stored in `<alias>_settings`:
+
+- Document id: `_reindex_lock`
+- On startup, a `--clean` run attempts to acquire the lock.
+- While locked, non-clean runs will log that maintenance is in progress and **skip** that alias.
+- On completion (success or failure), the `--clean` run releases the lock.
 
 ### Index Mapping
 
@@ -103,11 +123,11 @@ Here is the mapping for the `code-chunks` index:
 | `containerPath` | `text` | The path of the containing symbol (e.g., class name for a method). |
 | `chunk_hash` | `keyword` | A hash of the content of the code chunk. |
 | `content` | `text` | The raw source code of the chunk. |
-| `semantic_text` | `semantic_text` | Semantic search field populated via Elasticsearch inference at ingest time. Note: it does **not** include file paths/directories; those live in `<index>_locations`. |
+| `semantic_text` | `semantic_text` | Semantic search field populated via Elasticsearch inference at ingest time. Note: it does **not** include file paths/directories; those live in `<alias>_locations`. |
 | `created_at` | `date` | The timestamp when the document was created. |
 | `updated_at` | `date` | The timestamp when the document was last updated. |
 
-### Locations index (`<index>_locations`)
+### Locations index (`<alias>_locations`)
 
 To avoid “mega-documents” for boilerplate chunks (license headers, common imports, etc.), the indexer writes **one document per chunk occurrence** into `<index>_locations`.
 
@@ -148,7 +168,7 @@ To perform a semantic search, use a `semantic` query against the `semantic_text`
 ```javascript
 async function searchCode(query) {
   const response = await client.search({
-    index: 'code-chunks', // Or process.env.ELASTICSEARCH_INDEX
+    index: 'code-chunks', // Alias name (or process.env.ELASTICSEARCH_INDEX)
     query: {
       semantic: {
         field: 'semantic_text',
@@ -168,14 +188,14 @@ async function searchCode(query) {
 
 While the primary focus is on semantic search, you can also perform traditional Elasticsearch queries on the other fields. For example, you can filter chunk docs by `language` or `kind`.
 
-For file-path filtering, query `<index>_locations` by `filePath` and join back to chunk docs using `chunk_id` (via `mget`).
+For file-path filtering, query `<alias>_locations` by `filePath` and join back to chunk docs using `chunk_id` (via `mget`).
 
 ### Joining chunk docs to file locations (important)
 
-The indexer stores content-deduplicated chunk documents in `<index>` and per-file occurrences in `<index>_locations`:
+The indexer stores content-deduplicated chunk documents in `<alias>` (via alias) and per-file occurrences in `<alias>_locations`:
 
-- Query `<index>_locations` to find relevant occurrences (by `filePath`, directory fields, etc.).
-- Use the resulting `chunk_id` values to fetch chunk documents from `<index>` (`mget`).
+- Query `<alias>_locations` to find relevant occurrences (by `filePath`, directory fields, etc.).
+- Use the resulting `chunk_id` values to fetch chunk documents from `<alias>` (`mget`).
 
 ### Important Considerations
 

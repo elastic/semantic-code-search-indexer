@@ -113,8 +113,9 @@ QUEUE_BASE_DIR="/var/lib/indexer/queues"
 
 # Optional: Space-separated list of repositories to index
 # Used as fallback when no repositories are provided as CLI arguments
-# Format: "repo1 repo2" or "repo1:index1 repo2:index2"
-REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index"
+# Format: "repo1 repo2" or "repo1:alias1 repo2:alias2"
+# Note: the value after ':' is an Elasticsearch *alias* (stable). The indexer manages backing indices automatically.
+REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one /var/lib/indexer/repos/repo-two:repo-two"
 ```
 
 ## 2. Scheduling with Cron
@@ -142,7 +143,7 @@ cd scripts/migrations/2025-11-16-unified-index-command
     Add the following line to the end of the file. This configuration will run the indexer every 10 minutes for multiple repositories.
 
     ```cron
-    */10 * * * * cd /opt/semantic-code-search-indexer && /usr/bin/flock -n /tmp/indexer.lock npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index --pull --concurrency 4 --token ghp_YourToken >> /opt/semantic-code-search-indexer/indexer.log 2>&1
+    */10 * * * * cd /opt/semantic-code-search-indexer && /usr/bin/flock -n /tmp/indexer.lock npm run index -- /var/lib/indexer/repos/repo-one:repo-one /var/lib/indexer/repos/repo-two:repo-two --pull --concurrency 4 --token ghp_YourToken >> /opt/semantic-code-search-indexer/indexer.log 2>&1
     ```
 
     **Alternative using REPOSITORIES_TO_INDEX env var:**
@@ -158,17 +159,27 @@ cd scripts/migrations/2025-11-16-unified-index-command
     - `cd /opt/semantic-code-search-indexer`: Change to the project directory.
     - `/usr/bin/flock -n /tmp/indexer.lock`: This is a crucial command for reliability. It ensures that only one instance of the indexer can run at a time. If a previous run is still active, the new one will not start, preventing resource contention and potential data corruption.
     - `npm run index -- <repos...>`: The unified index command that handles both scanning and indexing in one pass.
-    - `/var/lib/indexer/repos/repo-one:repo-one-index`: Repository path with custom index name.
+    - `/var/lib/indexer/repos/repo-one:repo-one`: Repository path with custom alias name (stable).
     - `--pull`: Git pull before indexing to get latest changes.
     - `--concurrency 4`: Number of parallel workers (adjust based on VM resources).
     - `--token ghp_YourToken`: GitHub token for private repositories (optional).
     - `>> /opt/semantic-code-search-indexer/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file within the project directory. You must ensure this file is writable by the user running the cron job.
 
+    **Maintenance rebuilds (zero-downtime)**
+
+    For a one-off full rebuild without downtime, run a clean reindex. This creates new backing indices and atomically swaps aliases.
+
+    While a maintenance rebuild is in progress, scheduled non-clean runs will detect the maintenance lock in `<alias>_settings` and skip that alias.
+
+    ```bash
+    npm run index -- /var/lib/indexer/repos/repo-one:repo-one --clean --concurrency 4
+    ```
+
     **For watch mode (continuous indexing):**
     If you prefer to run the indexer as a long-running process that watches for changes, use the `--watch` flag and run it as a systemd service instead of a cron job:
 
     ```bash
-    npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index --watch --concurrency 4
+    npm run index -- /var/lib/indexer/repos/repo-one:repo-one --watch --concurrency 4
     ```
 
 3.  **Save and Exit:**
