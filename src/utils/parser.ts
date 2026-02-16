@@ -24,6 +24,7 @@ import {
   PARSER_TYPE_HANDLEBARS,
   PARSER_TYPE_TREE_SITTER,
 } from './constants';
+import { isSharedExtensionAllowed } from './shared_extensions';
 
 const { Query } = Parser;
 
@@ -174,7 +175,7 @@ export class LanguageParser {
       for (const suffix of config.fileSuffixes) {
         // Check for duplicate file suffix during map creation
         const existing = this.fileSuffixMap.get(suffix);
-        if (existing) {
+        if (existing && !isSharedExtensionAllowed(suffix, existing.name, config.name)) {
           logger.warn(
             `File extension "${suffix}" is registered to both "${existing.name}" and "${config.name}". ` +
               `Using "${config.name}".`

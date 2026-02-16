@@ -127,6 +127,46 @@ describe('validateLanguageConfiguration', () => {
       });
     });
 
+    it('should allow .h to be shared between c and cpp', () => {
+      const cConfig: LanguageConfiguration = {
+        name: 'c',
+        fileSuffixes: ['.h'],
+        parser: null,
+        queries: [],
+      };
+      const cppConfig: LanguageConfiguration = {
+        name: 'cpp',
+        fileSuffixes: ['.h'],
+        parser: null,
+        queries: [],
+      };
+
+      const errors = validateLanguageConfiguration(cConfig, [cConfig, cppConfig]);
+      const duplicateErrors = errors.filter((e) => e.message.includes('already used'));
+      expect(duplicateErrors).toEqual([]);
+    });
+
+    it('should still flag .h duplicates for non-allowed language pairs', () => {
+      const cConfig: LanguageConfiguration = {
+        name: 'c',
+        fileSuffixes: ['.h'],
+        parser: null,
+        queries: [],
+      };
+      const otherConfig: LanguageConfiguration = {
+        name: 'conflict_h_lang',
+        fileSuffixes: ['.h'],
+        parser: null,
+        queries: [],
+      };
+
+      const errors = validateLanguageConfiguration(otherConfig, [cConfig, otherConfig]);
+      expect(errors).toContainEqual({
+        field: 'fileSuffixes',
+        message: 'File extension(s) .h already used by language "c"',
+      });
+    });
+
     it('should detect multiple duplicate extensions', () => {
       const existingWithMultiple: LanguageConfiguration[] = [
         {
