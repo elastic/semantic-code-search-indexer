@@ -301,12 +301,14 @@ export async function createSettingsIndex(index?: string): Promise<void> {
   }
 }
 
-export async function getLastIndexedCommit(branch: string, index?: string): Promise<string | null> {
+export async function getLastIndexedCommit(branch: string, index?: string, repoName?: string): Promise<string | null> {
   const settingsIndexName = `${index || defaultIndexName}_settings`;
+  // Use repoName:branch as document ID to support multiple repos in the same index
+  const documentId = repoName ? `${repoName}:${branch}` : branch;
   try {
     const response = await getClient().get<{ commit_hash: string }>({
       index: settingsIndexName,
-      id: branch,
+      id: documentId,
     });
     return response._source?.commit_hash ?? null;
   } catch (error: unknown) {
@@ -317,12 +319,15 @@ export async function getLastIndexedCommit(branch: string, index?: string): Prom
   }
 }
 
-export async function updateLastIndexedCommit(branch: string, commitHash: string, index?: string): Promise<void> {
+export async function updateLastIndexedCommit(branch: string, commitHash: string, index?: string, repoName?: string): Promise<void> {
   const settingsIndexName = `${index || defaultIndexName}_settings`;
+  // Use repoName:branch as document ID to support multiple repos in the same index
+  const documentId = repoName ? `${repoName}:${branch}` : branch;
   await getClient().index({
     index: settingsIndexName,
-    id: branch,
+    id: documentId,
     document: {
+      repo_name: repoName,
       branch,
       commit_hash: commitHash,
       updated_at: new Date().toISOString(),

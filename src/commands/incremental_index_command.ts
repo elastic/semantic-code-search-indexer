@@ -61,7 +61,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     ...options,
   });
 
-  const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
+  const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex, repoName);
 
   if (!lastCommitHash) {
     logger.warn('No previous commit hash found. Please run a full index first.', { gitBranch });

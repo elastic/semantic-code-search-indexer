@@ -123,7 +123,7 @@ export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: s
   return {
     repoPath,
     repoName,
-    indexName: indexName || repoName,
+    indexName: indexName || process.env.ELASTICSEARCH_INDEX || repoName,
     token: globalToken,
     branch: globalBranch,
   };
@@ -303,7 +303,7 @@ async function indexRepos(
       const { getLastIndexedCommit, updateLastIndexedCommit, createSettingsIndex } = await import(
         '../utils/elasticsearch'
       );
-      const lastCommitHashAtStart = await getLastIndexedCommit(gitBranch, config.indexName);
+      const lastCommitHashAtStart = await getLastIndexedCommit(gitBranch, config.indexName, config.repoName);
       let isResumingQueue = false;
       let enqueueCommitHashFromQueue: string | null = null;
 
@@ -391,7 +391,7 @@ async function indexRepos(
             // If settings commit was missing but we have a queue baseline, persist it so incrementalIndex can run.
             if (!lastCommitHashAtStart && enqueueCommitHashFromQueue) {
               await createSettingsIndex(config.indexName);
-              await updateLastIndexedCommit(gitBranch, enqueueCommitHashFromQueue, config.indexName);
+              await updateLastIndexedCommit(gitBranch, enqueueCommitHashFromQueue, config.indexName, config.repoName);
             }
 
             logger.info(
@@ -405,7 +405,7 @@ async function indexRepos(
         // Step 8: Update last indexed commit after all indexing work completes successfully.
         try {
           await createSettingsIndex(config.indexName);
-          await updateLastIndexedCommit(gitBranch, currentHead, config.indexName);
+          await updateLastIndexedCommit(gitBranch, currentHead, config.indexName, config.repoName);
           logger.info(`Updated last indexed commit to ${currentHead} for branch ${gitBranch}`);
         } catch (error) {
           logger.warn(`Failed to update last indexed commit: ${error instanceof Error ? error.message : error}`);
