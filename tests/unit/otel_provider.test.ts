@@ -97,25 +97,25 @@ describe('OTel Provider', () => {
     await shutdown();
   });
 
-  it('should return null when OTEL_LOGGING_ENABLED is not true', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'false';
+  it('should return null when SCSI_OTEL_LOGGING_ENABLED is not true', async () => {
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).toBeNull();
   });
 
-  it.skip('should return null when OTEL_LOGGING_ENABLED is not set', async () => {
+  it.skip('should return null when SCSI_OTEL_LOGGING_ENABLED is not set', async () => {
     // This test is skipped because vi.resetModules() doesn't properly clear
     // the config module's cached values when using dynamic imports.
     // The behavior is tested by the 'false' case above.
-    delete process.env.OTEL_LOGGING_ENABLED;
+    delete process.env.SCSI_OTEL_LOGGING_ENABLED;
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).toBeNull();
   });
 
-  it('should return a LoggerProvider when OTEL_LOGGING_ENABLED is true', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
+  it('should return a LoggerProvider when SCSI_OTEL_LOGGING_ENABLED is true', async () => {
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
@@ -123,32 +123,32 @@ describe('OTel Provider', () => {
   });
 
   it('should return the same instance on subsequent calls (singleton)', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider1 = getLoggerProvider();
     const provider2 = getLoggerProvider();
     expect(provider1).toBe(provider2);
   });
 
-  it('should use OTEL_SERVICE_NAME if provided', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
-    process.env.OTEL_SERVICE_NAME = 'custom-service-name';
+  it('should use SCSI_OTEL_SERVICE_NAME if provided', async () => {
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_SERVICE_NAME = 'custom-service-name';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
     // Resource attributes are internal, so we just verify the provider is created
   });
 
-  it('should use default service name if OTEL_SERVICE_NAME is not set', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
-    delete process.env.OTEL_SERVICE_NAME;
+  it('should use default service name if SCSI_OTEL_SERVICE_NAME is not set', async () => {
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
+    delete process.env.SCSI_OTEL_SERVICE_NAME;
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
   });
 
   it('should allow getting a logger from the provider', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
@@ -159,7 +159,7 @@ describe('OTel Provider', () => {
   });
 
   it('should handle shutdown gracefully', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
     const { getLoggerProvider, shutdown } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
@@ -168,13 +168,13 @@ describe('OTel Provider', () => {
   });
 
   it('should handle shutdown when provider is not initialized', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'false';
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
     const { shutdown } = await import('../../src/utils/otel_provider');
     await expect(shutdown()).resolves.not.toThrow();
   });
 
   it('should not include git.indexer.* resource attributes', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
@@ -191,8 +191,8 @@ describe('OTel Provider', () => {
   });
 
   it('should still include standard resource attributes', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
-    process.env.OTEL_SERVICE_NAME = 'test-service';
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_SERVICE_NAME = 'test-service';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
@@ -208,9 +208,9 @@ describe('OTel Provider', () => {
     expect(Object.keys(attributes).length).toBeGreaterThan(3);
   });
 
-  it('should respect OTEL_RESOURCE_ATTRIBUTES environment variable', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
-    process.env.OTEL_RESOURCE_ATTRIBUTES = 'deployment.environment=staging,team=platform,custom.key=custom-value';
+  it('should respect SCSI_OTEL_RESOURCE_ATTRIBUTES environment variable', async () => {
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_RESOURCE_ATTRIBUTES = 'deployment.environment=staging,team=platform,custom.key=custom-value';
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
@@ -220,7 +220,7 @@ describe('OTel Provider', () => {
     const resource = (provider as any)._sharedState.resource;
     const attributes = resource.attributes;
 
-    // Verify OTEL_RESOURCE_ATTRIBUTES were added
+    // Verify SCSI_OTEL_RESOURCE_ATTRIBUTES were added
     expect(attributes['deployment.environment']).toBe('staging');
     expect(attributes['team']).toBe('platform');
     expect(attributes['custom.key']).toBe('custom-value');
@@ -250,42 +250,42 @@ describe('MeterProvider', () => {
     await shutdown();
   });
 
-  it('should return null when OTEL_METRICS_ENABLED is false', async () => {
-    process.env.OTEL_METRICS_ENABLED = 'false';
+  it('should return null when SCSI_OTEL_METRICS_ENABLED is false', async () => {
+    process.env.SCSI_OTEL_METRICS_ENABLED = 'false';
     const { getMeterProvider } = await import('../../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).toBeNull();
   });
 
-  it.skip('should return null when OTEL_METRICS_ENABLED is not set and OTEL_LOGGING_ENABLED is false', async () => {
+  it.skip('should return null when SCSI_OTEL_METRICS_ENABLED is not set and SCSI_OTEL_LOGGING_ENABLED is false', async () => {
     // This test is skipped because vi.resetModules() doesn't properly clear
     // the config module's cached values when using dynamic imports.
     // The behavior is tested by the 'false' case above.
-    process.env.OTEL_LOGGING_ENABLED = 'false';
-    delete process.env.OTEL_METRICS_ENABLED;
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
+    delete process.env.SCSI_OTEL_METRICS_ENABLED;
     const { getMeterProvider } = await import('../../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).toBeNull();
   });
 
-  it('should return a MeterProvider when OTEL_METRICS_ENABLED is true', async () => {
-    process.env.OTEL_METRICS_ENABLED = 'true';
+  it('should return a MeterProvider when SCSI_OTEL_METRICS_ENABLED is true', async () => {
+    process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
     const { getMeterProvider } = await import('../../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).not.toBeNull();
     expect(provider).toBeDefined();
   });
 
-  it('should default to OTEL_LOGGING_ENABLED when OTEL_METRICS_ENABLED is not set', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
-    delete process.env.OTEL_METRICS_ENABLED;
+  it('should default to SCSI_OTEL_LOGGING_ENABLED when SCSI_OTEL_METRICS_ENABLED is not set', async () => {
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
+    delete process.env.SCSI_OTEL_METRICS_ENABLED;
     const { getMeterProvider } = await import('../../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).not.toBeNull();
   });
 
   it('should return the same instance on subsequent calls (singleton)', async () => {
-    process.env.OTEL_METRICS_ENABLED = 'true';
+    process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
     const { getMeterProvider } = await import('../../src/utils/otel_provider');
     const provider1 = getMeterProvider();
     const provider2 = getMeterProvider();
@@ -293,7 +293,7 @@ describe('MeterProvider', () => {
   });
 
   it('should allow getting a meter from the provider', async () => {
-    process.env.OTEL_METRICS_ENABLED = 'true';
+    process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
     const { getMeterProvider } = await import('../../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).not.toBeNull();
@@ -303,7 +303,7 @@ describe('MeterProvider', () => {
   });
 
   it('should handle shutdown gracefully', async () => {
-    process.env.OTEL_METRICS_ENABLED = 'true';
+    process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
     const { getMeterProvider, shutdown } = await import('../../src/utils/otel_provider');
     const provider = getMeterProvider();
     expect(provider).not.toBeNull();
@@ -312,14 +312,14 @@ describe('MeterProvider', () => {
   });
 
   it('should handle shutdown when provider is not initialized', async () => {
-    process.env.OTEL_METRICS_ENABLED = 'false';
+    process.env.SCSI_OTEL_METRICS_ENABLED = 'false';
     const { shutdown } = await import('../../src/utils/otel_provider');
     await expect(shutdown()).resolves.not.toThrow();
   });
 
   it('should shutdown both logger and meter providers', async () => {
-    process.env.OTEL_LOGGING_ENABLED = 'true';
-    process.env.OTEL_METRICS_ENABLED = 'true';
+    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
+    process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
     const { getLoggerProvider, getMeterProvider, shutdown } = await import('../../src/utils/otel_provider');
 
     const loggerProvider = getLoggerProvider();

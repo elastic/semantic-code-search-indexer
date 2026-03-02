@@ -3,8 +3,8 @@ import path from 'path';
 import { appConfig } from '../config';
 import { cloneOrPullRepo } from '../utils/git_helper';
 
-async function setup(repoUrl: string, options: { token?: string }) {
-  const token = options.token || appConfig.githubToken;
+async function setup(repoUrl: string, options?: { githubToken?: string }) {
+  const token = options?.githubToken ?? appConfig.githubToken;
   const reposDir = path.join(process.cwd(), '.repos');
 
   const repoName = repoUrl.split('/').pop()?.replace('.git', '');
@@ -20,7 +20,10 @@ async function setup(repoUrl: string, options: { token?: string }) {
 export const setupCommand = new Command('setup')
   .description('Clones a repository to be indexed')
   .argument('<repo_url>', 'The URL of the git repository to clone')
-  .option('--token <token>', 'GitHub token for private repositories')
-  .action(setup);
+  .option(
+    '--github-token <token>',
+    'GitHub token for cloning/pulling private repositories (overrides SCSI_GITHUB_TOKEN)'
+  )
+  .action((repoUrl, options) => setup(repoUrl, options));
 
 export { setup };

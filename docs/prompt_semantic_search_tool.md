@@ -49,7 +49,7 @@ import { Client } from '@elastic/elasticsearch';
 
 // This assumes the Elasticsearch client is configured elsewhere and imported.
 // For this example, we'll create a new client.
-const client = new Client({ node: process.env.ELASTICSEARCH_ENDPOINT || 'http://localhost:9200' });
+const client = new Client({ node: process.env.SCSI_ES_ENDPOINT || 'http://localhost:9200' });
 const indexName = 'code-chunks'; // This should be the name of your index
 
 export interface SearchResult {

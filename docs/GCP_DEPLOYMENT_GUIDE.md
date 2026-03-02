@@ -89,47 +89,35 @@ The application's configuration is managed by a `.env` file. Create this file in
 # /opt/semantic-code-search-indexer/.env
 
 # Elasticsearch Configuration
-ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
-ELASTICSEARCH_API_KEY="YourEncodedApiKey"
+SCSI_ES_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
+SCSI_ES_API_KEY="YourEncodedApiKey"
 
 # OpenTelemetry Configuration (optional)
 # Enable logs and metrics export to OpenTelemetry Collector
-OTEL_LOGGING_ENABLED="true"
-OTEL_METRICS_ENABLED="true"
-OTEL_SERVICE_NAME="semantic-code-search-indexer"
-OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+SCSI_OTEL_LOGGING_ENABLED="true"
+SCSI_OTEL_METRICS_ENABLED="true"
+SCSI_OTEL_SERVICE_NAME="semantic-code-search-indexer"
+SCSI_OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
 # Optional: separate endpoints for logs and metrics
-# OTEL_EXPORTER_OTLP_LOGS_ENDPOINT="http://otel-collector:4318/v1/logs"
-# OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://otel-collector:4318/v1/metrics"
+# SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT="http://otel-collector:4318/v1/logs"
+# SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://otel-collector:4318/v1/metrics"
 # Optional: authentication headers
-# OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
+# SCSI_OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
 # Optional: metric export interval (default: 60000ms = 60s)
-# OTEL_METRIC_EXPORT_INTERVAL_MILLIS="60000"
+# SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS="60000"
 
 # Application Configuration
 # Base directory where all queue databases will be stored.
-# Each repository gets its own SQLite queue at QUEUE_BASE_DIR/<repo-name>/queue.db
-QUEUE_BASE_DIR="/var/lib/indexer/queues"
+# Each repository gets its own SQLite queue at SCSI_QUEUE_BASE_DIR/<repo-name>/queue.db
+SCSI_QUEUE_BASE_DIR="/var/lib/indexer/queues"
 
-# Optional: Space-separated list of repositories to index
-# Used as fallback when no repositories are provided as CLI arguments
-# Format: "repo1 repo2" or "repo1:index1 repo2:index2"
-REPOSITORIES_TO_INDEX="/var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index"
+# GitHub token (required for private repositories)
+SCSI_GITHUB_TOKEN="ghp_YourToken"
 ```
 
 ## 2. Scheduling with Cron
 
 We will use `cron`, a standard time-based job scheduler, to run the indexer periodically. The unified `npm run index` command handles both scanning and indexing in a single operation.
-
-**⚠️ Upgrading from a previous version?** See the migration guide:
-
-📖 **[scripts/migrations/2025-11-16-unified-index-command/UPGRADE_GUIDE.md](../scripts/migrations/2025-11-16-unified-index-command/UPGRADE_GUIDE.md)**
-
-**Quick migration:**
-```bash
-cd scripts/migrations/2025-11-16-unified-index-command
-./migrate.sh  # Handles queues + cron + backups
-```
 
 1.  **Open the Crontab:**
     Open the crontab file for the current user for editing.
@@ -142,16 +130,8 @@ cd scripts/migrations/2025-11-16-unified-index-command
     Add the following line to the end of the file. This configuration will run the indexer every 10 minutes for multiple repositories.
 
     ```cron
-    */10 * * * * cd /opt/semantic-code-search-indexer && /usr/bin/flock -n /tmp/indexer.lock npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index --pull --concurrency 4 --token ghp_YourToken >> /opt/semantic-code-search-indexer/indexer.log 2>&1
+    */10 * * * * cd /opt/semantic-code-search-indexer && /usr/bin/flock -n /tmp/indexer.lock npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index /var/lib/indexer/repos/repo-two:repo-two-index --pull >> /opt/semantic-code-search-indexer/indexer.log 2>&1
     ```
-
-    **Alternative using REPOSITORIES_TO_INDEX env var:**
-
-    ```cron
-    */10 * * * * cd /opt/semantic-code-search-indexer && /usr/bin/flock -n /tmp/indexer.lock npm run index -- --pull --concurrency 4 --token ghp_YourToken >> /opt/semantic-code-search-indexer/indexer.log 2>&1
-    ```
-
-    (Repositories are read from `REPOSITORIES_TO_INDEX` in `.env` file)
 
     **Command Breakdown:**
     - `*/10 * * * *`: The schedule, meaning "at every 10th minute."
@@ -160,15 +140,14 @@ cd scripts/migrations/2025-11-16-unified-index-command
     - `npm run index -- <repos...>`: The unified index command that handles both scanning and indexing in one pass.
     - `/var/lib/indexer/repos/repo-one:repo-one-index`: Repository path with custom index name.
     - `--pull`: Git pull before indexing to get latest changes.
-    - `--concurrency 4`: Number of parallel workers (adjust based on VM resources).
-    - `--token ghp_YourToken`: GitHub token for private repositories (optional).
+    - `SCSI_GITHUB_TOKEN`: GitHub token for private repositories (optional; set via `.env` or environment).
     - `>> /opt/semantic-code-search-indexer/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file within the project directory. You must ensure this file is writable by the user running the cron job.
 
     **For watch mode (continuous indexing):**
     If you prefer to run the indexer as a long-running process that watches for changes, use the `--watch` flag and run it as a systemd service instead of a cron job:
 
     ```bash
-    npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index --watch --concurrency 4
+    npm run index -- /var/lib/indexer/repos/repo-one:repo-one-index --watch
     ```
 
 3.  **Save and Exit:**
@@ -235,8 +214,8 @@ For production monitoring, deploy an OpenTelemetry Collector to receive logs and
     ExecStart=/usr/local/bin/otelcol-contrib --config=/etc/otelcol/config.yaml
     Restart=on-failure
     RestartSec=30
-    Environment="ELASTICSEARCH_ENDPOINT=https://your-es-endpoint.elastic-cloud.com:9243"
-    Environment="ELASTICSEARCH_API_KEY=YourEncodedApiKey"
+    Environment="SCSI_ES_ENDPOINT=https://your-es-endpoint.elastic-cloud.com:9243"
+    Environment="SCSI_ES_API_KEY=YourEncodedApiKey"
 
     [Install]
     WantedBy=multi-user.target

@@ -2,6 +2,7 @@
 import { getLoggerProvider } from './otel_provider';
 import { SeverityNumber } from '@opentelemetry/api-logs';
 import { ATTR_REPO_NAME, ATTR_REPO_BRANCH } from './constants';
+import { appConfig } from '../config';
 
 enum LogLevel {
   INFO = 'INFO',
@@ -36,8 +37,8 @@ interface RepoInfo {
  */
 function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?: RepoInfo) {
   // Silent mode: skip console output in test environment
-  if (process.env.NODE_ENV !== 'test' || process.env.FORCE_LOGGING === 'true') {
-    // Always output text to console (unless in test mode without FORCE_LOGGING)
+  if (appConfig.nodeEnv !== 'test' || appConfig.forceLogging) {
+    // Always output text to console (unless in test mode without SCSI_FORCE_LOGGING)
     const timestamp = new Date().toISOString();
     let logMessage = `[${timestamp}] [${level}] ${message}`;
     if (metadata && Object.keys(metadata).length > 0) {

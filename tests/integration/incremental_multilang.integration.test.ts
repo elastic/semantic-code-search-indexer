@@ -71,12 +71,11 @@ describe('Integration Test - Incremental Indexing & Multi-language Support', () 
   });
 
   it('should handle full index, then incremental updates with mixed languages', async () => {
-    // Enable all languages we are testing
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,python,go,markdown';
+    const languages = 'typescript,python,go,markdown';
 
     // 1. Initial Setup and Full Index
-    await setup(testRepoUrl, {});
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
+    await setup(testRepoUrl);
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
@@ -142,7 +141,7 @@ describe('Integration Test - Incremental Indexing & Multi-language Support', () 
     // 3. Run Incremental Index
     // indexRepos will verify the commit hash in _settings and switch to incremental mode
     // We MUST set pull: true to ensure the local clone updates from our "remote" test repo
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, pull: true });
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, pull: true, batchSize: '10', languages });
     await client.indices.refresh({ index: TEST_INDEX });
     await client.indices.refresh({ index: `${TEST_INDEX}_locations` });
 

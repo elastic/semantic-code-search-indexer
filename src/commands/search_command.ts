@@ -7,8 +7,13 @@ import { getLocationsForChunkIds, searchCodeChunks } from '../utils/elasticsearc
 export async function search(query: string, options: { index?: string; limit?: string }) {
   console.log(`Searching for: "${query}"`);
 
+  if (!options.index) {
+    throw new Error('Missing required --index option');
+  }
+  const indexName = options.index;
+
   const limit = options.limit ? parseInt(options.limit, 10) : 10;
-  const results = await searchCodeChunks(query, options.index);
+  const results = await searchCodeChunks(query, indexName);
 
   console.log(`\nSearch results (showing top ${Math.min(limit, results.length)} of ${results.length}):`);
 
@@ -20,7 +25,7 @@ export async function search(query: string, options: { index?: string; limit?: s
   const visible = results.slice(0, limit);
   const locationsByChunkId = await getLocationsForChunkIds(
     visible.map((r) => r.id),
-    { index: options.index, perChunkLimit: 5 }
+    { index: indexName, perChunkLimit: 5 }
   );
 
   visible.forEach((result, index) => {
@@ -49,7 +54,7 @@ export async function search(query: string, options: { index?: string; limit?: s
 export const searchCommand = new Command('search')
   .description('Search indexed code using semantic search')
   .argument('<query>', 'Search query (natural language)')
-  .addOption(new Option('--index <index>', 'Elasticsearch index to search (default: from config)'))
+  .addOption(new Option('--index <index>', 'Elasticsearch index to search'))
   .addOption(new Option('--limit <number>', 'Maximum number of results to display').default('10'))
   .action(async (query, options) => {
     try {

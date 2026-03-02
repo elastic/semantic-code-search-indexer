@@ -6,7 +6,7 @@ import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { Resource } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
-import { otelConfig } from '../config';
+import { otelConfig, appConfig } from '../config';
 import path from 'path';
 import fs from 'fs';
 
@@ -19,13 +19,13 @@ const {
 // Enable OpenTelemetry diagnostic logging
 // Set to DiagLogLevel.DEBUG for maximum verbosity, or DiagLogLevel.INFO for less detail
 const diagLevel =
-  process.env.OTEL_LOG_LEVEL === 'debug'
+  otelConfig.logLevel === 'debug'
     ? DiagLogLevel.DEBUG
-    : process.env.OTEL_LOG_LEVEL === 'info'
+    : otelConfig.logLevel === 'info'
       ? DiagLogLevel.INFO
-      : process.env.OTEL_LOG_LEVEL === 'warn'
+      : otelConfig.logLevel === 'warn'
         ? DiagLogLevel.WARN
-        : process.env.OTEL_LOG_LEVEL === 'error'
+        : otelConfig.logLevel === 'error'
           ? DiagLogLevel.ERROR
           : DiagLogLevel.NONE;
 
@@ -88,9 +88,9 @@ export function parseHeaders(headersString: string): Record<string, string> {
 }
 
 /**
- * Parses OTEL_RESOURCE_ATTRIBUTES environment variable into a key-value object.
+ * Parses SCSI_OTEL_RESOURCE_ATTRIBUTES environment variable into a key-value object.
  *
- * @param resourceAttributesString - The OTEL_RESOURCE_ATTRIBUTES string
+ * @param resourceAttributesString - The SCSI_OTEL_RESOURCE_ATTRIBUTES string
  * @returns An object with parsed resource attributes
  *
  * @example
@@ -119,7 +119,7 @@ function parseResourceAttributes(resourceAttributesString: string): Record<strin
  * Creates a Resource with auto-detected attributes and custom defaults.
  *
  * Detects resource attributes from:
- * - Environment variables (OTEL_RESOURCE_ATTRIBUTES, OTEL_SERVICE_NAME)
+ * - Environment variables (SCSI_OTEL_RESOURCE_ATTRIBUTES)
  * - SDK defaults (telemetry.sdk.*, service.name, etc.)
  *
  * Custom attributes are used as defaults and are overridden by env vars.
@@ -135,8 +135,8 @@ function createResource(defaultAttributes: Record<string, string | number> = {})
   // Merge with our custom default attributes (includes service.name from config)
   resource = resource.merge(new Resource(defaultAttributes));
 
-  // Parse and merge OTEL_RESOURCE_ATTRIBUTES if present (highest priority)
-  const otelResourceAttributes = process.env.OTEL_RESOURCE_ATTRIBUTES;
+  // Parse and merge SCSI_OTEL_RESOURCE_ATTRIBUTES if present (highest priority)
+  const otelResourceAttributes = otelConfig.resourceAttributes;
   if (otelResourceAttributes) {
     const envAttributes = parseResourceAttributes(otelResourceAttributes);
     resource = resource.merge(new Resource(envAttributes));
@@ -153,11 +153,10 @@ function createResource(defaultAttributes: Record<string, string | number> = {})
  * - OTLP HTTP exporter for sending logs to a collector
  * - Batch log record processor for efficient transmission
  *
- * Respects standard OTEL environment variables:
- * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
- * - OTEL_SERVICE_NAME: Service name (can be overridden by config)
+ * Respects indexer OpenTelemetry environment variables:
+ * - SCSI_OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  *
- * @returns The LoggerProvider instance if OTEL_LOGGING_ENABLED is true, otherwise null.
+ * @returns The LoggerProvider instance if SCSI_OTEL_LOGGING_ENABLED is true, otherwise null.
  */
 export function getLoggerProvider(): LoggerProvider | null {
   if (!otelConfig.enabled) {
@@ -175,9 +174,9 @@ export function getLoggerProvider(): LoggerProvider | null {
     [ATTR_SERVICE_VERSION]: serviceVersion,
   };
 
-  // Only set deployment.environment if not in OTEL_RESOURCE_ATTRIBUTES
-  if (!process.env.OTEL_RESOURCE_ATTRIBUTES?.includes('deployment.environment')) {
-    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = process.env.NODE_ENV || 'production';
+  // Only set deployment.environment if not in SCSI_OTEL_RESOURCE_ATTRIBUTES
+  if (!otelConfig.resourceAttributes?.includes('deployment.environment')) {
+    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = appConfig.nodeEnv || 'production';
   }
 
   const resource = createResource(defaultAttributes);
@@ -204,11 +203,10 @@ export function getLoggerProvider(): LoggerProvider | null {
  * - OTLP HTTP exporter for sending metrics to a collector
  * - Periodic metric reader for scheduled metric export
  *
- * Respects standard OTEL environment variables:
- * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
- * - OTEL_SERVICE_NAME: Service name (can be overridden by config)
+ * Respects indexer OpenTelemetry environment variables:
+ * - SCSI_OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  *
- * @returns The MeterProvider instance if OTEL_METRICS_ENABLED is true, otherwise null.
+ * @returns The MeterProvider instance if SCSI_OTEL_METRICS_ENABLED is true, otherwise null.
  */
 export function getMeterProvider(): MeterProvider | null {
   if (!otelConfig.metricsEnabled) {
@@ -226,9 +224,9 @@ export function getMeterProvider(): MeterProvider | null {
     [ATTR_SERVICE_VERSION]: serviceVersion,
   };
 
-  // Only set deployment.environment if not in OTEL_RESOURCE_ATTRIBUTES
-  if (!process.env.OTEL_RESOURCE_ATTRIBUTES?.includes('deployment.environment')) {
-    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = process.env.NODE_ENV || 'production';
+  // Only set deployment.environment if not in SCSI_OTEL_RESOURCE_ATTRIBUTES
+  if (!otelConfig.resourceAttributes?.includes('deployment.environment')) {
+    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = appConfig.nodeEnv || 'production';
   }
 
   const resource = createResource(defaultAttributes);

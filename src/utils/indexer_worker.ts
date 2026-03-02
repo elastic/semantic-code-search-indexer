@@ -15,7 +15,7 @@ export interface IndexerWorkerOptions {
   concurrency?: number;
   watch?: boolean;
   logger?: Logger;
-  elasticsearchIndex?: string;
+  elasticsearchIndex: string;
   repoInfo?: { name: string; branch: string };
 }
 
@@ -26,7 +26,7 @@ export class IndexerWorker {
   private watch: boolean;
   private consumerQueue: PQueue;
   private isRunning = false;
-  private elasticsearchIndex?: string;
+  private elasticsearchIndex: string;
   private logger: Logger;
   private metrics: Metrics;
 

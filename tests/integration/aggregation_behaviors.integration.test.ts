@@ -123,8 +123,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   });
 
   it('should update line ranges for a modified file (incremental) without affecting other file locations', async () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-    process.env.DISABLE_SEMANTIC_TEXT = 'true';
+    const languages = 'typescript';
+    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-incremental-modify`;
     createdIndices.push(indexName);
@@ -141,8 +141,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
 
     const repoUrl = `file://${repoPath}`;
 
-    await setup(repoUrl, {});
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2' });
+    await setup(repoUrl);
+    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2', batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: indexName });
@@ -172,7 +172,13 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     fs.writeFileSync(path.join(repoPath, 'file1.ts'), `// header\n// header2\n\n${baseContent}`);
     gitCommitAll(repoPath, 'Modify file1');
 
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, pull: true, concurrency: '2' });
+    await indexRepos([`${repoUrl}:${indexName}`], {
+      watch: false,
+      pull: true,
+      concurrency: '2',
+      batchSize: '10',
+      languages,
+    });
     await client.indices.refresh({ index: indexName });
     await client.indices.refresh({ index: `${indexName}_locations` });
 
@@ -198,8 +204,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   }, 300000);
 
   it('should handle incremental rename (R status) for aggregated docs', async () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-    process.env.DISABLE_SEMANTIC_TEXT = 'true';
+    const languages = 'typescript';
+    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-incremental-rename`;
     createdIndices.push(indexName);
@@ -215,8 +221,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     gitCommitAll(repoPath, 'Initial');
 
     const repoUrl = `file://${repoPath}`;
-    await setup(repoUrl, {});
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2' });
+    await setup(repoUrl);
+    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2', batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: indexName });
@@ -228,7 +234,13 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     fs.renameSync(path.join(repoPath, 'old.ts'), path.join(repoPath, 'new.ts'));
     gitCommitAll(repoPath, 'Rename old.ts -> new.ts');
 
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, pull: true, concurrency: '2' });
+    await indexRepos([`${repoUrl}:${indexName}`], {
+      watch: false,
+      pull: true,
+      concurrency: '2',
+      batchSize: '10',
+      languages,
+    });
     await client.indices.refresh({ index: indexName });
     await client.indices.refresh({ index: `${indexName}_locations` });
 
@@ -236,8 +248,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   }, 300000);
 
   it('should handle incremental deletes (D status) and delete doc when last location removed', async () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-    process.env.DISABLE_SEMANTIC_TEXT = 'true';
+    const languages = 'typescript';
+    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-incremental-delete`;
     createdIndices.push(indexName);
@@ -253,8 +265,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     gitCommitAll(repoPath, 'Initial');
 
     const repoUrl = `file://${repoPath}`;
-    await setup(repoUrl, {});
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2' });
+    await setup(repoUrl);
+    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2', batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: indexName });
@@ -266,7 +278,13 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     // Delete a.ts and run incremental.
     fs.rmSync(path.join(repoPath, 'a.ts'));
     gitCommitAll(repoPath, 'Delete a.ts');
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, pull: true, concurrency: '2' });
+    await indexRepos([`${repoUrl}:${indexName}`], {
+      watch: false,
+      pull: true,
+      concurrency: '2',
+      batchSize: '10',
+      languages,
+    });
     await client.indices.refresh({ index: indexName });
     await client.indices.refresh({ index: `${indexName}_locations` });
     expect(await getFilePathsForChunkId({ client, indexName, chunkId })).toEqual(['b.ts']);
@@ -274,7 +292,13 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     // Delete b.ts and run incremental. Document should be gone.
     fs.rmSync(path.join(repoPath, 'b.ts'));
     gitCommitAll(repoPath, 'Delete b.ts');
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, pull: true, concurrency: '2' });
+    await indexRepos([`${repoUrl}:${indexName}`], {
+      watch: false,
+      pull: true,
+      concurrency: '2',
+      batchSize: '10',
+      languages,
+    });
     await client.indices.refresh({ index: indexName });
 
     const afterDeleteTwo = await client.search<CodeChunk>({
@@ -288,8 +312,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   }, 300000);
 
   it('should make location documents filterable via root filePath field (non-nested KQL-friendly)', async () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-    process.env.DISABLE_SEMANTIC_TEXT = 'true';
+    const languages = 'typescript';
+    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-root-filepath-query`;
     createdIndices.push(indexName);
@@ -305,8 +329,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     gitCommitAll(repoPath, 'Initial');
 
     const repoUrl = `file://${repoPath}`;
-    await setup(repoUrl, {});
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false });
+    await setup(repoUrl);
+    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: `${indexName}_locations` });
@@ -330,8 +354,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   }, 300000);
 
   it('should not cap locations (120 files should produce 120 locations for a chunk id)', async () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-    process.env.DISABLE_SEMANTIC_TEXT = 'true';
+    const languages = 'typescript';
+    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-cap-100`;
     createdIndices.push(indexName);
@@ -350,8 +374,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     gitCommitAll(repoPath, 'Initial');
 
     const repoUrl = `file://${repoPath}`;
-    await setup(repoUrl, {});
-    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2' });
+    await setup(repoUrl);
+    await indexRepos([`${repoUrl}:${indexName}`], { watch: false, concurrency: '2', batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: indexName });
@@ -376,8 +400,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   }, 300000);
 
   it('should isolate per-index settings (_settings) and commit hashes across multiple repos', async () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-    process.env.DISABLE_SEMANTIC_TEXT = 'true';
+    const languages = 'typescript';
+    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
 
     const repoAPath = path.join(os.tmpdir(), `test-agg-settings-a-${Date.now()}`);
     const repoBPath = path.join(os.tmpdir(), `test-agg-settings-b-${Date.now()}`);
@@ -398,10 +422,10 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     const indexB = `${INDEX_PREFIX}-settings-b`;
     createdIndices.push(indexA, indexB);
 
-    await setup(repoAUrl, {});
-    await indexRepos([`${repoAUrl}:${indexA}`], { watch: false });
-    await setup(repoBUrl, {});
-    await indexRepos([`${repoBUrl}:${indexB}`], { watch: false });
+    await setup(repoAUrl);
+    await indexRepos([`${repoAUrl}:${indexA}`], { watch: false, batchSize: '10', languages });
+    await setup(repoBUrl);
+    await indexRepos([`${repoBUrl}:${indexB}`], { watch: false, batchSize: '10', languages });
 
     // The index command updates settings after worker completes. Confirm each settings index stored its own HEAD.
     const commitA = await getLastIndexedCommit('main', indexA);
@@ -412,7 +436,7 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
     // Update only repoA and ensure indexB settings is unchanged.
     fs.writeFileSync(path.join(repoAPath, 'a.ts'), 'export const a = 2;');
     const aHead2 = gitCommitAll(repoAPath, 'Update A');
-    await indexRepos([`${repoAUrl}:${indexA}`], { watch: false, pull: true });
+    await indexRepos([`${repoAUrl}:${indexA}`], { watch: false, pull: true, batchSize: '10', languages });
     const commitA2 = await getLastIndexedCommit('main', indexA);
     const commitB2 = await getLastIndexedCommit('main', indexB);
     expect(commitA2).toBe(aHead2);

@@ -123,7 +123,8 @@ describe('incrementalIndex', () => {
     expect(mockedElasticsearch.deleteDocumentsByFilePaths).toHaveBeenCalledTimes(1);
     expect(mockedElasticsearch.deleteDocumentsByFilePaths).toHaveBeenCalledWith(
       expect.arrayContaining(['src/old_file.ts', 'src/modified_file.ts', 'src/deleted_file.ts']),
-      undefined
+      undefined,
+      expect.objectContaining({ deleteDocumentsPageSize: undefined })
     );
 
     // Ensure we didn't attempt to delete paths that should only be indexed.

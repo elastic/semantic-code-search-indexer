@@ -50,8 +50,7 @@ export type LanguageName = keyof typeof languageConfigurations;
 export type LanguageConfigurationsMap = Record<LanguageName, LanguageConfiguration>;
 
 /**
- * Parses the SEMANTIC_CODE_INDEXER_LANGUAGES environment variable
- * and returns an array of valid language names.
+ * Parses a comma-separated list of language names and returns an array of valid language names.
  *
  * @param languagesEnv - The comma-separated string of language names
  * @returns Array of valid LanguageName values

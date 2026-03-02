@@ -6,16 +6,19 @@ import { appConfig } from '../config';
 import { logger } from '../utils/logger';
 import { shutdown } from '../utils/otel_provider';
 import { cloneOrPullRepo, pullRepo } from '../utils/git_helper';
+import { parseLanguageNames } from '../languages';
 import path from 'path';
 import fs from 'fs';
 import { execFileSync } from 'child_process';
 import Database from 'better-sqlite3';
+import os from 'os';
+
+const DEFAULT_PARSE_CONCURRENCY = Math.max(1, Math.floor(os.cpus().length / 2));
 
 interface RepoConfig {
   repoPath: string;
   repoName: string;
   indexName: string;
-  token?: string;
   branch?: string;
 }
 
@@ -26,7 +29,7 @@ interface RepoConfig {
  * - Repo names: kibana[:index]
  * - Full paths: /path/to/repo[:index]
  */
-export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: string): RepoConfig {
+export function parseRepoArg(arg: string, globalBranch?: string): RepoConfig {
   // Split on the last ':' to handle URLs with '://' and SSH URLs with ':'
   let repoSpec: string;
   let indexName: string | undefined;
@@ -124,7 +127,6 @@ export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: s
     repoPath,
     repoName,
     indexName: indexName || repoName,
-    token: globalToken,
     branch: globalBranch,
   };
 }
@@ -176,23 +178,19 @@ async function indexRepos(
     pull?: boolean;
     watch?: boolean;
     concurrency?: string;
-    token?: string;
     branch?: string;
+    githubToken?: string;
+    batchSize?: string;
+    deleteDocumentsPageSize?: string;
+    parseConcurrency?: string;
+    languages?: string;
   }
 ) {
   logger.info('Starting index command...');
 
-  // Support REPOSITORIES_TO_INDEX env var for backward compatibility
-  // Format: "repo1 repo2 repo3" or "repo1:index1 repo2:index2"
-  if ((!repoArgs || repoArgs.length === 0) && process.env.REPOSITORIES_TO_INDEX) {
-    const envRepos = process.env.REPOSITORIES_TO_INDEX.trim().split(/\s+/);
-    logger.info(`Using repositories from REPOSITORIES_TO_INDEX env var: ${envRepos.join(', ')}`);
-    repoArgs = envRepos;
-  }
-
   if (!repoArgs || repoArgs.length === 0) {
     logger.error('No repository configurations provided. Exiting.');
-    logger.error('Provide repositories as arguments or set REPOSITORIES_TO_INDEX environment variable.');
+    logger.error('Provide repositories as arguments.');
     process.exit(1);
   }
 
@@ -202,13 +200,42 @@ async function indexRepos(
     );
   }
 
-  const concurrency = parseInt(options.concurrency || '1', 10);
+  const concurrency = parseInt(options.concurrency || '2', 10);
+  const batchSize = parseInt(options.batchSize || '100', 10);
+  const deleteDocumentsPageSize = parseInt(options.deleteDocumentsPageSize || '500', 10);
+  const parseConcurrency = parseInt(options.parseConcurrency || `${DEFAULT_PARSE_CONCURRENCY}`, 10);
+  const githubToken = options.githubToken ?? appConfig.githubToken;
+
+  if (!Number.isFinite(concurrency) || concurrency <= 0) {
+    throw new Error(`Invalid --concurrency value: ${options.concurrency}`);
+  }
+  if (!Number.isFinite(batchSize) || batchSize <= 0) {
+    throw new Error(`Invalid --batch-size value: ${options.batchSize}`);
+  }
+  if (!Number.isFinite(deleteDocumentsPageSize) || deleteDocumentsPageSize <= 0) {
+    throw new Error(`Invalid --delete-documents-page-size value: ${options.deleteDocumentsPageSize}`);
+  }
+  if (!Number.isFinite(parseConcurrency) || parseConcurrency <= 0) {
+    throw new Error(`Invalid --parse-concurrency value: ${options.parseConcurrency}`);
+  }
+
+  let languages = options.languages ?? appConfig.languages;
+  if (languages !== undefined) {
+    const languageNames = parseLanguageNames(languages);
+    if (languageNames.length === 0) {
+      throw new Error(
+        'No valid languages were provided via SCSI_LANGUAGES/--languages. ' +
+          'Update the value to include at least one supported language.'
+      );
+    }
+    languages = languageNames.join(',');
+  }
   const isSingleRepo = repoArgs.length === 1;
   const failedRepos: string[] = [];
 
   for (let i = 0; i < repoArgs.length; i++) {
     const repoArg = repoArgs[i];
-    const config = parseRepoArg(repoArg, options.token, options.branch);
+    const config = parseRepoArg(repoArg, options.branch);
     const isFirstRepo = i === 0;
     const shouldWatch = options.watch && isFirstRepo;
 
@@ -236,7 +263,7 @@ async function indexRepos(
       }
 
       try {
-        await ensureRepoCloned(repoUrl, config.repoPath, config.token);
+        await ensureRepoCloned(repoUrl, config.repoPath, githubToken);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Clone failed';
         logger.error(`Failed to clone ${config.repoName}.`, { error: errorMessage });
@@ -261,7 +288,7 @@ async function indexRepos(
     // Step 3: Pull if requested
     if (options.pull) {
       try {
-        await pullRepo(config.repoPath, config.branch, config.token);
+        await pullRepo(config.repoPath, config.branch, githubToken);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Pull failed';
         logger.error(`Failed to pull ${config.repoName}.`, { error: errorMessage });
@@ -291,12 +318,24 @@ async function indexRepos(
 
     const queueDir = path.join(appConfig.queueBaseDir, config.repoName);
 
-    const indexOptions = {
+    const producerOptions = {
       queueDir,
       elasticsearchIndex: config.indexName,
-      token: config.token,
       repoName: config.repoName,
       branch: gitBranch,
+      parseConcurrency,
+      languages,
+    };
+    const incrementalOptions = {
+      ...producerOptions,
+      deleteDocumentsPageSize,
+    };
+    const workerOptions = {
+      queueDir,
+      elasticsearchIndex: config.indexName,
+      repoName: config.repoName,
+      branch: gitBranch,
+      batchSize,
     };
 
     try {
@@ -311,7 +350,7 @@ async function indexRepos(
       if (options.clean) {
         // Full clean reindex
         logger.info(`Running clean reindex for ${config.repoName}...`);
-        await indexRepo(config.repoPath, true, indexOptions);
+        await indexRepo(config.repoPath, true, producerOptions);
       } else if (hasQueueItems(config.repoName)) {
         // Queue has items - check if enqueue was completed
         const queueDbPath = path.join(appConfig.queueBaseDir, config.repoName, 'queue.db');
@@ -330,7 +369,7 @@ async function indexRepos(
           logger.info(`Queue has pending items but enqueue was not completed for ${config.repoName}.`);
           logger.info(`Clearing partial queue and re-enqueueing from scratch...`);
           await queue.clear();
-          await indexRepo(config.repoPath, false, indexOptions);
+          await indexRepo(config.repoPath, false, producerOptions);
         } else {
           // Normal resume - enqueue completed, just process the queue
           logger.info(`Queue has pending items for ${config.repoName}. Resuming...`);
@@ -341,11 +380,11 @@ async function indexRepos(
         if (lastCommitHashAtStart) {
           // Previous index exists - do incremental
           logger.info(`Running incremental index for ${config.repoName}...`);
-          await incrementalIndex(config.repoPath, indexOptions);
+          await incrementalIndex(config.repoPath, incrementalOptions);
         } else {
           // No previous index - do full index
           logger.info(`No previous index found for ${config.repoName}. Running full index...`);
-          await indexRepo(config.repoPath, false, indexOptions);
+          await indexRepo(config.repoPath, false, producerOptions);
         }
       }
 
@@ -356,7 +395,7 @@ async function indexRepos(
       } else {
         logger.info(`Running worker for ${config.repoName} with concurrency ${concurrency}...`);
       }
-      await worker(concurrency, shouldWatch, indexOptions);
+      await worker(concurrency, shouldWatch, workerOptions);
 
       if (!shouldWatch) {
         // Step 7: If we resumed an existing queue, ensure we catch up to current HEAD before
@@ -397,8 +436,8 @@ async function indexRepos(
             logger.info(
               `Detected HEAD advanced since last indexed commit (${baselineCommit} -> ${currentHead}). Running incremental catch-up...`
             );
-            await incrementalIndex(config.repoPath, indexOptions);
-            await worker(concurrency, false, indexOptions);
+            await incrementalIndex(config.repoPath, incrementalOptions);
+            await worker(concurrency, false, workerOptions);
           }
         }
 
@@ -438,15 +477,35 @@ async function indexRepos(
 
 export const indexCommand = new Command('index')
   .description('Index one or more repositories')
-  .argument(
-    '[repos...]',
-    'Repository names, paths, or URLs (format: repo[:index]). Can also use REPOSITORIES_TO_INDEX env var.'
-  )
+  .argument('[repos...]', 'Repository names, paths, or URLs (format: repo[:index]).')
   .addOption(new Option('--clean', 'Delete index and reindex all files (full rebuild)'))
   .addOption(new Option('--pull', 'Git pull before indexing'))
+  .addOption(
+    new Option(
+      '--github-token <token>',
+      'GitHub token for cloning/pulling private repositories (overrides SCSI_GITHUB_TOKEN)'
+    )
+  )
   .addOption(new Option('--watch', 'Keep worker running after processing queue'))
-  .addOption(new Option('--concurrency <number>', 'Number of parallel workers').default('1'))
-  .addOption(new Option('--token <token>', 'GitHub token for private repositories'))
+  .addOption(new Option('--concurrency <number>', 'Number of parallel Elasticsearch indexing workers').default('2'))
+  .addOption(new Option('--batch-size <number>', 'Number of chunks per Elasticsearch bulk request').default('100'))
+  .addOption(
+    new Option(
+      '--delete-documents-page-size <number>',
+      'PIT pagination size for incremental deletion scans (locations index)'
+    ).default('500')
+  )
+  .addOption(
+    new Option('--parse-concurrency <number>', 'Maximum parallel file parsing jobs').default(
+      `${DEFAULT_PARSE_CONCURRENCY}`
+    )
+  )
+  .addOption(
+    new Option(
+      '--languages <names>',
+      'Comma-separated list of languages to index (default: SCSI_LANGUAGES if set, otherwise all languages)'
+    )
+  )
   .addOption(new Option('--branch <branch>', 'Branch name for logging/metadata (default: auto-detect)'))
   .action(async (repos, options) => {
     try {

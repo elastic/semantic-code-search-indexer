@@ -165,10 +165,10 @@ export class LanguageParser {
   private languages: Map<string, LanguageConfiguration>;
   public fileSuffixMap: Map<string, LanguageConfiguration>;
 
-  constructor() {
+  constructor(languages?: string) {
     this.languages = new Map();
     this.fileSuffixMap = new Map();
-    const languageNames = parseLanguageNames(process.env.SEMANTIC_CODE_INDEXER_LANGUAGES);
+    const languageNames = parseLanguageNames(languages);
     for (const name of languageNames) {
       const config = languageConfigurations[name];
       this.languages.set(config.name, config);
@@ -521,7 +521,7 @@ export class LanguageParser {
   /**
    * Parses Markdown files by splitting content into chunks based on configured delimiter.
    * Each chunk represents a logical section separated by the delimiter.
-   * The delimiter can be configured via MARKDOWN_CHUNK_DELIMITER environment variable.
+   * The delimiter can be configured via SCSI_MARKDOWN_CHUNK_DELIMITER environment variable.
    *
    * @param filePath - Absolute path to the file
    * @param gitBranch - Git branch name

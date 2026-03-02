@@ -49,12 +49,16 @@ describe('Integration Test - semantic_text retrievability via semantic queries',
   });
 
   it('should return hits for semantic queries when semantic_text is enabled and docs are created via index', async () => {
-    // Enable semantic_text mapping (integration env defaults to DISABLE_SEMANTIC_TEXT=true).
-    delete process.env.DISABLE_SEMANTIC_TEXT;
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript,markdown';
+    // Enable semantic_text mapping (integration env defaults to SCSI_DISABLE_SEMANTIC_TEXT=true).
+    delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
 
-    await setup(testRepoUrl, {});
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, concurrency: '2' });
+    await setup(testRepoUrl);
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], {
+      watch: false,
+      concurrency: '2',
+      batchSize: '10',
+      languages: 'typescript,markdown',
+    });
 
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });

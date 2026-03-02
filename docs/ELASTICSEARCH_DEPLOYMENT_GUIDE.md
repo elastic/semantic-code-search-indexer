@@ -21,10 +21,10 @@ This setup enables two powerful features:
 
 ELSER (Elastic Learned Sparse EncodeR) powers the primary semantic search functionality.
 
-The index mapping uses Elasticsearch’s `semantic_text` field with an `inference_id`. Configure that via `ELASTICSEARCH_INFERENCE_ID` in the indexer.
+The index mapping uses Elasticsearch’s `semantic_text` field with an `inference_id`. Configure that via `SCSI_ES_INFERENCE_ID` in the indexer.
 
 1.  Navigate to the **Dev Tools** console in your Kibana instance.
-2.  Create (or reuse) an inference endpoint ID that resolves to an ELSER sparse embedding endpoint, then set `ELASTICSEARCH_INFERENCE_ID` to that ID.
+2.  Create (or reuse) an inference endpoint ID that resolves to an ELSER sparse embedding endpoint, then set `SCSI_ES_INFERENCE_ID` to that ID.
 
 The exact setup depends on your Elasticsearch deployment and version. The indexer repository includes an example of creating an inference endpoint for local testing in `scripts/setup-integration-tests.sh` (see how it configures an endpoint like `elser-inference-test` via `/_inference/sparse_embedding/...`).
 
@@ -50,10 +50,10 @@ For the planned `find_similar_code` feature, we need a dense vector model that i
 
     ```bash
     eland_import_hub_model \
-      --cloud-id $ELASTICSEARCH_CLOUD_ID \
+      --cloud-id $SCSI_ES_CLOUD_ID \
       --hub-model-id microsoft/codebert-base \
       --task-type text_embedding \
-      --es-api-key $ELASTICSEARCH_API_KEY \
+      --es-api-key $SCSI_ES_API_KEY \
       --start
     ```
     This process will create a new model in Elasticsearch with the ID `microsoft__codebert-base`.

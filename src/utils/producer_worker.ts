@@ -10,10 +10,13 @@ import { LanguageParser, type ParseResult } from './parser';
 import { createLogger } from './logger';
 import { MESSAGE_STATUS_SUCCESS, MESSAGE_STATUS_FAILURE } from './constants';
 
-const { repoName, gitBranch: repoBranch } = workerData;
-const logger = createLogger({ name: repoName, branch: repoBranch });
+const workerContext = workerData as { repoName?: unknown; gitBranch?: unknown; languages?: unknown };
+const repoName = typeof workerContext.repoName === 'string' ? workerContext.repoName : undefined;
+const repoBranch = typeof workerContext.gitBranch === 'string' ? workerContext.gitBranch : undefined;
+const languages = typeof workerContext.languages === 'string' ? workerContext.languages : undefined;
+const logger = repoName && repoBranch ? createLogger({ name: repoName, branch: repoBranch }) : createLogger();
 
-const languageParser = new LanguageParser();
+const languageParser = new LanguageParser(languages);
 
 parentPort?.on(
   'message',

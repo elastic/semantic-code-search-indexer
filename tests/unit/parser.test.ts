@@ -1,7 +1,6 @@
 import { LanguageParser } from '../../src/utils/parser';
 import { CodeChunk } from '../../src/utils/elasticsearch';
 import path from 'path';
-import { indexingConfig } from '../../src/config';
 import fs from 'fs';
 import os from 'os';
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -31,8 +30,7 @@ describe('LanguageParser', () => {
   let parser: LanguageParser;
 
   beforeAll(() => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = TEST_LANGUAGES;
-    parser = new LanguageParser();
+    parser = new LanguageParser(TEST_LANGUAGES);
   });
 
   const cleanTimestamps = (chunks: CodeChunk[]) => {
@@ -85,8 +83,8 @@ describe('LanguageParser', () => {
     });
 
     it('should parse Markdown with section delimiter (---)', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
+      const originalDelimiter = process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+      process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = '\\n---\\n';
 
       try {
         const filePath = path.resolve(__dirname, '../fixtures/markdown_sections.md');
@@ -112,13 +110,17 @@ describe('LanguageParser', () => {
         expect(result.chunks[1].startLine).toBeGreaterThan(result.chunks[0].endLine);
         expect(result.chunks[2].startLine).toBeGreaterThan(result.chunks[1].endLine);
       } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+        if (originalDelimiter === undefined) {
+          delete process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+        } else {
+          process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = originalDelimiter;
+        }
       }
     });
 
     it('should parse Markdown with custom delimiter (===)', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n===\\n';
+      const originalDelimiter = process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+      process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = '\\n===\\n';
 
       try {
         // Create temporary test file
@@ -151,13 +153,17 @@ Final content`;
           fs.unlinkSync(tempFile);
         }
       } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+        if (originalDelimiter === undefined) {
+          delete process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+        } else {
+          process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = originalDelimiter;
+        }
       }
     });
 
     it('should handle markdown with no delimiter matches', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
+      const originalDelimiter = process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+      process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = '\\n---\\n';
 
       try {
         // Use a file without --- delimiters
@@ -168,13 +174,17 @@ Final content`;
         expect(result.chunks.length).toBe(1);
         expect(result.chunks[0].content).toContain('Markdown Fixture');
       } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+        if (originalDelimiter === undefined) {
+          delete process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+        } else {
+          process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = originalDelimiter;
+        }
       }
     });
 
     it('should filter empty chunks when using custom delimiter', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
+      const originalDelimiter = process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+      process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = '\\n---\\n';
 
       try {
         const testContent = `Content 1
@@ -200,7 +210,11 @@ Content 2`;
           fs.unlinkSync(tempFile);
         }
       } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
+        if (originalDelimiter === undefined) {
+          delete process.env.SCSI_MARKDOWN_CHUNK_DELIMITER;
+        } else {
+          process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = originalDelimiter;
+        }
       }
     });
   });
@@ -494,8 +508,8 @@ export -f my_func`;
 
   it('should filter out chunks larger than maxChunkSizeBytes', () => {
     const filePath = path.resolve(__dirname, '../fixtures/large_file.json');
-    const originalMaxChunkSizeBytes = indexingConfig.maxChunkSizeBytes;
-    indexingConfig.maxChunkSizeBytes = 50;
+    const originalMaxChunkSizeBytes = process.env.SCSI_MAX_CHUNK_SIZE_BYTES;
+    process.env.SCSI_MAX_CHUNK_SIZE_BYTES = '50';
 
     try {
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
@@ -505,7 +519,11 @@ export -f my_func`;
       expect(result.chunks.length).toBe(0);
       expect(result.metrics.chunksSkipped).toBe(1);
     } finally {
-      indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
+      if (originalMaxChunkSizeBytes === undefined) {
+        delete process.env.SCSI_MAX_CHUNK_SIZE_BYTES;
+      } else {
+        process.env.SCSI_MAX_CHUNK_SIZE_BYTES = originalMaxChunkSizeBytes;
+      }
     }
   });
 
@@ -553,11 +571,11 @@ export -f my_func`;
 
   describe('Configurable Line-Based Chunking', () => {
     it('parses JSON with configurable chunk size', () => {
-      const originalChunkLines = indexingConfig.defaultChunkLines;
-      const originalOverlapLines = indexingConfig.chunkOverlapLines;
+      const originalChunkLines = process.env.SCSI_DEFAULT_CHUNK_LINES;
+      const originalOverlapLines = process.env.SCSI_CHUNK_OVERLAP_LINES;
 
-      indexingConfig.defaultChunkLines = 10;
-      indexingConfig.chunkOverlapLines = 2;
+      process.env.SCSI_DEFAULT_CHUNK_LINES = '10';
+      process.env.SCSI_CHUNK_OVERLAP_LINES = '2';
 
       try {
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
@@ -576,17 +594,25 @@ export -f my_func`;
           expect(result.chunks[1].startLine).toBe(9); // 10 - 2 + 1 = 9
         }
       } finally {
-        indexingConfig.defaultChunkLines = originalChunkLines;
-        indexingConfig.chunkOverlapLines = originalOverlapLines;
+        if (originalChunkLines === undefined) {
+          delete process.env.SCSI_DEFAULT_CHUNK_LINES;
+        } else {
+          process.env.SCSI_DEFAULT_CHUNK_LINES = originalChunkLines;
+        }
+        if (originalOverlapLines === undefined) {
+          delete process.env.SCSI_CHUNK_OVERLAP_LINES;
+        } else {
+          process.env.SCSI_CHUNK_OVERLAP_LINES = originalOverlapLines;
+        }
       }
     });
 
     it('parses YAML with configurable chunk size', () => {
-      const originalChunkLines = indexingConfig.defaultChunkLines;
-      const originalOverlapLines = indexingConfig.chunkOverlapLines;
+      const originalChunkLines = process.env.SCSI_DEFAULT_CHUNK_LINES;
+      const originalOverlapLines = process.env.SCSI_CHUNK_OVERLAP_LINES;
 
-      indexingConfig.defaultChunkLines = 5;
-      indexingConfig.chunkOverlapLines = 1;
+      process.env.SCSI_DEFAULT_CHUNK_LINES = '5';
+      process.env.SCSI_CHUNK_OVERLAP_LINES = '1';
 
       try {
         const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
@@ -605,18 +631,26 @@ export -f my_func`;
         // Verify document separator is included naturally
         expect(result.chunks[0].content).toContain('---');
       } finally {
-        indexingConfig.defaultChunkLines = originalChunkLines;
-        indexingConfig.chunkOverlapLines = originalOverlapLines;
+        if (originalChunkLines === undefined) {
+          delete process.env.SCSI_DEFAULT_CHUNK_LINES;
+        } else {
+          process.env.SCSI_DEFAULT_CHUNK_LINES = originalChunkLines;
+        }
+        if (originalOverlapLines === undefined) {
+          delete process.env.SCSI_CHUNK_OVERLAP_LINES;
+        } else {
+          process.env.SCSI_CHUNK_OVERLAP_LINES = originalOverlapLines;
+        }
       }
     });
 
     it('skips oversized JSON chunks', () => {
-      const originalMaxChunkSize = indexingConfig.maxChunkSizeBytes;
-      const originalChunkLines = indexingConfig.defaultChunkLines;
+      const originalMaxChunkSize = process.env.SCSI_MAX_CHUNK_SIZE_BYTES;
+      const originalChunkLines = process.env.SCSI_DEFAULT_CHUNK_LINES;
 
       // Set very small chunk size to force skipping
-      indexingConfig.maxChunkSizeBytes = 10;
-      indexingConfig.defaultChunkLines = 15;
+      process.env.SCSI_MAX_CHUNK_SIZE_BYTES = '10';
+      process.env.SCSI_DEFAULT_CHUNK_LINES = '15';
 
       try {
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
@@ -626,8 +660,16 @@ export -f my_func`;
         expect(result.chunks.length).toBe(0);
         expect(result.metrics.chunksSkipped).toBeGreaterThan(0);
       } finally {
-        indexingConfig.maxChunkSizeBytes = originalMaxChunkSize;
-        indexingConfig.defaultChunkLines = originalChunkLines;
+        if (originalMaxChunkSize === undefined) {
+          delete process.env.SCSI_MAX_CHUNK_SIZE_BYTES;
+        } else {
+          process.env.SCSI_MAX_CHUNK_SIZE_BYTES = originalMaxChunkSize;
+        }
+        if (originalChunkLines === undefined) {
+          delete process.env.SCSI_DEFAULT_CHUNK_LINES;
+        } else {
+          process.env.SCSI_DEFAULT_CHUNK_LINES = originalChunkLines;
+        }
       }
     });
 

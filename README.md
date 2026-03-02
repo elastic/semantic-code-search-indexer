@@ -1,3 +1,17 @@
+> [!WARNING]
+> **Unstable `main`: do not track at HEAD.**
+>
+> Until we settle on a stable release/versioning process with backwards-compatibility guarantees,
+> **`main` may contain breaking changes at any moment** (CLI flags, env vars, index mappings, queue schema, etc.).
+>
+> If you deploy this, **pin to a specific commit SHA** and upgrade intentionally.
+>
+> If you want an older, known-good version from **October 2025 (pre–most breaking changes)** that is compatible with
+> the current MCP Docker image, use this pairing:
+>
+> - **Indexer**: commit `2fe4a9a4fefe84252a9c5ffe95875162bdb79cd0` (on `main`)
+> - **MCP**: `simianhacker/semantic-code-search-mcp-server:latest`
+
 # Semantic Code Search Indexer
 
 This project is a high-performance code indexer designed to provide deep, contextual code intelligence for large codebases. It combines semantic search with rich metadata extraction to power advanced AI-driven development tools. The primary use case is to run on a schedule (e.g., a cron job) to keep an Elasticsearch index up-to-date with a git repository.
@@ -12,13 +26,13 @@ This project is a high-performance code indexer designed to provide deep, contex
 
 ---
 
-## Setup and Installation
+## Local setup (recommended)
 
 ### Prerequisites
 
 - Node.js v20+ (check with `node -v`)
 - Elasticsearch 8.0+ with **ELSER inference available** (critical - semantic search requires this)
-- Elasticsearch credentials (username/password or API key)
+- Elasticsearch credentials (API key recommended)
 
 ### Quick Start
 
@@ -31,19 +45,68 @@ npm run build
 
 # 3. Configure Elasticsearch connection
 cp .env.example .env
-# Edit .env with your Elasticsearch URL, username, and password
+# Edit .env with your Elasticsearch connection details:
+# - Recommended (Elastic Cloud): set SCSI_ES_CLOUD_ID + SCSI_ES_API_KEY
+# - Self-managed: set SCSI_ES_ENDPOINT + credentials (username/password or API key)
 
-# 4. Ensure ELSER is available in your cluster
-# - If your cluster uses an inference endpoint, set ELASTICSEARCH_INFERENCE_ID to that endpoint id
-# - If you're using Elastic Cloud / Elastic Inference Service, ensure the endpoint is deployed and healthy
+# 4. Recommended: Elastic Cloud + EIS (best default performance)
+# - Create an Elastic Cloud deployment/project
+# - Copy its Cloud ID into SCSI_ES_CLOUD_ID
+# - Create an API key and set it as SCSI_ES_API_KEY
+# - Set SCSI_ES_INFERENCE_ID=.elser-2-elastic (EIS-backed ELSER endpoint)
 
 # 5. (Optional) Add .indexerignore to your repository
 # Copy .indexerignore.example to your repo as .indexerignore to exclude files
 # This reduces indexing time and improves relevance by excluding tests, build artifacts, etc.
 
 # 6. Index your repository
-npm run index -- /path/to/your/repo --clean --watch --concurrency 8
+npm run index -- /path/to/your/repo --clean
 ```
+
+---
+
+## Docker (optional)
+
+The indexer is also published as a Docker image:
+
+- `docker.elastic.co/observability-ci/scsi`
+
+**macOS note:** Docker Desktop runs Linux containers inside a VM. If you index large repos, you may need to increase
+CPU/RAM limits in Docker Desktop settings; bind-mounted filesystem performance can also be significantly slower than
+running locally or on a Linux VM/server.
+
+**Tag guidance (important):**
+
+- Prefer **pinning to a SHA tag** in the form `sha-<7-char-git-sha>` for deployments.
+- Do not rely on floating tags for automation.
+
+**Quick start (index a remote repo URL):**
+
+```bash
+SCSI_SHA="<7-char-git-sha>"
+SCSI_IMAGE="docker.elastic.co/observability-ci/scsi:sha-${SCSI_SHA}"
+
+mkdir -p .repos .queues
+cp .env.example .env
+
+docker run --rm \
+  --env-file .env \
+  -v "$PWD/.repos:/app/.repos" \
+  -v "$PWD/.queues:/app/.queues" \
+  "$SCSI_IMAGE" index https://github.com/elastic/kibana.git --pull
+```
+
+**Notes:**
+
+- The bind mounts persist clones (`./.repos`) and queue state (`./.queues`) across runs.
+- For private repos: set `SCSI_GITHUB_TOKEN` (or pass `--github-token` to override for one run).
+
+### MCP server (separate repository)
+
+The MCP server should be accessed **only via Docker** (stability + ease). See the MCP server repository for the
+recommended Docker image/tag and configuration:
+
+- `elastic/semantic-code-search-mcp-server`: https://github.com/elastic/semantic-code-search-mcp-server
 
 ### Excluding Files with `.indexerignore`
 
@@ -68,15 +131,21 @@ Clones a target repository into the `./.repos/` directory to prepare it for inde
 **Arguments:**
 
 - `<repo_url>` - The URL of the git repository to clone
-- `--token <token>` - GitHub Personal Access Token for private repositories
+
+**Options:**
+
+- `--github-token <token>` - GitHub token for cloning/pulling private repositories (overrides `SCSI_GITHUB_TOKEN`)
 
 **Examples:**
 
 ```bash
 npm run setup -- https://github.com/elastic/kibana.git
 
-# With a token for a private repository
-npm run setup -- https://github.com/my-org/my-private-repo.git --token ghp_YourTokenHere
+# Private repository (requires SCSI_GITHUB_TOKEN)
+SCSI_GITHUB_TOKEN=ghp_YourTokenHere npm run setup -- https://github.com/my-org/my-private-repo.git
+
+# Private repository (token override for this run)
+npm run setup -- https://github.com/my-org/my-private-repo.git --github-token ghp_YourTokenHere
 ```
 
 ### `npm run index`
@@ -85,13 +154,19 @@ Indexes one or more repositories by scanning the codebase, enqueuing code chunks
 
 **Arguments:**
 
-- `[repos...]` - One or more repository paths, names, or URLs (format: `repo[:index]`). Optional if `REPOSITORIES_TO_INDEX` env var is set.
+- `[repos...]` - One or more repository paths, names, or URLs (format: `repo[:index]`).
 - `--clean` - Delete existing Elasticsearch index before starting (full rebuild)
 - `--pull` - Git pull before indexing
+- `--github-token <token>` - GitHub token for cloning/pulling private repositories (overrides `SCSI_GITHUB_TOKEN`)
 - `--watch` - Keep indexer running after processing queue (for continuous indexing)
-- `--concurrency <number>` - Number of parallel workers (default: 1, recommended: CPU core count)
-- `--token <token>` - GitHub token for private repositories
+- `--concurrency <number>` - Number of parallel Elasticsearch indexing workers (default: 2)
+- `--batch-size <number>` - Number of chunks per Elasticsearch bulk request (default: 100)
+- `--delete-documents-page-size <number>` - PIT pagination size for incremental deletion scans (default: 500)
+- `--parse-concurrency <number>` - Maximum parallel file parsing jobs (default: half your CPU cores)
+- `--languages <names>` - Comma-separated list of languages to index (default: `SCSI_LANGUAGES` if set, otherwise all languages)
 - `--branch <branch>` - Branch name for logging/metadata (default: auto-detect)
+
+**Important:** The default values for `--concurrency`, `--batch-size`, and `--parse-concurrency` are intentionally conservative. They are chosen to reduce throttling, timeouts, and indexing failures across typical environments (local and remote). Only change them if you understand the trade-offs and have a measured reason to tune.
 
 **Examples:**
 
@@ -99,11 +174,8 @@ Indexes one or more repositories by scanning the codebase, enqueuing code chunks
 # Basic usage - index a local repository
 npm run index -- /path/to/repo
 
-# Full clean reindex with parallel workers
-npm run index -- /path/to/repo --clean --concurrency 8
-
 # Index with watch mode (keeps running for continuous updates)
-npm run index -- /path/to/repo --watch --concurrency 8
+npm run index -- /path/to/repo --watch
 
 # Index a remote repository (clones automatically)
 npm run index -- https://github.com/elastic/kibana.git --clean
@@ -112,17 +184,16 @@ npm run index -- https://github.com/elastic/kibana.git --clean
 npm run index -- /path/to/repo:my-custom-index
 
 # Index multiple repositories sequentially
-npm run index -- /path/to/repo1 /path/to/repo2 --concurrency 4
+npm run index -- /path/to/repo1 /path/to/repo2
 
 # Incremental update (only changed files)
 npm run index -- /path/to/repo --pull
 
-# Private repository with token
-npm run index -- https://github.com/org/private-repo.git --token ghp_YourToken
+# Private repository (requires SCSI_GITHUB_TOKEN)
+SCSI_GITHUB_TOKEN=ghp_YourTokenHere npm run index -- https://github.com/org/private-repo.git --pull
 
-# Using REPOSITORIES_TO_INDEX env var (backward compatibility)
-export REPOSITORIES_TO_INDEX="/path/to/repo1 /path/to/repo2"
-npm run index -- --concurrency 4
+# Private repository (token override for this run)
+npm run index -- https://github.com/org/private-repo.git --pull --github-token ghp_YourTokenHere
 ```
 
 **How It Works:**
@@ -190,34 +261,14 @@ The recommended and most secure method is to use a **fine-grained** PAT with rea
 
 ### Providing the Token
 
-You can provide the token in two ways:
-
-1.  **As a command-line argument (for `setup`):**
-    Use the `--token` option when running the `setup` command.
-
-    ```bash
-    npm run setup -- <private-repo-url> --token <your-token>
-    ```
-
-2.  **As a command-line argument (for `index`):**
-    Use the `--token` option when running the `index` command.
-
-    ```bash
-    npm run index -- <repo-url> --token <your-token>
-    ```
-
-    You can also set a global `GITHUB_TOKEN` in your `.env` file as a fallback.
+Set `SCSI_GITHUB_TOKEN` in your environment (or in a `.env` file) before running `setup` or `index`:
 
     ```
     # .env file
-    GITHUB_TOKEN=ghp_YourGlobalToken
+    SCSI_GITHUB_TOKEN=ghp_YourGlobalToken
     ```
 
----
-
-## Migrations
-
-**⚠️ Upgrading from a previous version?** Check the [scripts/migrations/](./scripts/migrations/) folder for migration guides organized by date.
+You can also pass `--github-token` to `setup` or `index` to override `SCSI_GITHUB_TOKEN` for a single invocation.
 
 ---
 
@@ -308,7 +359,7 @@ npm run queue:list-failed -- --repo-name=elasticsearch-js
 
 This indexer is designed to work with a Model Context Protocol (MCP) server, which exposes the indexed data through a standardized set of tools for AI coding agents. The official MCP server for this project is located in a separate repository.
 
-For information on how to set up and run the server, please visit:
+The MCP server should be accessed **only via Docker** (stability + ease). For information on how to set it up and run it, please visit:
 [https://github.com/elastic/semantic-code-search-mcp-server](https://github.com/elastic/semantic-code-search-mcp-server)
 
 ---
@@ -325,72 +376,77 @@ Configuration is managed via environment variables in a `.env` file.
 
 ### Elasticsearch indices created
 
-Given a base index name (from `ELASTICSEARCH_INDEX` or CLI `repo[:index]`), the indexer creates and maintains:
+Given a base index name (from CLI `repo[:index]`), the indexer creates and maintains:
 
 - `<index>`: the primary chunk index (semantic search + metadata)
 - `<index>_settings`: small settings/state index (e.g. last indexed commit per branch)
 - `<index>_locations`: dedicated per-file location index (one document per chunk occurrence)
 
-| Variable                              | Description                                                                                                                                                                                 | Default                                              |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `ELASTICSEARCH_ENDPOINT`              | The endpoint URL for your Elasticsearch instance.                                                                                                                                           |                                                      |
-| `ELASTICSEARCH_CLOUD_ID`              | The Cloud ID for your Elastic Cloud instance.                                                                                                                                               |                                                      |
-| `ELASTICSEARCH_USER`                  | The username for Elasticsearch authentication.                                                                                                                                              |                                                      |
-| `ELASTICSEARCH_PASSWORD`              | The password for Elasticsearch authentication.                                                                                                                                              |                                                      |
-| `ELASTICSEARCH_API_KEY`               | An API key for Elasticsearch authentication.                                                                                                                                                |                                                      |
-| `ELASTICSEARCH_INDEX`                 | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts.                                                                                        | `code-chunks`                                        |
-| `ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility.                                              | `.elser-2-elasticsearch`                             |
-| `OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                                                               | `false`                                              |
-| `OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`).                                                                                                                  | Same as `OTEL_LOGGING_ENABLED`                       |
-| `OTEL_SERVICE_NAME`                   | Service name for OpenTelemetry logs and metrics.                                                                                                                                            | `semantic-code-search-indexer`                       |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`         | OpenTelemetry collector endpoint for both logs and metrics.                                                                                                                                 | `http://localhost:4318`                              |
-| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | Logs-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT).                                                                                                                        |                                                      |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | Metrics-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT).                                                                                                                     |                                                      |
-| `OTEL_EXPORTER_OTLP_HEADERS`          | Headers for OTLP exporter (e.g., `authorization=Bearer token`).                                                                                                                             |                                                      |
-| `OTEL_METRIC_EXPORT_INTERVAL_MILLIS`  | Interval in milliseconds between metric exports.                                                                                                                                            | `60000` (60 seconds)                                 |
-| `QUEUE_BASE_DIR`                      | The base directory for all repository queue databases. Each repository gets its own SQLite queue at `QUEUE_BASE_DIR/<repo-name>/queue.db`.                                                  | `.queues`                                            |
-| `REPOSITORIES_TO_INDEX`               | **Optional**: Space-separated list of repositories to index. Used as fallback when no repositories are provided as CLI arguments. Format: `"repo1 repo2"` or `"repo1:index1 repo2:index2"`. |                                                      |
-| `BATCH_SIZE`                          | The number of chunks to index in a single bulk request.                                                                                                                                     | `500`                                                |
-| `MAX_QUEUE_SIZE`                      | The maximum number of items to keep in the queue.                                                                                                                                           | `1000`                                               |
-| `CPU_CORES`                           | The number of CPU cores to use for file parsing.                                                                                                                                            | Half of the available cores                          |
-| `PRODUCER_WORKER_POOL_SIZE`           | Incremental parsing worker-pool size (reuses worker threads). Clamped to `CPU_CORES`.                                                                                                       | Half of the available cores                          |
-| `MAX_CHUNK_SIZE_BYTES`                | The maximum size of a code chunk in bytes.                                                                                                                                                  | `1000000`                                            |
-| `DEFAULT_CHUNK_LINES`                 | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs).                                                                                                     | `15`                                                 |
-| `CHUNK_OVERLAP_LINES`                 | Number of overlapping lines between chunks in line-based parsing.                                                                                                                           | `3`                                                  |
-| `MARKDOWN_CHUNK_DELIMITER`            | Regular expression pattern for splitting markdown files into chunks.                                                                                                                        | `\n\s*\n`                                            |
-| `ENABLE_DENSE_VECTORS`                | Whether to enable dense vectors for code similarity search.                                                                                                                                 | `false`                                              |
-| `AGGREGATION_LANE_COUNT`              | Parallelism for writes to aggregated documents (higher = more throughput, higher ES load).                                                                                                  | `8`                                                  |
-| `DELETE_DOCUMENTS_PAGE_SIZE`          | PIT pagination size for batched deletion of file-path locations during incremental updates.                                                                                                 | `500`                                                |
-| `GIT_PATH`                            | The path to the `git` executable.                                                                                                                                                           | `git`                                                |
-| `NODE_ENV`                            | The node environment.                                                                                                                                                                       | `development`                                        |
-| `SEMANTIC_CODE_INDEXER_LANGUAGES`     | A comma-separated list of languages to index.                                                                                                                                               | `typescript,javascript,markdown,yaml,java,go,python` |
+| Variable                                   | Description                                                                                                                                     | Default                             |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `SCSI_ES_ENDPOINT`                         | The endpoint URL for your Elasticsearch instance.                                                                                               |                                     |
+| `SCSI_ES_CLOUD_ID`                         | The Cloud ID for your Elastic Cloud instance.                                                                                                   |                                     |
+| `SCSI_ES_USERNAME`                         | The username for Elasticsearch authentication.                                                                                                  |                                     |
+| `SCSI_ES_PASSWORD`                         | The password for Elasticsearch authentication.                                                                                                  |                                     |
+| `SCSI_ES_API_KEY`                          | An API key for Elasticsearch authentication.                                                                                                    |                                     |
+| `SCSI_ES_INFERENCE_ID`                     | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
+| `SCSI_ES_REQUEST_TIMEOUT`                  | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
+| `SCSI_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable semantic text capabilities (useful for tests or deployments without ML nodes).                                         | `false`                             |
+| `SCSI_OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                   | `false`                             |
+| `SCSI_OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `SCSI_OTEL_LOGGING_ENABLED`).                                                                 | Same as `SCSI_OTEL_LOGGING_ENABLED` |
+| `SCSI_OTEL_LOG_LEVEL`                      | Minimum log level for OpenTelemetry diagnostics (`debug`, `info`, `warn`, `error`).                                                             |                                     |
+| `SCSI_OTEL_RESOURCE_ATTRIBUTES`            | Resource attributes to attach to OpenTelemetry data (e.g. `deployment.environment=staging,version=1.0.0`).                                      |                                     |
+| `SCSI_OTEL_SERVICE_NAME`                   | Service name for OpenTelemetry logs and metrics.                                                                                                | `semantic-code-search-indexer`      |
+| `SCSI_OTEL_EXPORTER_OTLP_ENDPOINT`         | OpenTelemetry collector endpoint for both logs and metrics.                                                                                     | `http://localhost:4318`             |
+| `SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | Logs-specific OTLP endpoint (overrides SCSI_OTEL_EXPORTER_OTLP_ENDPOINT).                                                                       |                                     |
+| `SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | Metrics-specific OTLP endpoint (overrides SCSI_OTEL_EXPORTER_OTLP_ENDPOINT).                                                                    |                                     |
+| `SCSI_OTEL_EXPORTER_OTLP_HEADERS`          | Headers for OTLP exporter (e.g., `authorization=Bearer token`).                                                                                 |                                     |
+| `SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS`  | Interval in milliseconds between metric exports.                                                                                                | `60000` (60 seconds)                |
+| `SCSI_QUEUE_BASE_DIR`                      | The base directory for all repository queue databases. Each repository gets its own SQLite queue at `SCSI_QUEUE_BASE_DIR/<repo-name>/queue.db`. | `.queues`                           |
+| `SCSI_GITHUB_TOKEN`                        | GitHub token used for cloning/pulling private repositories.                                                                                     |                                     |
+| `SCSI_LANGUAGES`                           | Optional comma-separated default list of languages to index (used when `--languages` is not provided).                                          | All supported languages             |
+| `SCSI_MAX_CHUNK_SIZE_BYTES`                | The maximum size of a code chunk in bytes.                                                                                                      | `1000000`                           |
+| `SCSI_DEFAULT_CHUNK_LINES`                 | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs).                                                         | `15`                                |
+| `SCSI_CHUNK_OVERLAP_LINES`                 | Number of overlapping lines between chunks in line-based parsing.                                                                               | `3`                                 |
+| `SCSI_MARKDOWN_CHUNK_DELIMITER`            | Regular expression pattern for splitting markdown files into chunks.                                                                            | `\n\s*\n`                           |
+| `SCSI_ENABLE_DENSE_VECTORS`                | Whether to enable dense vectors for code similarity search.                                                                                     | `false`                             |
+| `SCSI_FORCE_LOGGING`                       | Set to `true` to force console logging output even when `NODE_ENV=test`.                                                                        | `false`                             |
+| `SCSI_TEST_INDEXING_THROW_ON_FILEPATH`     | (Testing only) File path to simulate an indexing failure on a specific chunk.                                                                   |                                     |
+| `SCSI_TEST_INDEXING_DELAY_MS`              | (Testing only) Delay to add before indexing chunks in milliseconds.                                                                             | `0`                                 |
+| `NODE_ENV`                                 | The node environment used for selecting `.env` vs `.env.test`.                                                                                  | `development`                       |
 
 #### Elastic Inference Service (EIS) Rate Limits
 
+`semantic_text` relies on an inference endpoint (`SCSI_ES_INFERENCE_ID`) to generate embeddings/expansions at ingest time. There are two common deployment patterns:
+
+- **EIS (`.elser-2-elastic`)**: inference runs on the Elastic Inference Service (managed, GPU-backed). It does **not** consume your cluster’s ML node resources.
+- **ML nodes (`.elser-2-elasticsearch`)**: inference runs on your Elasticsearch deployment’s ML nodes. Throughput depends on how much CPU/RAM you provision for ML.
+
+To avoid silently changing behavior across deployments, this indexer does **not** pick a default inference endpoint. If `semantic_text` is enabled (the default), you **must** set `SCSI_ES_INFERENCE_ID`.
+
 When using an Elastic-hosted inference endpoint, your deployment may be backed by the Elastic Inference Service (EIS), which is GPU-backed and has rate limits:
 
-- **Rate limits**: 6,000 documents/minute OR 6,000,000 tokens/minute (whichever is reached first)
-- **Recommended settings**: `BATCH_SIZE=14` with concurrency of `2`
+- **Rate limits**: 6,000 requests/minute OR 6,000,000 tokens/minute (whichever is reached first)
 - **Important consideration**: Chunks larger than 512K may generate additional chunks in ELSER, potentially causing some batches to be rejected
-- **Monitoring requirement**: Setting up an OTEL Collector is critical to monitor logs for errors when using these settings
+- **Monitoring requirement**: Setting up an OpenTelemetry Collector is critical to monitor logs for errors when using these settings
 
-These settings help avoid rate limit issues while maintaining good indexing throughput. Monitor your deployment logs closely when operating near these limits.
+These limits are enforced continuously. Monitor your deployment logs closely when operating near these limits.
 
 ### Chunking Strategy by File Type
 
 The indexer uses different chunking strategies depending on file type to optimize for both semantic search quality and LLM context window limits:
 
-- **JSON**: Always uses line-based chunking with configurable chunk size (`DEFAULT_CHUNK_LINES`) and overlap (`CHUNK_OVERLAP_LINES`). This prevents large JSON values from creating oversized chunks.
+- **JSON**: Always uses line-based chunking with configurable chunk size (`SCSI_DEFAULT_CHUNK_LINES`) and overlap (`SCSI_CHUNK_OVERLAP_LINES`). This prevents large JSON values from creating oversized chunks.
 - **YAML**: Always uses line-based chunking with the same configuration. This provides more context than single-line chunks while maintaining manageable sizes.
 - **Text files**: Uses paragraph-based chunking (splitting on double newlines) when paragraphs are detected. Falls back to line-based chunking for continuous text without paragraph breaks.
-- **Markdown**: Uses configurable delimiter-based chunking to preserve logical document structure. See `MARKDOWN_CHUNK_DELIMITER` below for customization options.
+- **Markdown**: Uses configurable delimiter-based chunking to preserve logical document structure. See `SCSI_MARKDOWN_CHUNK_DELIMITER` below for customization options.
 - **Code files** (TypeScript, JavaScript, Python, Java, Go, etc.): Uses tree-sitter based parsing to extract functions, classes, and other semantic units.
 
 ### Markdown Chunking
 
-The markdown chunking behavior can be customized via the `MARKDOWN_CHUNK_DELIMITER` environment variable:
+The markdown chunking behavior can be customized via the `SCSI_MARKDOWN_CHUNK_DELIMITER` environment variable:
 
-- **`MARKDOWN_CHUNK_DELIMITER`**: Regular expression pattern for splitting markdown files into chunks
+- **`SCSI_MARKDOWN_CHUNK_DELIMITER`**: Regular expression pattern for splitting markdown files into chunks
   - **Default**: `\n\s*\n` (splits by paragraphs - double newlines)
   - **Example for section separators**: `\n---\n`
   - **Example for custom delimiter**: `\n===\n`
@@ -404,7 +460,7 @@ The markdown chunking behavior can be customized via the `MARKDOWN_CHUNK_DELIMIT
   **Example**:
 
   ```bash
-  export MARKDOWN_CHUNK_DELIMITER='\n---\n'
+  export SCSI_MARKDOWN_CHUNK_DELIMITER='\n---\n'
   npm run index
   ```
 
@@ -428,30 +484,30 @@ By default, the indexer outputs text-format logs to the console (except when `NO
 To enable OpenTelemetry log and metrics export:
 
 ```bash
-OTEL_LOGGING_ENABLED=true
-OTEL_METRICS_ENABLED=true  # Optional, defaults to same as OTEL_LOGGING_ENABLED
-OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
-OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+SCSI_OTEL_LOGGING_ENABLED=true
+SCSI_OTEL_METRICS_ENABLED=true  # Optional, defaults to same as SCSI_OTEL_LOGGING_ENABLED
+SCSI_OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
+SCSI_OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 ```
 
 For authentication to the collector:
 
 ```bash
-OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
+SCSI_OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
 ```
 
 You can also configure separate endpoints for logs and metrics:
 
 ```bash
-OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
-OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
+SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
+SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
 ```
 
 ### Resource Attributes
 
 The following resource attributes are automatically attached to all logs and metrics:
 
-- `service.name`: Service name (from `OTEL_SERVICE_NAME`)
+- `service.name`: Service name (from `SCSI_OTEL_SERVICE_NAME`)
 - `service.version`: Version from package.json
 - `deployment.environment`: From `NODE_ENV`
 - `host.name`, `host.arch`, `host.type`, `os.type`: Host information
@@ -535,12 +591,12 @@ A complete example collector configuration is provided in [`docs/otel-collector-
 To use the example configuration:
 
 ```bash
-export ELASTICSEARCH_ENDPOINT=https://elasticsearch:9200
-export ELASTICSEARCH_API_KEY=your-api-key
+export SCSI_ES_ENDPOINT=https://elasticsearch:9200
+export SCSI_ES_API_KEY=your-api-key
 
 docker run -p 4318:4318 -p 4317:4317 -p 13133:13133 \
-  -e ELASTICSEARCH_ENDPOINT \
-  -e ELASTICSEARCH_API_KEY \
+  -e SCSI_ES_ENDPOINT \
+  -e SCSI_ES_API_KEY \
   -v $(pwd)/docs/otel-collector-config.yaml:/etc/otelcol/config.yaml \
   otel/opentelemetry-collector-contrib:latest
 ```
@@ -599,7 +655,7 @@ PUT _ingest/pipeline/code-similarity-pipeline
 Set the following environment variable in your `.env` file:
 
 ```
-ENABLE_DENSE_VECTORS=true
+SCSI_ENABLE_DENSE_VECTORS=true
 ```
 
 **3. Re-index Your Data**
@@ -620,6 +676,7 @@ npm run test:integration        # Run integration tests (single run with full ES
 ```
 
 For comprehensive testing documentation, including:
+
 - Unit test strategies and watch modes
 - Integration test workflows (single run vs. persistent ES for iteration)
 - Interactive UI debugging mode (`test:ui`)

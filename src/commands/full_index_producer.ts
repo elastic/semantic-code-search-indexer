@@ -7,7 +7,6 @@ import {
   deleteLocationsIndex,
 } from '../utils/elasticsearch';
 import { LanguageParser } from '../utils/parser';
-import { indexingConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
@@ -28,10 +27,11 @@ import {
 
 export interface IndexOptions {
   queueDir: string;
-  elasticsearchIndex?: string;
+  elasticsearchIndex: string;
   repoName?: string;
   branch?: string;
-  token?: string;
+  parseConcurrency?: number;
+  languages?: string;
 }
 
 async function getQueue(options: IndexOptions, repoName?: string, branch?: string): Promise<IQueueWithEnqueueMetadata> {
@@ -59,7 +59,7 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   const logger = createLogger({ name: repoName, branch: gitBranch });
   const metrics = createMetrics({ name: repoName, branch: gitBranch });
 
-  const languageParser = new LanguageParser();
+  const languageParser = new LanguageParser(options.languages);
   const supportedFileExtensions = Array.from(languageParser.fileSuffixMap.keys());
   logger.info('Starting full indexing process', {
     directory,
@@ -68,17 +68,17 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   });
   if (clean) {
     logger.info('Clean flag is set, deleting existing index and clearing queue.');
-    await deleteIndex(options?.elasticsearchIndex);
-    await deleteLocationsIndex(options?.elasticsearchIndex);
+    await deleteIndex(options.elasticsearchIndex);
+    await deleteLocationsIndex(options.elasticsearchIndex);
 
     // Clear the queue when doing a clean reindex
     const workQueue: IQueueWithEnqueueMetadata = await getQueue(options, repoName, gitBranch);
     await workQueue.clear();
   }
 
-  await createIndex(options?.elasticsearchIndex);
-  await createSettingsIndex(options?.elasticsearchIndex);
-  await createLocationsIndex(options?.elasticsearchIndex);
+  await createIndex(options.elasticsearchIndex);
+  await createSettingsIndex(options.elasticsearchIndex);
+  await createLocationsIndex(options.elasticsearchIndex);
 
   // Use execFileSync to prevent shell injection from special characters in directory paths
   const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], {
@@ -129,8 +129,11 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   let successCount = 0;
   let failureCount = 0;
 
-  const { cpuCores } = indexingConfig;
-  const producerQueue = new PQueue({ concurrency: cpuCores });
+  const parseConcurrency =
+    typeof options.parseConcurrency === 'number' && Number.isFinite(options.parseConcurrency)
+      ? Math.floor(options.parseConcurrency)
+      : 1;
+  const producerQueue = new PQueue({ concurrency: Math.max(1, parseConcurrency) });
 
   const workQueue: IQueueWithEnqueueMetadata = await getQueue(options, repoName, gitBranch);
   // Ensure enqueue completion metadata reflects this run.
@@ -143,7 +146,7 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
       () =>
         new Promise<void>((resolve, reject) => {
           const worker = new Worker(producerWorkerPath, {
-            workerData: { repoName, gitBranch },
+            workerData: { repoName, gitBranch, languages: options.languages },
           });
           const absolutePath = path.resolve(gitRoot, file);
           worker.on('message', async (message) => {
