@@ -487,7 +487,9 @@ export const indexCommand = new Command('index')
     )
   )
   .addOption(new Option('--watch', 'Keep worker running after processing queue'))
-  .addOption(new Option('--concurrency <number>', 'Number of parallel Elasticsearch indexing workers').default('2'))
+  .addOption(
+    new Option('--concurrency <number>', 'Number of concurrent Elasticsearch indexing worker threads').default('2')
+  )
   .addOption(new Option('--batch-size <number>', 'Number of chunks per Elasticsearch bulk request').default('100'))
   .addOption(
     new Option(
@@ -496,7 +498,7 @@ export const indexCommand = new Command('index')
     ).default('500')
   )
   .addOption(
-    new Option('--parse-concurrency <number>', 'Maximum parallel file parsing jobs').default(
+    new Option('--parse-concurrency <number>', 'Number of concurrent file-parsing worker threads').default(
       `${DEFAULT_PARSE_CONCURRENCY}`
     )
   )
