@@ -1,5 +1,4 @@
-language: en-US
-
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 knowledge_base:
   # Link the MCP server repo so reviews can catch cross-repo breaking changes.
   # Schema allows maxItems: 1.
@@ -11,6 +10,7 @@ knowledge_base:
         Do not make changes in the MCP server repo as part of this PR; treat it as a reference only.
 
 reviews:
+  inheritance: true
   profile: assertive
   request_changes_workflow: true
 
