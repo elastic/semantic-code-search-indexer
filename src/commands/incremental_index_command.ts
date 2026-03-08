@@ -148,7 +148,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     // the index command can detect it and safely re-enqueue from scratch.
     await enqueueQueue.markEnqueueStarted();
 
-    const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
+    const producerWorkerPath = path.join(__dirname, '..', '..', 'dist', 'utils', 'producer_worker.js');
 
     const configuredPoolSize =
       typeof options.parseConcurrency === 'number' && Number.isFinite(options.parseConcurrency)

@@ -34,6 +34,8 @@ This project is a high-performance code indexer designed to provide deep, contex
 - Elasticsearch 8.0+
   - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCSI_ES_INFERENCE_ID`.
   - If you want to run without semantic inference (e.g. for local testing), set `SCSI_DISABLE_SEMANTIC_TEXT=true`.
+    - This disables the `semantic_text` mapping at index creation time, so semantic search queries (including the `search` command and the MCP server’s semantic tools) will not work for that index.
+    - To re-enable semantic search later, recreate the index with semantic text enabled and reindex.
 - Elasticsearch credentials (API key recommended)
 
 ### Quick Start
@@ -398,7 +400,7 @@ Given a base index name (from CLI `repo[:index]`), the indexer creates and maint
 | `SCSI_ES_API_KEY`                          | An API key for Elasticsearch authentication.                                                                                                    |                                     |
 | `SCSI_ES_INFERENCE_ID`                     | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
 | `SCSI_ES_REQUEST_TIMEOUT`                  | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
-| `SCSI_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable semantic text capabilities (useful for tests or deployments without ML nodes).                                         | `false`                             |
+| `SCSI_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable the `semantic_text` mapping at index creation time (useful for tests or deployments without ML nodes).                 | `false`                             |
 | `SCSI_OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                   | `false`                             |
 | `SCSI_OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `SCSI_OTEL_LOGGING_ENABLED`).                                                                 | Same as `SCSI_OTEL_LOGGING_ENABLED` |
 | `SCSI_OTEL_LOG_LEVEL`                      | Minimum log level for OpenTelemetry diagnostics (`debug`, `info`, `warn`, `error`).                                                             |                                     |

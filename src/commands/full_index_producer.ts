@@ -139,7 +139,7 @@ export async function index(directory: string, clean: boolean, options: IndexOpt
   // Ensure enqueue completion metadata reflects this run.
   await workQueue.markEnqueueStarted();
 
-  const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
+  const producerWorkerPath = path.join(__dirname, '..', '..', 'dist', 'utils', 'producer_worker.js');
 
   files.forEach((file) => {
     producerQueue.add(

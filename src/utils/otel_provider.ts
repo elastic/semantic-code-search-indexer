@@ -43,7 +43,7 @@ let meterProvider: MeterProvider | null = null;
  */
 function getServiceVersion(): string {
   try {
-    const packageJsonPath = path.join(process.cwd(), 'package.json');
+    const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
     if (fs.existsSync(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
       return packageJson.version || '1.0.0';
@@ -128,8 +128,8 @@ function parseResourceAttributes(resourceAttributesString: string): Record<strin
  * @returns A Resource instance with all detected and custom attributes
  */
 function createResource(defaultAttributes: Record<string, string | number> = {}): Resource {
-  // Start with SDK defaults (telemetry.sdk.*, etc.) but exclude service.name
-  // which defaults to "unknown_service:node"
+  // Start with SDK defaults (telemetry.sdk.*, etc.) plus default service.name.
+  // We intentionally do not read standard OTEL_RESOURCE_ATTRIBUTES; we only honor SCSI_* config below.
   let resource = Resource.default();
 
   // Merge with our custom default attributes (includes service.name from config)

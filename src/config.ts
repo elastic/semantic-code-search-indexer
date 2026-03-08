@@ -16,6 +16,12 @@ function findProjectRoot(startPath: string): string {
 
 const projectRoot = findProjectRoot(__dirname);
 
+function parseEnvInt(value: string | undefined, fallback: number): number {
+  if (value === undefined || value.trim() === '') return fallback;
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 // Don't override existing environment variables (important for tests)
 // In test mode, try to load .env.test (if it exists), otherwise skip .env to avoid interference
 const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
@@ -41,7 +47,7 @@ export const elasticsearchConfig = {
     return process.env.SCSI_ES_INFERENCE_ID || undefined;
   },
   get requestTimeout() {
-    return parseInt(process.env.SCSI_ES_REQUEST_TIMEOUT || '90000', 10);
+    return parseEnvInt(process.env.SCSI_ES_REQUEST_TIMEOUT, 90000);
   },
   get disableSemanticText() {
     return process.env.SCSI_DISABLE_SEMANTIC_TEXT === 'true';
@@ -79,7 +85,7 @@ export const otelConfig = {
     );
   },
   get metricExportIntervalMs() {
-    return parseInt(process.env.SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS || '60000', 10);
+    return parseEnvInt(process.env.SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS, 60000);
   },
   get logLevel() {
     return process.env.SCSI_OTEL_LOG_LEVEL;
@@ -91,7 +97,7 @@ export const otelConfig = {
 
 export const indexingConfig = {
   get maxChunkSizeBytes() {
-    return parseInt(process.env.SCSI_MAX_CHUNK_SIZE_BYTES || '1000000', 10);
+    return parseEnvInt(process.env.SCSI_MAX_CHUNK_SIZE_BYTES, 1000000);
   },
   set maxChunkSizeBytes(v: number) {
     process.env.SCSI_MAX_CHUNK_SIZE_BYTES = v.toString();
@@ -105,14 +111,14 @@ export const indexingConfig = {
   },
 
   get defaultChunkLines() {
-    return parseInt(process.env.SCSI_DEFAULT_CHUNK_LINES || '15', 10);
+    return parseEnvInt(process.env.SCSI_DEFAULT_CHUNK_LINES, 15);
   },
   set defaultChunkLines(v: number) {
     process.env.SCSI_DEFAULT_CHUNK_LINES = v.toString();
   },
 
   get chunkOverlapLines() {
-    return parseInt(process.env.SCSI_CHUNK_OVERLAP_LINES || '3', 10);
+    return parseEnvInt(process.env.SCSI_CHUNK_OVERLAP_LINES, 3);
   },
   set chunkOverlapLines(v: number) {
     process.env.SCSI_CHUNK_OVERLAP_LINES = v.toString();
@@ -134,7 +140,7 @@ export const indexingConfig = {
   },
 
   get testDelayMs() {
-    return parseInt(process.env.SCSI_TEST_INDEXING_DELAY_MS || '0', 10);
+    return parseEnvInt(process.env.SCSI_TEST_INDEXING_DELAY_MS, 0);
   },
   set testDelayMs(v: number) {
     process.env.SCSI_TEST_INDEXING_DELAY_MS = v.toString();

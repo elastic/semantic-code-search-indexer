@@ -1,5 +1,5 @@
 import { Command, Option } from 'commander';
-import { getLocationsForChunkIds, searchCodeChunks } from '../utils/elasticsearch';
+import { getLocationsForChunkIds, indexHasSemanticTextField, searchCodeChunks } from '../utils/elasticsearch';
 
 /**
  * Search command - performs semantic search on indexed code
@@ -13,6 +13,16 @@ export async function search(query: string, options: { index?: string; limit?: s
   const indexName = options.index;
 
   const limit = options.limit ? parseInt(options.limit, 10) : 10;
+
+  const semanticTextEnabled = await indexHasSemanticTextField(indexName);
+  if (!semanticTextEnabled) {
+    throw new Error(
+      `Index "${indexName}" does not have a "semantic_text" mapping, so semantic search cannot run. ` +
+        'This usually happens when the index was created with semantic text disabled. ' +
+        'Recreate the index with semantic text enabled and reindex your code, or use a non-semantic search command.'
+    );
+  }
+
   const results = await searchCodeChunks(query, indexName);
 
   console.log(`\nSearch results (showing top ${Math.min(limit, results.length)} of ${results.length}):`);

@@ -735,6 +735,32 @@ export interface SearchResult extends CodeChunk {
   score: number;
 }
 
+export async function indexHasSemanticTextField(index: string): Promise<boolean> {
+  const response = await getClient().indices.getMapping({ index });
+
+  for (const entry of Object.values(response)) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+
+    const mappings = (entry as { mappings?: unknown }).mappings;
+    if (!mappings || typeof mappings !== 'object') {
+      continue;
+    }
+
+    const properties = (mappings as { properties?: unknown }).properties;
+    if (!properties || typeof properties !== 'object') {
+      continue;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(properties, 'semantic_text')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Performs a semantic search on the code chunks in the index.
  *

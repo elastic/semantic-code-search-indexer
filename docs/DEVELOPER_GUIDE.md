@@ -216,6 +216,7 @@ SCSI_ES_REQUEST_TIMEOUT=120000
 
 **Why `SCSI_DISABLE_SEMANTIC_TEXT=true`?**
 - It **turns off semantic search** for these tests by disabling the `semantic_text` field type and the associated ELSER inference at ingest time
+- Indices created with `SCSI_DISABLE_SEMANTIC_TEXT=true` do not have a `semantic_text` mapping, so semantic search queries will fail against those indices until they are recreated with semantic text enabled.
 - It also makes the test suite much faster and less flaky
 - Full ELSER/semantic search behavior is validated separately (see `tests/integration/semantic_text_semantic_search.integration.test.ts`)
 
