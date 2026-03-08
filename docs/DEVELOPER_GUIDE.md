@@ -61,6 +61,14 @@ npm run test:ui       # Interactive UI mode (recommended for debugging)
 npm run test:unit     # Explicitly run unit tests only
 ```
 
+**Quick sanity check (manual):**
+
+If you have an index available in Elasticsearch, you can run a quick semantic query from the CLI:
+
+```bash
+npm run search -- "where is config loaded?" --index <your-index> --limit 5
+```
+
 **Interactive UI Mode:**
 
 The `test:ui` command opens Vitest's web-based UI in your browser, providing:

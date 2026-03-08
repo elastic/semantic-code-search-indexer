@@ -213,6 +213,32 @@ npm run index -- https://github.com/org/private-repo.git --pull --github-token g
   - If previous index exists, only processes changed files since last indexed commit
 - With `--clean`: Always performs a full rebuild, deleting the existing index first
 
+### `npm run search`
+
+Runs a **semantic** search query against an existing index and prints the top matching chunks.
+
+**Arguments:**
+
+- `<query>` - Natural language search query
+
+**Options:**
+
+- `--index <index>` - **Required.** Elasticsearch index to search
+- `--limit <number>` - Maximum number of results to display (default: `10`)
+
+**Notes:**
+
+- The `search` command requires the target index to have a `semantic_text` mapping.
+  - If the index was created with `SCSI_DISABLE_SEMANTIC_TEXT=true`, semantic search (including `npm run search`) will not work for that index until you recreate the index with semantic text enabled and reindex.
+- If the index does not exist, the command fails with a clear `Index "<name>" does not exist` error.
+
+**Examples:**
+
+```bash
+npm run search -- "how does the queue retry work?" --index code-chunks
+npm run search -- "otel exporter endpoint" --index code-chunks --limit 5
+```
+
 ### `npm run scaffold-language`
 
 Generates a new language configuration file from templates. This command simplifies adding new language support by automatically creating properly formatted configuration files and optionally registering them in the language index.
