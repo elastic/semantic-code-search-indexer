@@ -31,7 +31,9 @@ This project is a high-performance code indexer designed to provide deep, contex
 ### Prerequisites
 
 - Node.js v20+ (check with `node -v`)
-- Elasticsearch 8.0+ with **ELSER inference available** (critical - semantic search requires this)
+- Elasticsearch 8.0+
+  - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCSI_ES_INFERENCE_ID`.
+  - If you want to run without semantic inference (e.g. for local testing), set `SCSI_DISABLE_SEMANTIC_TEXT=true`.
 - Elasticsearch credentials (API key recommended)
 
 ### Quick Start
@@ -372,7 +374,12 @@ This indexer is designed to be deployed on a server (e.g., a GCP Compute Engine 
 
 ## Configuration
 
-Configuration is managed via environment variables in a `.env` file.
+Configuration is managed via environment variables loaded from a `.env` file.
+
+**Environment file loading:**
+
+- Loads `.env` from the indexer’s root.
+- When `NODE_ENV=test`, loads `.env.test` instead.
 
 ### Elasticsearch indices created
 
