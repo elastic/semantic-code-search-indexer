@@ -42,6 +42,10 @@ npm run build
 npm test
 ```
 
+### CLI Notes
+
+- Numeric CLI flags like `--concurrency`, `--batch-size`, `--delete-documents-page-size`, and `--parse-concurrency` must be **positive integers**. Invalid values fail fast with a clear error message.
+
 ---
 
 ## Testing

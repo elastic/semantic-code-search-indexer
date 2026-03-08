@@ -1,7 +1,7 @@
 import { setup } from '../../src/commands/setup_command';
 import * as gitHelper from '../../src/utils/git_helper';
 import path from 'path';
-import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('../../src/utils/git_helper');
 
@@ -10,13 +10,23 @@ const mockedGitHelper = vi.mocked(gitHelper);
 describe('setup_command', () => {
   const originalCwd = process.cwd();
   const testReposDir = path.join(originalCwd, '.repos');
+  let previousGithubToken: string | undefined;
 
   beforeEach(() => {
     // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
 
     vi.clearAllMocks();
+    previousGithubToken = process.env.SCSI_GITHUB_TOKEN;
     delete process.env.SCSI_GITHUB_TOKEN;
+  });
+
+  afterEach(() => {
+    if (previousGithubToken === undefined) {
+      delete process.env.SCSI_GITHUB_TOKEN;
+    } else {
+      process.env.SCSI_GITHUB_TOKEN = previousGithubToken;
+    }
   });
 
   describe('WHEN setup succeeds', () => {

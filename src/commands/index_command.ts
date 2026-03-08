@@ -200,24 +200,24 @@ async function indexRepos(
     );
   }
 
-  const concurrency = parseInt(options.concurrency || '2', 10);
-  const batchSize = parseInt(options.batchSize || '100', 10);
-  const deleteDocumentsPageSize = parseInt(options.deleteDocumentsPageSize || '500', 10);
-  const parseConcurrency = parseInt(options.parseConcurrency || `${DEFAULT_PARSE_CONCURRENCY}`, 10);
-  const githubToken = options.githubToken ?? appConfig.githubToken;
+  function parsePositiveInt(optionName: string, value: string | undefined, fallback: number): number {
+    if (value === undefined) {
+      return fallback;
+    }
 
-  if (!Number.isFinite(concurrency) || concurrency <= 0) {
-    throw new Error(`Invalid --concurrency value: ${options.concurrency}`);
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      throw new Error(`Invalid --${optionName} value: ${value}. Must be a positive integer.`);
+    }
+
+    return parsed;
   }
-  if (!Number.isFinite(batchSize) || batchSize <= 0) {
-    throw new Error(`Invalid --batch-size value: ${options.batchSize}`);
-  }
-  if (!Number.isFinite(deleteDocumentsPageSize) || deleteDocumentsPageSize <= 0) {
-    throw new Error(`Invalid --delete-documents-page-size value: ${options.deleteDocumentsPageSize}`);
-  }
-  if (!Number.isFinite(parseConcurrency) || parseConcurrency <= 0) {
-    throw new Error(`Invalid --parse-concurrency value: ${options.parseConcurrency}`);
-  }
+
+  const concurrency = parsePositiveInt('concurrency', options.concurrency, 2);
+  const batchSize = parsePositiveInt('batch-size', options.batchSize, 100);
+  const deleteDocumentsPageSize = parsePositiveInt('delete-documents-page-size', options.deleteDocumentsPageSize, 500);
+  const parseConcurrency = parsePositiveInt('parse-concurrency', options.parseConcurrency, DEFAULT_PARSE_CONCURRENCY);
+  const githubToken = options.githubToken ?? appConfig.githubToken;
 
   let languages = options.languages ?? appConfig.languages;
   if (languages !== undefined) {

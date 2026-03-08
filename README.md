@@ -170,6 +170,8 @@ Indexes one or more repositories by scanning the codebase, enqueuing code chunks
 - `--languages <names>` - Comma-separated list of languages to index (default: `SCSI_LANGUAGES` if set, otherwise all languages)
 - `--branch <branch>` - Branch name for logging/metadata (default: auto-detect)
 
+**Validation:** `--concurrency`, `--batch-size`, `--delete-documents-page-size`, and `--parse-concurrency` must be **positive integers**. Invalid values fail fast with a clear error message.
+
 **Important:** The default values for `--concurrency`, `--batch-size`, and `--parse-concurrency` are intentionally conservative. They are chosen to reduce throttling, timeouts, and indexing failures across typical environments (local and remote). Only change them if you understand the trade-offs and have a measured reason to tune.
 
 **Examples:**
