@@ -226,6 +226,14 @@ Runs a **semantic** search query against an existing index and prints the top ma
 - `--index <index>` - **Required.** Elasticsearch index to search
 - `--limit <number>` - Maximum number of results to display (default: `10`)
 
+**Help:**
+
+Because this is an `npm run` script, you must include `--` to pass flags through to the underlying command:
+
+```bash
+npm run search -- --help
+```
+
 **Notes:**
 
 - The `search` command requires the target index to have a `semantic_text` mapping.

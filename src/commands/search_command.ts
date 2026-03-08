@@ -61,7 +61,7 @@ export async function search(query: string, options: { index: string; limit?: st
 export const searchCommand = new Command('search')
   .description('Search indexed code using semantic search')
   .argument('<query>', 'Search query (natural language)')
-  .addOption(new Option('--index <index>', 'Elasticsearch index to search').makeOptionMandatory())
+  .addOption(new Option('--index <index>', 'Elasticsearch index to search (required)').makeOptionMandatory())
   .addOption(new Option('--limit <number>', 'Maximum number of results to display').default('10'))
   .action(async (query, options) => {
     try {

@@ -9,6 +9,7 @@ import { monitorQueueCommand } from './commands/monitor_queue_command';
 import { referencesCommand } from './commands/references_command';
 import { retryFailedCommand } from './commands/retry_failed_command';
 import { scaffoldLanguageCommand } from './commands/scaffold_language_command';
+import { searchCommand } from './commands/search_command';
 import { shutdown } from './utils/otel_provider';
 import { validateAllLanguageConfigurations } from './languages';
 
@@ -32,6 +33,7 @@ async function main() {
   program.addCommand(referencesCommand);
   program.addCommand(retryFailedCommand);
   program.addCommand(scaffoldLanguageCommand);
+  program.addCommand(searchCommand);
 
   await program.parseAsync(process.argv);
 }

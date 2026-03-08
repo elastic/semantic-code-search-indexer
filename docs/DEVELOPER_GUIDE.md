@@ -69,6 +69,14 @@ If you have an index available in Elasticsearch, you can run a quick semantic qu
 npm run search -- "where is config loaded?" --index <your-index> --limit 5
 ```
 
+**CLI help tip:**
+
+When using `npm run`, pass `--` before flags so they reach the underlying command:
+
+```bash
+npm run search -- --help
+```
+
 **Interactive UI Mode:**
 
 The `test:ui` command opens Vitest's web-based UI in your browser, providing:
