@@ -10,11 +10,13 @@ import path from 'path';
 import fs from 'fs';
 import { execFileSync } from 'child_process';
 import Database from 'better-sqlite3';
+import os from 'os';
 
 interface RepoConfig {
   repoPath: string;
   repoName: string;
   indexName: string;
+  repoUrl?: string;
   token?: string;
   branch?: string;
 }
@@ -22,9 +24,9 @@ interface RepoConfig {
 /**
  * Parse a repo argument into a RepoConfig
  * Supports:
- * - URLs: https://github.com/elastic/kibana.git[:index]
- * - Repo names: kibana[:index]
- * - Full paths: /path/to/repo[:index]
+ * - URLs: https://github.com/elastic/kibana.git[:alias]
+ * - Repo names: kibana[:alias]
+ * - Full paths: /path/to/repo[:alias]
  */
 export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: string): RepoConfig {
   // Split on the last ':' to handle URLs with '://' and SSH URLs with ':'
@@ -36,7 +38,7 @@ export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: s
 
   // Check if it's a URL or SSH format first
   if (arg.includes('://')) {
-    // HTTPS/HTTP URLs - look for index after the last meaningful ':'
+    // HTTPS/HTTP URLs - look for alias after the last meaningful ':'
     const lastColonIndex = arg.lastIndexOf(':');
     const potentialIndex = arg.substring(lastColonIndex + 1);
 
@@ -59,7 +61,7 @@ export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: s
     const lastColonIndex = arg.lastIndexOf(':');
     const potentialIndex = arg.substring(lastColonIndex + 1);
 
-    // If what's after the last ':' doesn't contain '/' and isn't a path component, it's an index
+    // If what's after the last ':' doesn't contain '/' and isn't a path component, it's an alias
     if (
       lastColonIndex > 0 &&
       !potentialIndex.includes('/') &&
@@ -88,7 +90,7 @@ export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: s
     const indexSeparatorPos = remainingPath.indexOf(':');
 
     if (indexSeparatorPos > 0) {
-      // Found an index separator after the drive letter
+      // Found an alias separator after the drive letter
       repoSpec = arg.substring(0, driveLetterEnd + indexSeparatorPos);
       indexName = remainingPath.substring(indexSeparatorPos + 1);
     } else {
@@ -124,6 +126,7 @@ export function parseRepoArg(arg: string, globalToken?: string, globalBranch?: s
     repoPath,
     repoName,
     indexName: indexName || repoName,
+    repoUrl: repoSpec.includes('://') || repoSpec.startsWith('git@') ? repoSpec : undefined,
     token: globalToken,
     branch: globalBranch,
   };
@@ -166,6 +169,22 @@ export function hasQueueItems(repoName: string): boolean {
   }
 }
 
+function generateBackingIndexName(aliasName: string): string {
+  const sanitizedAlias = aliasName
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+
+  const timestampPart = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).slice(2, 8);
+  return `${sanitizedAlias || 'repo'}-scsi-${timestampPart}-${randomPart}`;
+}
+
+function buildLockOwner(): string {
+  return `${os.hostname()}:${process.pid}`;
+}
+
 /**
  * Main unified index function
  */
@@ -175,6 +194,7 @@ async function indexRepos(
     clean?: boolean;
     pull?: boolean;
     watch?: boolean;
+    keepOldIndices?: boolean;
     concurrency?: string;
     token?: string;
     branch?: string;
@@ -182,8 +202,8 @@ async function indexRepos(
 ) {
   logger.info('Starting index command...');
 
-  // Support REPOSITORIES_TO_INDEX env var for backward compatibility
-  // Format: "repo1 repo2 repo3" or "repo1:index1 repo2:index2"
+  // Support REPOSITORIES_TO_INDEX env var as an optional input convenience.
+  // Format: "repo1 repo2 repo3" or "repo1:alias1 repo2:alias2"
   if ((!repoArgs || repoArgs.length === 0) && process.env.REPOSITORIES_TO_INDEX) {
     const envRepos = process.env.REPOSITORIES_TO_INDEX.trim().split(/\s+/);
     logger.info(`Using repositories from REPOSITORIES_TO_INDEX env var: ${envRepos.join(', ')}`);
@@ -201,6 +221,10 @@ async function indexRepos(
       `Watch mode enabled with ${repoArgs.length} repositories. Only the first repository (${repoArgs[0]}) will be watched.`
     );
   }
+  if (options.clean && options.watch) {
+    logger.error('--clean and --watch cannot be used together. Use --clean for maintenance and run watch separately.');
+    process.exit(1);
+  }
 
   const concurrency = parseInt(options.concurrency || '1', 10);
   const isSingleRepo = repoArgs.length === 1;
@@ -216,26 +240,8 @@ async function indexRepos(
 
     // Step 1: Clone if it's a URL and doesn't exist
     if (repoArg.includes('://') || repoArg.startsWith('git@')) {
-      // Extract the URL part (before any :index suffix)
-      let repoUrl = repoArg;
-
-      // Remove :index suffix if present (but not for SSH URLs)
-      if (repoArg.includes('://')) {
-        const lastColonIndex = repoArg.lastIndexOf(':');
-        const potentialIndex = repoArg.substring(lastColonIndex + 1);
-
-        if (
-          lastColonIndex > 0 &&
-          !potentialIndex.includes('/') &&
-          !potentialIndex.includes('.git') &&
-          potentialIndex.length > 0 &&
-          !(lastColonIndex < repoArg.indexOf('://') + 10)
-        ) {
-          repoUrl = repoArg.substring(0, lastColonIndex);
-        }
-      }
-
       try {
+        const repoUrl = config.repoUrl ?? repoArg;
         await ensureRepoCloned(repoUrl, config.repoPath, config.token);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Clone failed';
@@ -289,130 +295,204 @@ async function indexRepos(
       }
     }
 
+    const aliasName = config.indexName;
+
     const queueDir = path.join(appConfig.queueBaseDir, config.repoName);
 
-    const indexOptions = {
-      queueDir,
-      elasticsearchIndex: config.indexName,
-      token: config.token,
-      repoName: config.repoName,
-      branch: gitBranch,
-    };
-
     try {
-      const { getLastIndexedCommit, updateLastIndexedCommit, createSettingsIndex } = await import(
-        '../utils/elasticsearch'
-      );
-      const lastCommitHashAtStart = await getLastIndexedCommit(gitBranch, config.indexName);
-      let isResumingQueue = false;
-      let enqueueCommitHashFromQueue: string | null = null;
+      const {
+        getLastIndexedCommit,
+        updateLastIndexedCommit,
+        createSettingsIndex,
+        resolveAliasToIndex,
+        swapAliasTargets,
+        acquireReindexLock,
+        releaseReindexLock,
+        isReindexLocked,
+        deleteIndex,
+      } = await import('../utils/elasticsearch');
 
-      // Step 5: Decide what to do based on flags and queue state
-      if (options.clean) {
-        // Full clean reindex
-        logger.info(`Running clean reindex for ${config.repoName}...`);
-        await indexRepo(config.repoPath, true, indexOptions);
-      } else if (hasQueueItems(config.repoName)) {
-        // Queue has items - check if enqueue was completed
-        const queueDbPath = path.join(appConfig.queueBaseDir, config.repoName, 'queue.db');
-        const { SqliteQueue } = await import('../utils/sqlite_queue');
-        const queue = new SqliteQueue({
-          dbPath: queueDbPath,
-          repoName: config.repoName,
-          branch: gitBranch,
-        });
-        await queue.initialize();
-        enqueueCommitHashFromQueue = queue.getEnqueueCommitHash();
+      await createSettingsIndex(aliasName);
 
-        if (!queue.isEnqueueCompleted()) {
-          // Queue has items but enqueue was not completed - interrupted during enqueue
-          // Clear and re-enqueue (enqueue is fast, no need for deduplication complexity)
-          logger.info(`Queue has pending items but enqueue was not completed for ${config.repoName}.`);
-          logger.info(`Clearing partial queue and re-enqueueing from scratch...`);
-          await queue.clear();
-          await indexRepo(config.repoPath, false, indexOptions);
-        } else {
-          // Normal resume - enqueue completed, just process the queue
-          logger.info(`Queue has pending items for ${config.repoName}. Resuming...`);
-          isResumingQueue = true;
-        }
-      } else {
-        // Queue is empty - try incremental, fall back to full index if no previous commit
-        if (lastCommitHashAtStart) {
-          // Previous index exists - do incremental
-          logger.info(`Running incremental index for ${config.repoName}...`);
-          await incrementalIndex(config.repoPath, indexOptions);
-        } else {
-          // No previous index - do full index
-          logger.info(`No previous index found for ${config.repoName}. Running full index...`);
-          await indexRepo(config.repoPath, false, indexOptions);
-        }
-      }
+      let lockAcquired = false;
+      const lockOwner = buildLockOwner();
 
-      // Step 6: Run worker
-      if (shouldWatch) {
-        logger.info(`Running worker for ${config.repoName} with concurrency ${concurrency} (watch mode enabled)...`);
-        logger.info(`Watching queue for ${config.repoName}. Worker will continue running...`);
-      } else {
-        logger.info(`Running worker for ${config.repoName} with concurrency ${concurrency}...`);
-      }
-      await worker(concurrency, shouldWatch, indexOptions);
-
-      if (!shouldWatch) {
-        // Step 7: If we resumed an existing queue, ensure we catch up to current HEAD before
-        // advancing the settings commit hash. Otherwise incremental diffing can be skipped on
-        // subsequent runs (settings would incorrectly claim we've indexed to HEAD).
-        let currentHead: string | null = null;
-        try {
-          currentHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.repoPath }).toString().trim();
-        } catch (error) {
-          logger.warn(`Failed to read git HEAD for ${config.repoName}; skipping settings commit update.`, {
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
-
-        if (!currentHead) {
-          // Nothing more to do if we cannot identify the commit hash to persist.
-          logger.info(`--- Finished processing for: ${config.repoName} ---`);
+      try {
+        if (options.clean) {
+          const lockResult = await acquireReindexLock(aliasName, lockOwner);
+          if (!lockResult.acquired) {
+            if (lockResult.lock) {
+              logger.warn(
+                `Maintenance lock already exists for alias "${aliasName}" (owner: ${lockResult.lock.lock_owner}, expires: ${lockResult.lock.lock_expires_at}). Skipping ${config.repoName}.`
+              );
+            } else {
+              logger.warn(`Maintenance lock already exists for alias "${aliasName}". Skipping ${config.repoName}.`);
+            }
+            continue;
+          }
+          lockAcquired = true;
+        } else if (await isReindexLocked(aliasName)) {
+          logger.info(`Maintenance in progress for ${aliasName}, skipping ${config.repoName}.`);
           continue;
         }
 
-        if (isResumingQueue) {
-          // Prefer the settings commit hash (authoritative baseline). If missing (e.g. first-time index
-          // where the process died before updating settings), fall back to the queue's enqueue commit
-          // hash if present.
-          const baselineCommit = lastCommitHashAtStart ?? enqueueCommitHashFromQueue;
+        const currentAliasTarget = await resolveAliasToIndex(aliasName);
+        const needsAliasBootstrap = options.clean || !currentAliasTarget;
+        const targetDataIndex = needsAliasBootstrap ? generateBackingIndexName(aliasName) : currentAliasTarget;
+        const targetLocationsIndex = `${targetDataIndex}_locations`;
 
-          if (!baselineCommit) {
-            logger.warn(
-              `Skipping settings commit update for ${config.repoName}: no baseline commit hash found (no previous commit reference in settings or queue).`
-            );
-          } else if (baselineCommit !== currentHead) {
-            // If settings commit was missing but we have a queue baseline, persist it so incrementalIndex can run.
-            if (!lastCommitHashAtStart && enqueueCommitHashFromQueue) {
-              await createSettingsIndex(config.indexName);
-              await updateLastIndexedCommit(gitBranch, enqueueCommitHashFromQueue, config.indexName);
+        const indexOptions = {
+          queueDir,
+          elasticsearchIndex: targetDataIndex,
+          settingsIndex: aliasName,
+          token: config.token,
+          repoName: config.repoName,
+          branch: gitBranch,
+        };
+
+        const lastCommitHashAtStart = await getLastIndexedCommit(gitBranch, aliasName);
+        let isResumingQueue = false;
+        let enqueueCommitHashFromQueue: string | null = null;
+
+        // Step 5: Decide what to do based on alias state, flags, and queue state.
+        if (needsAliasBootstrap) {
+          const modeLabel = options.clean ? 'clean reindex' : 'initial full index';
+          logger.info(
+            `Running ${modeLabel} for ${config.repoName} with alias "${aliasName}" and backing index "${targetDataIndex}".`
+          );
+          await indexRepo(config.repoPath, true, indexOptions);
+        } else if (hasQueueItems(config.repoName)) {
+          // Queue has items - check if enqueue was completed
+          const queueDbPath = path.join(appConfig.queueBaseDir, config.repoName, 'queue.db');
+          const { SqliteQueue } = await import('../utils/sqlite_queue');
+          const queue = new SqliteQueue({
+            dbPath: queueDbPath,
+            repoName: config.repoName,
+            branch: gitBranch,
+          });
+          await queue.initialize();
+          enqueueCommitHashFromQueue = queue.getEnqueueCommitHash();
+
+          if (!queue.isEnqueueCompleted()) {
+            // Queue has items but enqueue was not completed - interrupted during enqueue
+            logger.info(`Queue has pending items but enqueue was not completed for ${config.repoName}.`);
+            logger.info(`Clearing partial queue and re-enqueueing from scratch...`);
+            await queue.clear();
+            await indexRepo(config.repoPath, false, indexOptions);
+          } else {
+            // Normal resume - enqueue completed, just process the queue
+            logger.info(`Queue has pending items for ${config.repoName}. Resuming...`);
+            isResumingQueue = true;
+          }
+        } else if (lastCommitHashAtStart) {
+          logger.info(`Running incremental index for ${config.repoName}...`);
+          await incrementalIndex(config.repoPath, indexOptions);
+        } else {
+          logger.info(
+            `No previous commit found in "${aliasName}_settings" for ${config.repoName}. Running full index on active backing index "${targetDataIndex}".`
+          );
+          await indexRepo(config.repoPath, false, indexOptions);
+        }
+
+        // Step 6: Run worker.
+        const shouldRunWatchModeNow = shouldWatch && !needsAliasBootstrap;
+        if (shouldRunWatchModeNow) {
+          logger.info(`Running worker for ${config.repoName} with concurrency ${concurrency} (watch mode enabled)...`);
+          logger.info(`Watching queue for ${config.repoName}. Worker will continue running...`);
+        } else {
+          logger.info(`Running worker for ${config.repoName} with concurrency ${concurrency}...`);
+        }
+        await worker(concurrency, shouldRunWatchModeNow, indexOptions);
+
+        if (!shouldRunWatchModeNow) {
+          // Step 7: If we resumed an existing queue, ensure we catch up to current HEAD before
+          // advancing the settings commit hash. Otherwise incremental diffing can be skipped on
+          // subsequent runs (settings would incorrectly claim we've indexed to HEAD).
+          let currentHead: string | null = null;
+          try {
+            currentHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.repoPath }).toString().trim();
+          } catch (error) {
+            logger.warn(`Failed to read git HEAD for ${config.repoName}; skipping settings commit update.`, {
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+
+          if (!currentHead) {
+            logger.info(`--- Finished processing for: ${config.repoName} ---`);
+            continue;
+          }
+
+          if (isResumingQueue) {
+            const baselineCommit = lastCommitHashAtStart ?? enqueueCommitHashFromQueue;
+
+            if (!baselineCommit) {
+              logger.warn(
+                `Skipping settings commit update for ${config.repoName}: no baseline commit hash found (no previous commit reference in settings or queue).`
+              );
+            } else if (baselineCommit !== currentHead) {
+              if (!lastCommitHashAtStart && enqueueCommitHashFromQueue) {
+                await createSettingsIndex(aliasName);
+                await updateLastIndexedCommit(gitBranch, enqueueCommitHashFromQueue, aliasName);
+              }
+
+              logger.info(
+                `Detected HEAD advanced since last indexed commit (${baselineCommit} -> ${currentHead}). Running incremental catch-up...`
+              );
+              await incrementalIndex(config.repoPath, indexOptions);
+              await worker(concurrency, false, indexOptions);
             }
+          }
 
-            logger.info(
-              `Detected HEAD advanced since last indexed commit (${baselineCommit} -> ${currentHead}). Running incremental catch-up...`
-            );
-            await incrementalIndex(config.repoPath, indexOptions);
-            await worker(concurrency, false, indexOptions);
+          try {
+            await createSettingsIndex(aliasName);
+            await updateLastIndexedCommit(gitBranch, currentHead, aliasName);
+            logger.info(`Updated last indexed commit to ${currentHead} for branch ${gitBranch}`);
+          } catch (error) {
+            logger.warn(`Failed to update last indexed commit: ${error instanceof Error ? error.message : error}`);
           }
         }
 
-        // Step 8: Update last indexed commit after all indexing work completes successfully.
-        try {
-          await createSettingsIndex(config.indexName);
-          await updateLastIndexedCommit(gitBranch, currentHead, config.indexName);
-          logger.info(`Updated last indexed commit to ${currentHead} for branch ${gitBranch}`);
-        } catch (error) {
-          logger.warn(`Failed to update last indexed commit: ${error instanceof Error ? error.message : error}`);
+        // Step 8: For clean/bootstrap runs, atomically swap aliases after new index is ready.
+        if (needsAliasBootstrap) {
+          const swapResult = await swapAliasTargets({
+            aliasName,
+            newIndexName: targetDataIndex,
+            newLocationsIndexName: targetLocationsIndex,
+          });
+
+          logger.info(
+            `Alias "${aliasName}" now points to "${targetDataIndex}" and "${aliasName}_locations" points to "${targetLocationsIndex}".`
+          );
+
+          if (!options.keepOldIndices) {
+            const staleIndices = [
+              ...swapResult.previousIndexNames.filter((name) => name !== targetDataIndex),
+              ...swapResult.previousLocationsIndexNames.filter((name) => name !== targetLocationsIndex),
+            ];
+
+            for (const staleIndexName of staleIndices) {
+              await deleteIndex(staleIndexName);
+            }
+          }
+
+          if (shouldWatch) {
+            logger.info(`Switching to watch mode for ${config.repoName} after alias bootstrap...`);
+            await worker(concurrency, true, indexOptions);
+          }
+        }
+
+        logger.info(`--- Finished processing for: ${config.repoName} ---`);
+      } finally {
+        if (lockAcquired) {
+          try {
+            await releaseReindexLock(aliasName);
+          } catch (error) {
+            logger.warn(
+              `Failed to release maintenance lock for alias "${aliasName}": ${error instanceof Error ? error.message : error}`
+            );
+          }
         }
       }
-
-      logger.info(`--- Finished processing for: ${config.repoName} ---`);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       const errorStack = error instanceof Error ? error.stack : undefined;
@@ -420,7 +500,6 @@ async function indexRepos(
         error: errorMessage,
         stack: errorStack,
       });
-      console.error('Full error details:', error);
     }
   }
 
@@ -440,9 +519,10 @@ export const indexCommand = new Command('index')
   .description('Index one or more repositories')
   .argument(
     '[repos...]',
-    'Repository names, paths, or URLs (format: repo[:index]). Can also use REPOSITORIES_TO_INDEX env var.'
+    'Repository names, paths, or URLs (format: repo[:alias]). Can also use REPOSITORIES_TO_INDEX env var.'
   )
-  .addOption(new Option('--clean', 'Delete index and reindex all files (full rebuild)'))
+  .addOption(new Option('--clean', 'Create a new backing index and atomically swap aliases (full rebuild)'))
+  .addOption(new Option('--keep-old-indices', 'Keep previous backing indices after alias swap'))
   .addOption(new Option('--pull', 'Git pull before indexing'))
   .addOption(new Option('--watch', 'Keep worker running after processing queue'))
   .addOption(new Option('--concurrency <number>', 'Number of parallel workers').default('1'))

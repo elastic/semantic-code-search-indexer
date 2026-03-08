@@ -20,6 +20,7 @@ import {
 export interface IncrementalIndexOptions {
   queueDir: string;
   elasticsearchIndex?: string;
+  settingsIndex?: string;
   token?: string;
   repoName?: string;
   branch?: string;
@@ -61,7 +62,8 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     ...options,
   });
 
-  const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
+  const settingsIndex = options?.settingsIndex || options?.elasticsearchIndex;
+  const lastCommitHash = await getLastIndexedCommit(gitBranch, settingsIndex);
 
   if (!lastCommitHash) {
     logger.warn('No previous commit hash found. Please run a full index first.', { gitBranch });
