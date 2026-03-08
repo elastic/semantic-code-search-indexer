@@ -4,12 +4,9 @@ import { getLocationsForChunkIds, indexHasSemanticTextField, searchCodeChunks } 
 /**
  * Search command - performs semantic search on indexed code
  */
-export async function search(query: string, options: { index?: string; limit?: string }) {
+export async function search(query: string, options: { index: string; limit?: string }) {
   console.log(`Searching for: "${query}"`);
 
-  if (!options.index) {
-    throw new Error('Missing required --index option');
-  }
   const indexName = options.index;
 
   const limit = options.limit ? parseInt(options.limit, 10) : 10;
@@ -64,7 +61,7 @@ export async function search(query: string, options: { index?: string; limit?: s
 export const searchCommand = new Command('search')
   .description('Search indexed code using semantic search')
   .argument('<query>', 'Search query (natural language)')
-  .addOption(new Option('--index <index>', 'Elasticsearch index to search'))
+  .addOption(new Option('--index <index>', 'Elasticsearch index to search').makeOptionMandatory())
   .addOption(new Option('--limit <number>', 'Maximum number of results to display').default('10'))
   .action(async (query, options) => {
     try {

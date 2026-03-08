@@ -320,3 +320,61 @@ describe('Elasticsearch Client Configuration', () => {
     });
   });
 });
+
+describe('indexHasSemanticTextField', () => {
+  let mockGetMapping: Mock;
+  let mockClient: Client;
+
+  beforeEach(() => {
+    mockGetMapping = vi.fn();
+    mockClient = {
+      indices: {
+        getMapping: mockGetMapping,
+      },
+    } as unknown as Client;
+
+    elasticsearch.setClient(mockClient);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    elasticsearch.setClient(undefined);
+  });
+
+  it('should return true when semantic_text mapping exists', async () => {
+    mockGetMapping.mockResolvedValue({
+      'test-index': {
+        mappings: {
+          properties: {
+            semantic_text: { type: 'semantic_text' },
+          },
+        },
+      },
+    });
+
+    await expect(elasticsearch.indexHasSemanticTextField('test-index')).resolves.toBe(true);
+  });
+
+  it('should return false when semantic_text mapping does not exist', async () => {
+    mockGetMapping.mockResolvedValue({
+      'test-index': {
+        mappings: {
+          properties: {
+            content: { type: 'text' },
+          },
+        },
+      },
+    });
+
+    await expect(elasticsearch.indexHasSemanticTextField('test-index')).resolves.toBe(false);
+  });
+
+  it('should throw a friendly error when index does not exist', async () => {
+    const error = Object.assign(new Error('Not Found'), { meta: { statusCode: 404 } });
+    mockGetMapping.mockRejectedValue(error);
+
+    await expect(elasticsearch.indexHasSemanticTextField('missing-index')).rejects.toThrow(
+      'Index "missing-index" does not exist'
+    );
+  });
+});

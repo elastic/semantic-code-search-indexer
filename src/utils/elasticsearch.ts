@@ -736,7 +736,21 @@ export interface SearchResult extends CodeChunk {
 }
 
 export async function indexHasSemanticTextField(index: string): Promise<boolean> {
-  const response = await getClient().indices.getMapping({ index });
+  let response: Record<string, unknown>;
+  try {
+    response = (await getClient().indices.getMapping({ index })) as unknown as Record<string, unknown>;
+  } catch (error: unknown) {
+    const statusCode =
+      error && typeof error === 'object' && 'meta' in error
+        ? (error as { meta?: { statusCode?: unknown } }).meta?.statusCode
+        : undefined;
+
+    if (typeof statusCode === 'number' && statusCode === 404) {
+      throw new Error(`Index "${index}" does not exist`);
+    }
+
+    throw error;
+  }
 
   for (const entry of Object.values(response)) {
     if (!entry || typeof entry !== 'object') {
