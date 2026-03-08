@@ -331,7 +331,7 @@ describe('IndexerWorker', () => {
                 ? { chunk, inputIndex, error: { type: 'mapper_parsing_exception' } }
                 : null
             )
-            .filter((v): v is { chunk: CodeChunk; inputIndex: number; error: unknown } => v !== null),
+            .filter((v): v is { chunk: CodeChunk; inputIndex: number; error: { type: string } } => v !== null),
         };
       }
       // On retry, all succeed

@@ -1,7 +1,7 @@
 import { incrementalIndex } from '../../src/commands/incremental_index_command';
 import * as elasticsearch from '../../src/utils/elasticsearch';
 import simpleGit from 'simple-git';
-import { IQueue } from '../../src/utils/queue';
+import { IQueueWithEnqueueMetadata } from '../../src/utils/queue';
 import { SqliteQueue } from '../../src/utils/sqlite_queue';
 import { Worker } from 'worker_threads';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
@@ -30,7 +30,7 @@ const mockedSqliteQueue = vi.mocked(SqliteQueue);
 const mockedWorker = vi.mocked(Worker);
 
 describe('incrementalIndex', () => {
-  let workQueue: IQueue;
+  let workQueue: IQueueWithEnqueueMetadata;
   const gitInstance = {
     revparse: vi.fn().mockResolvedValue('main'),
     remote: vi.fn().mockResolvedValue('https://github.com/test/repo.git'),
@@ -117,13 +117,13 @@ describe('incrementalIndex', () => {
     mockedSimpleGit.mockReturnValue(git);
     mockedElasticsearch.getLastIndexedCommit.mockResolvedValue('old-commit-hash');
 
-    await incrementalIndex('/test/repo', { queueDir: '.test-queue' });
+    await incrementalIndex('/test/repo', { queueDir: '.test-queue', elasticsearchIndex: 'test-index' });
 
     // Deletes are batched: old rename path, modified file, and deleted file are removed in one call.
     expect(mockedElasticsearch.deleteDocumentsByFilePaths).toHaveBeenCalledTimes(1);
     expect(mockedElasticsearch.deleteDocumentsByFilePaths).toHaveBeenCalledWith(
       expect.arrayContaining(['src/old_file.ts', 'src/modified_file.ts', 'src/deleted_file.ts']),
-      undefined,
+      'test-index',
       expect.objectContaining({ deleteDocumentsPageSize: undefined })
     );
 
