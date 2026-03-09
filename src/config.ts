@@ -29,25 +29,25 @@ dotenv.config({ path: path.join(projectRoot, envFile), override: false, quiet: t
 
 export const elasticsearchConfig = {
   get endpoint() {
-    return process.env.SCSI_ES_ENDPOINT;
+    return process.env.SCSI_ELASTICSEARCH_ENDPOINT;
   },
   get cloudId() {
-    return process.env.SCSI_ES_CLOUD_ID || undefined;
+    return process.env.SCSI_ELASTICSEARCH_CLOUD_ID || undefined;
   },
   get username() {
-    return process.env.SCSI_ES_USERNAME;
+    return process.env.SCSI_ELASTICSEARCH_USERNAME;
   },
   get password() {
-    return process.env.SCSI_ES_PASSWORD;
+    return process.env.SCSI_ELASTICSEARCH_PASSWORD;
   },
   get apiKey() {
-    return process.env.SCSI_ES_API_KEY || undefined;
+    return process.env.SCSI_ELASTICSEARCH_API_KEY || undefined;
   },
   get inferenceId() {
-    return process.env.SCSI_ES_INFERENCE_ID || undefined;
+    return process.env.SCSI_ELASTICSEARCH_INFERENCE_ID || undefined;
   },
   get requestTimeout() {
-    return parseEnvInt(process.env.SCSI_ES_REQUEST_TIMEOUT, 90000);
+    return parseEnvInt(process.env.SCSI_ELASTICSEARCH_REQUEST_TIMEOUT, 90000);
   },
   get disableSemanticText() {
     return process.env.SCSI_DISABLE_SEMANTIC_TEXT === 'true';

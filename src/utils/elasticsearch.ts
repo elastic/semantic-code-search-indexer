@@ -60,7 +60,7 @@ export function getClient(): Client {
       };
     } else {
       throw new Error(
-        'Elasticsearch Cloud authentication not configured. Please set SCSI_ES_API_KEY or SCSI_ES_USERNAME and SCSI_ES_PASSWORD.'
+        'Elasticsearch Cloud authentication not configured. Please set SCSI_ELASTICSEARCH_API_KEY or SCSI_ELASTICSEARCH_USERNAME and SCSI_ELASTICSEARCH_PASSWORD.'
       );
     }
 
@@ -81,7 +81,9 @@ export function getClient(): Client {
     }
     _client = new Client(clientOptions);
   } else {
-    throw new Error('Elasticsearch connection not configured. Please set SCSI_ES_CLOUD_ID or SCSI_ES_ENDPOINT.');
+    throw new Error(
+      'Elasticsearch connection not configured. Please set SCSI_ELASTICSEARCH_CLOUD_ID or SCSI_ELASTICSEARCH_ENDPOINT.'
+    );
   }
 
   return _client;
@@ -96,7 +98,7 @@ function getElserInferenceIdOrThrow(): string {
   }
 
   throw new Error(
-    'SCSI_ES_INFERENCE_ID is required when semantic_text is enabled. ' +
+    'SCSI_ELASTICSEARCH_INFERENCE_ID is required when semantic_text is enabled. ' +
       'Set it to an existing Elasticsearch inference endpoint id (recommended: .elser-2-elastic on Elastic Cloud / EIS). ' +
       'If you want to run without semantic inference, set SCSI_DISABLE_SEMANTIC_TEXT=true.'
   );

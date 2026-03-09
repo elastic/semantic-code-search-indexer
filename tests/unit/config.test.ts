@@ -13,17 +13,17 @@ describe('elasticsearchConfig', () => {
   });
 
   describe('inferenceId configuration', () => {
-    it('uses SCSI_ES_INFERENCE_ID when set', async () => {
-      process.env.SCSI_ES_INFERENCE_ID = 'custom-inference-id';
+    it('uses SCSI_ELASTICSEARCH_INFERENCE_ID when set', async () => {
+      process.env.SCSI_ELASTICSEARCH_INFERENCE_ID = 'custom-inference-id';
       const { elasticsearchConfig } = await import('../../src/config');
 
       expect(elasticsearchConfig.inferenceId).toBe('custom-inference-id');
     });
 
-    it('is undefined when SCSI_ES_INFERENCE_ID is not set', async () => {
+    it('is undefined when SCSI_ELASTICSEARCH_INFERENCE_ID is not set', async () => {
       const { elasticsearchConfig } = await import('../../src/config');
       // Delete after import, so we remove the value that dotenv loaded from .env.test
-      delete process.env.SCSI_ES_INFERENCE_ID;
+      delete process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
 
       expect(elasticsearchConfig.inferenceId).toBeUndefined();
     });

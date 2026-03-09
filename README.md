@@ -32,7 +32,7 @@ This project is a high-performance code indexer designed to provide deep, contex
 
 - Node.js v20+ (check with `node -v`)
 - Elasticsearch 8.0+
-  - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCSI_ES_INFERENCE_ID`.
+  - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCSI_ELASTICSEARCH_INFERENCE_ID`.
   - If you want to run without semantic inference (e.g. for local testing), set `SCSI_DISABLE_SEMANTIC_TEXT=true`.
     - This disables the `semantic_text` mapping at index creation time, so semantic search queries (including the `search` command and the MCP server’s semantic tools) will not work for that index.
     - To re-enable semantic search later, recreate the index with semantic text enabled and reindex.
@@ -50,14 +50,14 @@ npm run build
 # 3. Configure Elasticsearch connection
 cp .env.example .env
 # Edit .env with your Elasticsearch connection details:
-# - Recommended (Elastic Cloud): set SCSI_ES_CLOUD_ID + SCSI_ES_API_KEY
-# - Self-managed: set SCSI_ES_ENDPOINT + credentials (username/password or API key)
+# - Recommended (Elastic Cloud): set SCSI_ELASTICSEARCH_CLOUD_ID + SCSI_ELASTICSEARCH_API_KEY
+# - Self-managed: set SCSI_ELASTICSEARCH_ENDPOINT + credentials (username/password or API key)
 
 # 4. Recommended: Elastic Cloud + EIS (best default performance)
 # - Create an Elastic Cloud deployment/project
-# - Copy its Cloud ID into SCSI_ES_CLOUD_ID
-# - Create an API key and set it as SCSI_ES_API_KEY
-# - Set SCSI_ES_INFERENCE_ID=.elser-2-elastic (EIS-backed ELSER endpoint)
+# - Copy its Cloud ID into SCSI_ELASTICSEARCH_CLOUD_ID
+# - Create an API key and set it as SCSI_ELASTICSEARCH_API_KEY
+# - Set SCSI_ELASTICSEARCH_INFERENCE_ID=.elser-2-elastic (EIS-backed ELSER endpoint)
 
 # 5. (Optional) Add .indexerignore to your repository
 # Copy .indexerignore.example to your repo as .indexerignore to exclude files
@@ -429,13 +429,13 @@ Given a base index name (from CLI `repo[:index]`), the indexer creates and maint
 
 | Variable                                   | Description                                                                                                                                     | Default                             |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `SCSI_ES_ENDPOINT`                         | The endpoint URL for your Elasticsearch instance.                                                                                               |                                     |
-| `SCSI_ES_CLOUD_ID`                         | The Cloud ID for your Elastic Cloud instance.                                                                                                   |                                     |
-| `SCSI_ES_USERNAME`                         | The username for Elasticsearch authentication.                                                                                                  |                                     |
-| `SCSI_ES_PASSWORD`                         | The password for Elasticsearch authentication.                                                                                                  |                                     |
-| `SCSI_ES_API_KEY`                          | An API key for Elasticsearch authentication.                                                                                                    |                                     |
-| `SCSI_ES_INFERENCE_ID`                     | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
-| `SCSI_ES_REQUEST_TIMEOUT`                  | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
+| `SCSI_ELASTICSEARCH_ENDPOINT`                         | The endpoint URL for your Elasticsearch instance.                                                                                               |                                     |
+| `SCSI_ELASTICSEARCH_CLOUD_ID`                         | The Cloud ID for your Elastic Cloud instance.                                                                                                   |                                     |
+| `SCSI_ELASTICSEARCH_USERNAME`                         | The username for Elasticsearch authentication.                                                                                                  |                                     |
+| `SCSI_ELASTICSEARCH_PASSWORD`                         | The password for Elasticsearch authentication.                                                                                                  |                                     |
+| `SCSI_ELASTICSEARCH_API_KEY`                          | An API key for Elasticsearch authentication.                                                                                                    |                                     |
+| `SCSI_ELASTICSEARCH_INFERENCE_ID`                     | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
+| `SCSI_ELASTICSEARCH_REQUEST_TIMEOUT`                  | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
 | `SCSI_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable the `semantic_text` mapping at index creation time (useful for tests or deployments without ML nodes).                 | `false`                             |
 | `SCSI_OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                   | `false`                             |
 | `SCSI_OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `SCSI_OTEL_LOGGING_ENABLED`).                                                                 | Same as `SCSI_OTEL_LOGGING_ENABLED` |
@@ -462,12 +462,12 @@ Given a base index name (from CLI `repo[:index]`), the indexer creates and maint
 
 #### Elastic Inference Service (EIS) Rate Limits
 
-`semantic_text` relies on an inference endpoint (`SCSI_ES_INFERENCE_ID`) to generate embeddings/expansions at ingest time. There are two common deployment patterns:
+`semantic_text` relies on an inference endpoint (`SCSI_ELASTICSEARCH_INFERENCE_ID`) to generate embeddings/expansions at ingest time. There are two common deployment patterns:
 
 - **EIS (`.elser-2-elastic`)**: inference runs on the Elastic Inference Service (managed, GPU-backed). It does **not** consume your cluster’s ML node resources.
 - **ML nodes (`.elser-2-elasticsearch`)**: inference runs on your Elasticsearch deployment’s ML nodes. Throughput depends on how much CPU/RAM you provision for ML.
 
-To avoid silently changing behavior across deployments, this indexer does **not** pick a default inference endpoint. If `semantic_text` is enabled (the default), you **must** set `SCSI_ES_INFERENCE_ID`.
+To avoid silently changing behavior across deployments, this indexer does **not** pick a default inference endpoint. If `semantic_text` is enabled (the default), you **must** set `SCSI_ELASTICSEARCH_INFERENCE_ID`.
 
 When using an Elastic-hosted inference endpoint, your deployment may be backed by the Elastic Inference Service (EIS), which is GPU-backed and has rate limits:
 
@@ -636,12 +636,12 @@ A complete example collector configuration is provided in [`docs/otel-collector-
 To use the example configuration:
 
 ```bash
-export SCSI_ES_ENDPOINT=https://elasticsearch:9200
-export SCSI_ES_API_KEY=your-api-key
+export SCSI_ELASTICSEARCH_ENDPOINT=https://elasticsearch:9200
+export SCSI_ELASTICSEARCH_API_KEY=your-api-key
 
 docker run -p 4318:4318 -p 4317:4317 -p 13133:13133 \
-  -e SCSI_ES_ENDPOINT \
-  -e SCSI_ES_API_KEY \
+  -e SCSI_ELASTICSEARCH_ENDPOINT \
+  -e SCSI_ELASTICSEARCH_API_KEY \
   -v $(pwd)/docs/otel-collector-config.yaml:/etc/otelcol/config.yaml \
   otel/opentelemetry-collector-contrib:latest
 ```

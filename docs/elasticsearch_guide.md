@@ -8,13 +8,13 @@ The `code-indexer` tool uses the official Elasticsearch Node.js client. Connecti
 
 | Environment Variable | Description |
 | :--- | :--- |
-| `SCSI_ES_ENDPOINT` | The HTTP endpoint of your Elasticsearch cluster. |
-| `SCSI_ES_CLOUD_ID` | The Cloud ID for an Elastic Cloud deployment. |
-| `SCSI_ES_USERNAME` | The username for authentication. |
-| `SCSI_ES_PASSWORD` | The password for authentication. |
-| `SCSI_ES_API_KEY` | An API key for authentication. |
+| `SCSI_ELASTICSEARCH_ENDPOINT` | The HTTP endpoint of your Elasticsearch cluster. |
+| `SCSI_ELASTICSEARCH_CLOUD_ID` | The Cloud ID for an Elastic Cloud deployment. |
+| `SCSI_ELASTICSEARCH_USERNAME` | The username for authentication. |
+| `SCSI_ELASTICSEARCH_PASSWORD` | The password for authentication. |
+| `SCSI_ELASTICSEARCH_API_KEY` | An API key for authentication. |
 
-You can use either `SCSI_ES_ENDPOINT` for a self-hosted cluster or `SCSI_ES_CLOUD_ID` for an Elastic Cloud deployment. You can authenticate with either a username/password combination or an API key.
+You can use either `SCSI_ELASTICSEARCH_ENDPOINT` for a self-hosted cluster or `SCSI_ELASTICSEARCH_CLOUD_ID` for an Elastic Cloud deployment. You can authenticate with either a username/password combination or an API key.
 
 ### Example Connection (Node.js)
 
@@ -23,15 +23,15 @@ const { Client } = require('@elastic/elasticsearch');
 
 const client = new Client({
   cloud: {
-    id: process.env.SCSI_ES_CLOUD_ID,
+    id: process.env.SCSI_ELASTICSEARCH_CLOUD_ID,
   },
   auth: {
-    username: process.env.SCSI_ES_USERNAME,
-    password: process.env.SCSI_ES_PASSWORD,
+    username: process.env.SCSI_ELASTICSEARCH_USERNAME,
+    password: process.env.SCSI_ELASTICSEARCH_PASSWORD,
   },
   // Or, for API key authentication:
   // auth: {
-  //   apiKey: process.env.SCSI_ES_API_KEY,
+  //   apiKey: process.env.SCSI_ELASTICSEARCH_API_KEY,
   // }
 });
 ```
@@ -179,11 +179,11 @@ The indexer stores content-deduplicated chunk documents in `<index>` and per-fil
 
 ### Important Considerations
 
-*   **ELSER Model / inference:** The `semantic_text` field is configured with an `inference_id`. Configure this via `SCSI_ES_INFERENCE_ID`.
+*   **ELSER Model / inference:** The `semantic_text` field is configured with an `inference_id`. Configure this via `SCSI_ELASTICSEARCH_INFERENCE_ID`.
 *   **Index Name:** Always pass an explicit index name via the CLI (`repo[:index]`) and use that same base index name when querying (and when configuring any MCP server).
 *   **Data Freshness:** The index is updated by running the `code-indexer` tool. For the MCP server to have the latest data, the index needs to be kept up-to-date by running the indexer regularly.
 
-#### Choosing an inference endpoint (`SCSI_ES_INFERENCE_ID`): EIS vs ML nodes
+#### Choosing an inference endpoint (`SCSI_ELASTICSEARCH_INFERENCE_ID`): EIS vs ML nodes
 
 `semantic_text` relies on an inference endpoint (`inference_id`) at ingest time. In practice, you’ll usually pick between these defaults:
 
@@ -192,4 +192,4 @@ The indexer stores content-deduplicated chunk documents in `<index>` and per-fil
 
 If you’re unsure which endpoints your cluster has, list them with `GET /_inference` and pick an `inference_id` that exists on your deployment.
 
-This repo does **not** select a default inference endpoint. If `semantic_text` is enabled (default), you must set `SCSI_ES_INFERENCE_ID`.
+This repo does **not** select a default inference endpoint. If `semantic_text` is enabled (default), you must set `SCSI_ELASTICSEARCH_INFERENCE_ID`.

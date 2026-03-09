@@ -365,7 +365,7 @@ sqlite3 .queues/<repo-name>/queue.db "SELECT status, COUNT(*) FROM queue GROUP B
 
 ```bash
 # Check Elasticsearch connectivity
-curl -X GET "$SCSI_ES_ENDPOINT/_cluster/health"
+curl -X GET "$SCSI_ELASTICSEARCH_ENDPOINT/_cluster/health"
 
 # Check system resources
 top
@@ -414,14 +414,14 @@ npm run queue:retry-failed -- --repo-name=<repo-name>
 # Instead, treat an ever-growing queue as a signal to fix the bottleneck:
 #
 # 1) Verify cluster health and resource headroom
-curl -u "$SCSI_ES_USERNAME:$SCSI_ES_PASSWORD" "$SCSI_ES_ENDPOINT/_cluster/health"
+curl -u "$SCSI_ELASTICSEARCH_USERNAME:$SCSI_ELASTICSEARCH_PASSWORD" "$SCSI_ELASTICSEARCH_ENDPOINT/_cluster/health"
 
 # 2) Check queue status to confirm growth
 npm run queue:monitor -- --repo-name=<repo-name>
 
 # 3) If semantic search is enabled, ensure your inference endpoint is healthy (EIS/ML)
 #    (Throttling or inference failures will reduce effective throughput)
-curl -u "$SCSI_ES_USERNAME:$SCSI_ES_PASSWORD" "$SCSI_ES_ENDPOINT/_inference"
+curl -u "$SCSI_ELASTICSEARCH_USERNAME:$SCSI_ELASTICSEARCH_PASSWORD" "$SCSI_ELASTICSEARCH_ENDPOINT/_inference"
 ```
 
 ---

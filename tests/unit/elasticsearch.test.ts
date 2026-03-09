@@ -268,15 +268,17 @@ describe('Elasticsearch Client Configuration', () => {
       expect(elasticsearch.elasticsearchConfig).toBeDefined();
     });
 
-    it('SHOULD require SCSI_ES_INFERENCE_ID when semantic_text is enabled', async () => {
+    it('SHOULD require SCSI_ELASTICSEARCH_INFERENCE_ID when semantic_text is enabled', async () => {
       const previousDisableSemanticText = process.env.SCSI_DISABLE_SEMANTIC_TEXT;
-      const previousInferenceId = process.env.SCSI_ES_INFERENCE_ID;
+      const previousInferenceId = process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
 
       try {
         delete process.env.SCSI_DISABLE_SEMANTIC_TEXT; // enable semantic_text
-        delete process.env.SCSI_ES_INFERENCE_ID;
+        delete process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
 
-        await expect(elasticsearch.createIndex('test-index')).rejects.toThrow('SCSI_ES_INFERENCE_ID is required');
+        await expect(elasticsearch.createIndex('test-index')).rejects.toThrow(
+          'SCSI_ELASTICSEARCH_INFERENCE_ID is required'
+        );
       } finally {
         if (previousDisableSemanticText === undefined) {
           delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
@@ -285,14 +287,14 @@ describe('Elasticsearch Client Configuration', () => {
         }
 
         if (previousInferenceId === undefined) {
-          delete process.env.SCSI_ES_INFERENCE_ID;
+          delete process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
         } else {
-          process.env.SCSI_ES_INFERENCE_ID = previousInferenceId;
+          process.env.SCSI_ELASTICSEARCH_INFERENCE_ID = previousInferenceId;
         }
       }
     });
 
-    it('SHOULD prioritize SCSI_ES_CLOUD_ID over SCSI_ES_ENDPOINT when both are set', () => {
+    it('SHOULD prioritize SCSI_ELASTICSEARCH_CLOUD_ID over SCSI_ELASTICSEARCH_ENDPOINT when both are set', () => {
       // This validates our configuration logic by checking what was actually used
       const config = elasticsearch.elasticsearchConfig;
 

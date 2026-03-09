@@ -89,8 +89,8 @@ The application's configuration is managed by a `.env` file. Create this file in
 # /opt/semantic-code-search-indexer/.env
 
 # Elasticsearch Configuration
-SCSI_ES_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
-SCSI_ES_API_KEY="YourEncodedApiKey"
+SCSI_ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
+SCSI_ELASTICSEARCH_API_KEY="YourEncodedApiKey"
 
 # OpenTelemetry Configuration (optional)
 # Enable logs and metrics export to OpenTelemetry Collector
@@ -214,8 +214,8 @@ For production monitoring, deploy an OpenTelemetry Collector to receive logs and
     ExecStart=/usr/local/bin/otelcol-contrib --config=/etc/otelcol/config.yaml
     Restart=on-failure
     RestartSec=30
-    Environment="SCSI_ES_ENDPOINT=https://your-es-endpoint.elastic-cloud.com:9243"
-    Environment="SCSI_ES_API_KEY=YourEncodedApiKey"
+    Environment="SCSI_ELASTICSEARCH_ENDPOINT=https://your-es-endpoint.elastic-cloud.com:9243"
+    Environment="SCSI_ELASTICSEARCH_API_KEY=YourEncodedApiKey"
 
     [Install]
     WantedBy=multi-user.target
