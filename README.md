@@ -1,16 +1,15 @@
-> [!WARNING]
-> **Unstable `main`: do not track at HEAD.**
->
-> Until we settle on a stable release/versioning process with backwards-compatibility guarantees,
-> **`main` may contain breaking changes at any moment** (CLI flags, env vars, index mappings, queue schema, etc.).
->
-> If you deploy this, **pin to a specific commit SHA** and upgrade intentionally.
->
-> If you want an older, known-good version from **October 2025 (pre–most breaking changes)** that is compatible with
-> the current MCP Docker image, use this pairing:
->
-> - **Indexer**: commit `2fe4a9a4fefe84252a9c5ffe95875162bdb79cd0` (on `main`)
-> - **MCP**: `simianhacker/semantic-code-search-mcp-server:latest`
+⚠️ **Warning: Unstable `main` branch** ⚠️
+
+Until we settle on a stable release/versioning process with backwards-compatibility guarantees,
+**`main` may contain breaking changes at any moment** (CLI flags, env vars, index mappings, queue schema, etc.).
+
+If you deploy this, **pin to a specific commit SHA** and upgrade intentionally.
+
+If you want an older, known-good version from **October 2025 (pre–most breaking changes)** that is compatible with
+the current MCP Docker image, use this pairing:
+
+- **Indexer**: commit `2fe4a9a4fefe84252a9c5ffe95875162bdb79cd0` (on `main`)
+- **MCP**: `simianhacker/semantic-code-search-mcp-server:latest`
 
 # Semantic Code Search Indexer
 
@@ -429,13 +428,13 @@ Given a base index name (from CLI `repo[:index]`), the indexer creates and maint
 
 | Variable                                   | Description                                                                                                                                     | Default                             |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `SCSI_ELASTICSEARCH_ENDPOINT`                         | The endpoint URL for your Elasticsearch instance.                                                                                               |                                     |
-| `SCSI_ELASTICSEARCH_CLOUD_ID`                         | The Cloud ID for your Elastic Cloud instance.                                                                                                   |                                     |
-| `SCSI_ELASTICSEARCH_USERNAME`                         | The username for Elasticsearch authentication.                                                                                                  |                                     |
-| `SCSI_ELASTICSEARCH_PASSWORD`                         | The password for Elasticsearch authentication.                                                                                                  |                                     |
-| `SCSI_ELASTICSEARCH_API_KEY`                          | An API key for Elasticsearch authentication.                                                                                                    |                                     |
-| `SCSI_ELASTICSEARCH_INFERENCE_ID`                     | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
-| `SCSI_ELASTICSEARCH_REQUEST_TIMEOUT`                  | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
+| `SCSI_ELASTICSEARCH_ENDPOINT`              | The endpoint URL for your Elasticsearch instance.                                                                                               |                                     |
+| `SCSI_ELASTICSEARCH_CLOUD_ID`              | The Cloud ID for your Elastic Cloud instance.                                                                                                   |                                     |
+| `SCSI_ELASTICSEARCH_USERNAME`              | The username for Elasticsearch authentication.                                                                                                  |                                     |
+| `SCSI_ELASTICSEARCH_PASSWORD`              | The password for Elasticsearch authentication.                                                                                                  |                                     |
+| `SCSI_ELASTICSEARCH_API_KEY`               | An API key for Elasticsearch authentication.                                                                                                    |                                     |
+| `SCSI_ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
+| `SCSI_ELASTICSEARCH_REQUEST_TIMEOUT`       | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
 | `SCSI_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable the `semantic_text` mapping at index creation time (useful for tests or deployments without ML nodes).                 | `false`                             |
 | `SCSI_OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                   | `false`                             |
 | `SCSI_OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `SCSI_OTEL_LOGGING_ENABLED`).                                                                 | Same as `SCSI_OTEL_LOGGING_ENABLED` |
