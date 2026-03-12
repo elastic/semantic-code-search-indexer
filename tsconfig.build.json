@@ -7,11 +7,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "noEmit": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "baseUrl": ".",
     "paths": {}
   },
-  "include": ["src/**/*.ts", "libs/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["node_modules", "tests/fixtures"]
+  "include": ["src/**/*.ts", "libs/**/*.ts"],
+  "exclude": ["node_modules"]
 }

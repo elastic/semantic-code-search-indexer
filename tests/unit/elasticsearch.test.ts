@@ -4,6 +4,7 @@ import type { Mock } from 'vitest';
 
 import * as elasticsearch from '../../src/utils/elasticsearch';
 import { CodeChunk } from '../../src/utils/elasticsearch';
+import { withTestEnv } from './utils/test_env';
 
 const MOCK_CHUNK: CodeChunk = {
   type: 'code',
@@ -268,31 +269,13 @@ describe('Elasticsearch Client Configuration', () => {
       expect(elasticsearch.elasticsearchConfig).toBeDefined();
     });
 
-    it('SHOULD require SCSI_ELASTICSEARCH_INFERENCE_ID when semantic_text is enabled', async () => {
-      const previousDisableSemanticText = process.env.SCSI_DISABLE_SEMANTIC_TEXT;
-      const previousInferenceId = process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
-
-      try {
-        delete process.env.SCSI_DISABLE_SEMANTIC_TEXT; // enable semantic_text
-        delete process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
-
+    it('SHOULD require SCSI_ELASTICSEARCH_INFERENCE_ID when semantic_text is enabled', () =>
+      // undefined = delete the var, which enables semantic_text (it's only disabled when explicitly 'true')
+      withTestEnv({ SCSI_DISABLE_SEMANTIC_TEXT: undefined, SCSI_ELASTICSEARCH_INFERENCE_ID: undefined }, async () => {
         await expect(elasticsearch.createIndex('test-index')).rejects.toThrow(
           'SCSI_ELASTICSEARCH_INFERENCE_ID is required'
         );
-      } finally {
-        if (previousDisableSemanticText === undefined) {
-          delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
-        } else {
-          process.env.SCSI_DISABLE_SEMANTIC_TEXT = previousDisableSemanticText;
-        }
-
-        if (previousInferenceId === undefined) {
-          delete process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
-        } else {
-          process.env.SCSI_ELASTICSEARCH_INFERENCE_ID = previousInferenceId;
-        }
-      }
-    });
+      }));
 
     it('SHOULD prioritize SCSI_ELASTICSEARCH_CLOUD_ID over SCSI_ELASTICSEARCH_ENDPOINT when both are set', () => {
       // This validates our configuration logic by checking what was actually used

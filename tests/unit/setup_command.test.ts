@@ -2,6 +2,7 @@ import { setup } from '../../src/commands/setup_command';
 import * as gitHelper from '../../src/utils/git_helper';
 import path from 'path';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+import { withTestEnv } from './utils/test_env';
 
 vi.mock('../../src/utils/git_helper');
 
@@ -10,22 +11,20 @@ const mockedGitHelper = vi.mocked(gitHelper);
 describe('setup_command', () => {
   const originalCwd = process.cwd();
   const testReposDir = path.join(originalCwd, '.repos');
-  let previousGithubToken: string | undefined;
+  const savedGithubToken = process.env.SCSI_GITHUB_TOKEN;
 
   beforeEach(() => {
     // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
-
     vi.clearAllMocks();
-    previousGithubToken = process.env.SCSI_GITHUB_TOKEN;
     delete process.env.SCSI_GITHUB_TOKEN;
   });
 
   afterEach(() => {
-    if (previousGithubToken === undefined) {
+    if (savedGithubToken === undefined) {
       delete process.env.SCSI_GITHUB_TOKEN;
     } else {
-      process.env.SCSI_GITHUB_TOKEN = previousGithubToken;
+      process.env.SCSI_GITHUB_TOKEN = savedGithubToken;
     }
   });
 
@@ -59,20 +58,19 @@ describe('setup_command', () => {
     });
 
     describe('AND no token is provided', () => {
-      it('SHOULD use appConfig token', async () => {
-        const repoUrl = 'https://github.com/elastic/kibana.git';
-        const configToken = 'ghp_config_token';
-        process.env.SCSI_GITHUB_TOKEN = configToken;
-        mockedGitHelper.cloneOrPullRepo.mockResolvedValue(undefined);
+      it('SHOULD use appConfig token', () =>
+        withTestEnv({ SCSI_GITHUB_TOKEN: 'ghp_config_token' }, async () => {
+          const repoUrl = 'https://github.com/elastic/kibana.git';
+          mockedGitHelper.cloneOrPullRepo.mockResolvedValue(undefined);
 
-        await setup(repoUrl);
+          await setup(repoUrl);
 
-        expect(mockedGitHelper.cloneOrPullRepo).toHaveBeenCalledWith(
-          repoUrl,
-          path.join(testReposDir, 'kibana'),
-          configToken
-        );
-      });
+          expect(mockedGitHelper.cloneOrPullRepo).toHaveBeenCalledWith(
+            repoUrl,
+            path.join(testReposDir, 'kibana'),
+            'ghp_config_token'
+          );
+        }));
     });
   });
 

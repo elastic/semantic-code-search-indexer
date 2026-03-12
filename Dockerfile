@@ -4,7 +4,7 @@ RUN apk add --no-cache python3 make g++ git
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --include=dev
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.build.json ./
 COPY src/ ./src/
 RUN npm run build
 RUN npm ci --only=production && npm cache clean --force

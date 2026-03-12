@@ -1,5 +1,6 @@
 import { parseHeaders } from '../../src/utils/otel_provider';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+import { withTestEnv } from './utils/test_env';
 
 describe('parseHeaders', () => {
   it('should parse simple key=value pairs', () => {
@@ -130,14 +131,12 @@ describe('OTel Provider', () => {
     expect(provider1).toBe(provider2);
   });
 
-  it('should use SCSI_OTEL_SERVICE_NAME if provided', async () => {
-    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
-    process.env.SCSI_OTEL_SERVICE_NAME = 'custom-service-name';
-    const { getLoggerProvider } = await import('../../src/utils/otel_provider');
-    const provider = getLoggerProvider();
-    expect(provider).not.toBeNull();
-    // Resource attributes are internal, so we just verify the provider is created
-  });
+  it('should use SCSI_OTEL_SERVICE_NAME if provided', () =>
+    withTestEnv({ SCSI_OTEL_LOGGING_ENABLED: 'true', SCSI_OTEL_SERVICE_NAME: 'custom-service-name' }, async () => {
+      const { getLoggerProvider } = await import('../../src/utils/otel_provider');
+      const provider = getLoggerProvider();
+      expect(provider).not.toBeNull();
+    }));
 
   it('should use default service name if SCSI_OTEL_SERVICE_NAME is not set', async () => {
     process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
@@ -190,83 +189,92 @@ describe('OTel Provider', () => {
     expect(attributes['git.indexer.root.path']).toBeUndefined();
   });
 
-  it('should still include standard resource attributes', async () => {
-    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
-    process.env.SCSI_OTEL_SERVICE_NAME = 'test-service';
-    const { getLoggerProvider } = await import('../../src/utils/otel_provider');
-    const provider = getLoggerProvider();
-    expect(provider).not.toBeNull();
+  it('should still include standard resource attributes', () =>
+    withTestEnv({ SCSI_OTEL_LOGGING_ENABLED: 'true', SCSI_OTEL_SERVICE_NAME: 'test-service' }, async () => {
+      const { getLoggerProvider } = await import('../../src/utils/otel_provider');
+      const provider = getLoggerProvider();
+      expect(provider).not.toBeNull();
 
-    // Access the resource attributes through the provider's _sharedState
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const resource = (provider as any)._sharedState.resource;
-    const attributes = resource.attributes;
+      // Access the resource attributes through the provider's _sharedState
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resource = (provider as any)._sharedState.resource;
+      const attributes = resource.attributes;
 
-    // Verify standard attributes are still present
-    expect(attributes['service.name']).toBeDefined();
-    // The detectors add various attributes - just verify we have some
-    expect(Object.keys(attributes).length).toBeGreaterThan(3);
-  });
+      expect(attributes['service.name']).toBeDefined();
+      // The detectors add various attributes — just verify we have some
+      expect(Object.keys(attributes).length).toBeGreaterThan(3);
+    }));
 
-  it('should respect SCSI_OTEL_RESOURCE_ATTRIBUTES environment variable', async () => {
-    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
-    process.env.SCSI_OTEL_RESOURCE_ATTRIBUTES = 'deployment.environment=staging,team=platform,custom.key=custom-value';
-    const { getLoggerProvider } = await import('../../src/utils/otel_provider');
-    const provider = getLoggerProvider();
-    expect(provider).not.toBeNull();
+  it('should respect SCSI_OTEL_RESOURCE_ATTRIBUTES environment variable', () =>
+    withTestEnv(
+      {
+        SCSI_OTEL_LOGGING_ENABLED: 'true',
+        SCSI_OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=staging,team=platform,custom.key=custom-value',
+      },
+      async () => {
+        const { getLoggerProvider } = await import('../../src/utils/otel_provider');
+        const provider = getLoggerProvider();
+        expect(provider).not.toBeNull();
 
-    // Access the resource attributes through the provider's _sharedState
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const resource = (provider as any)._sharedState.resource;
-    const attributes = resource.attributes;
+        // Access the resource attributes through the provider's _sharedState
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resource = (provider as any)._sharedState.resource;
+        const attributes = resource.attributes;
 
-    // Verify SCSI_OTEL_RESOURCE_ATTRIBUTES were added
-    expect(attributes['deployment.environment']).toBe('staging');
-    expect(attributes['team']).toBe('platform');
-    expect(attributes['custom.key']).toBe('custom-value');
-  });
+        expect(attributes['deployment.environment']).toBe('staging');
+        expect(attributes['team']).toBe('platform');
+        expect(attributes['custom.key']).toBe('custom-value');
+      }
+    ));
 
-  it('should ignore OTEL_RESOURCE_ATTRIBUTES and only use SCSI_OTEL_RESOURCE_ATTRIBUTES', async () => {
-    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
-    process.env.SCSI_OTEL_RESOURCE_ATTRIBUTES = 'team=scsi,custom.key=scoped';
-    process.env.OTEL_RESOURCE_ATTRIBUTES = 'team=ambient,ambient.key=ambient';
+  it('should ignore OTEL_RESOURCE_ATTRIBUTES and only use SCSI_OTEL_RESOURCE_ATTRIBUTES', () =>
+    withTestEnv(
+      {
+        SCSI_OTEL_LOGGING_ENABLED: 'true',
+        SCSI_OTEL_RESOURCE_ATTRIBUTES: 'team=scsi,custom.key=scoped',
+        OTEL_RESOURCE_ATTRIBUTES: 'team=ambient,ambient.key=ambient',
+      },
+      async () => {
+        const { getLoggerProvider } = await import('../../src/utils/otel_provider');
+        const provider = getLoggerProvider();
+        expect(provider).not.toBeNull();
 
-    const { getLoggerProvider } = await import('../../src/utils/otel_provider');
-    const provider = getLoggerProvider();
-    expect(provider).not.toBeNull();
+        // Access the resource attributes through the provider's _sharedState
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resource = (provider as any)._sharedState.resource;
+        const attributes = resource.attributes;
 
-    // Access the resource attributes through the provider's _sharedState
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const resource = (provider as any)._sharedState.resource;
-    const attributes = resource.attributes;
+        expect(attributes['team']).toBe('scsi');
+        expect(attributes['custom.key']).toBe('scoped');
+        expect(attributes['ambient.key']).toBeUndefined();
+      }
+    ));
 
-    expect(attributes['team']).toBe('scsi');
-    expect(attributes['custom.key']).toBe('scoped');
-    expect(attributes['ambient.key']).toBeUndefined();
-  });
+  it('should isolate log exporter from OTEL_* endpoint and headers', () =>
+    withTestEnv(
+      {
+        SCSI_OTEL_LOGGING_ENABLED: 'true',
+        SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: 'http://scsi-otel-endpoint:4318',
+        SCSI_OTEL_EXPORTER_OTLP_HEADERS: 'x-scsi=scsi-value',
+        OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: 'http://ambient-otel-endpoint:9999',
+        OTEL_EXPORTER_OTLP_LOGS_HEADERS: 'x-ambient=ambient-value',
+      },
+      async () => {
+        const { getLoggerProvider } = await import('../../src/utils/otel_provider');
+        const provider = getLoggerProvider();
+        expect(provider).not.toBeNull();
 
-  it('should isolate log exporter from OTEL_* endpoint and headers', async () => {
-    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
-    process.env.SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT = 'http://scsi-otel-endpoint:4318';
-    process.env.SCSI_OTEL_EXPORTER_OTLP_HEADERS = 'x-scsi=scsi-value';
+        // Access the log exporter through the provider's _sharedState
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const logProcessor = (provider as any)._sharedState.registeredLogRecordProcessors[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const exporter = logProcessor._exporter as any;
 
-    process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT = 'http://ambient-otel-endpoint:9999';
-    process.env.OTEL_EXPORTER_OTLP_LOGS_HEADERS = 'x-ambient=ambient-value';
-
-    const { getLoggerProvider } = await import('../../src/utils/otel_provider');
-    const provider = getLoggerProvider();
-    expect(provider).not.toBeNull();
-
-    // Access the log exporter through the provider's _sharedState
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const logProcessor = (provider as any)._sharedState.registeredLogRecordProcessors[0];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const exporter = logProcessor._exporter as any;
-
-    expect(exporter.url).toBe('http://scsi-otel-endpoint:4318/v1/logs');
-    expect(exporter.headers['x-scsi']).toBe('scsi-value');
-    expect(exporter.headers['x-ambient']).toBeUndefined();
-  });
+        expect(exporter.url).toBe('http://scsi-otel-endpoint:4318/v1/logs');
+        expect(exporter.headers['x-scsi']).toBe('scsi-value');
+        expect(exporter.headers['x-ambient']).toBeUndefined();
+      }
+    ));
 });
 
 describe('MeterProvider', () => {
@@ -318,13 +326,12 @@ describe('MeterProvider', () => {
     expect(provider).toBeDefined();
   });
 
-  it('should default to SCSI_OTEL_LOGGING_ENABLED when SCSI_OTEL_METRICS_ENABLED is not set', async () => {
-    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
-    delete process.env.SCSI_OTEL_METRICS_ENABLED;
-    const { getMeterProvider } = await import('../../src/utils/otel_provider');
-    const provider = getMeterProvider();
-    expect(provider).not.toBeNull();
-  });
+  it('should default to SCSI_OTEL_LOGGING_ENABLED when SCSI_OTEL_METRICS_ENABLED is not set', () =>
+    withTestEnv({ SCSI_OTEL_LOGGING_ENABLED: 'true', SCSI_OTEL_METRICS_ENABLED: undefined }, async () => {
+      const { getMeterProvider } = await import('../../src/utils/otel_provider');
+      const provider = getMeterProvider();
+      expect(provider).not.toBeNull();
+    }));
 
   it('should return the same instance on subsequent calls (singleton)', async () => {
     process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
@@ -359,40 +366,42 @@ describe('MeterProvider', () => {
     await expect(shutdown()).resolves.not.toThrow();
   });
 
-  it('should shutdown both logger and meter providers', async () => {
-    process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
-    process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
-    const { getLoggerProvider, getMeterProvider, shutdown } = await import('../../src/utils/otel_provider');
+  it('should shutdown both logger and meter providers', () =>
+    withTestEnv({ SCSI_OTEL_LOGGING_ENABLED: 'true', SCSI_OTEL_METRICS_ENABLED: 'true' }, async () => {
+      const { getLoggerProvider, getMeterProvider, shutdown } = await import('../../src/utils/otel_provider');
 
-    const loggerProvider = getLoggerProvider();
-    const meterProvider = getMeterProvider();
+      const loggerProvider = getLoggerProvider();
+      const meterProvider = getMeterProvider();
 
-    expect(loggerProvider).not.toBeNull();
-    expect(meterProvider).not.toBeNull();
+      expect(loggerProvider).not.toBeNull();
+      expect(meterProvider).not.toBeNull();
 
-    await expect(shutdown()).resolves.not.toThrow();
-  });
+      await expect(shutdown()).resolves.not.toThrow();
+    }));
 
-  it('should isolate metrics exporter from OTEL_* endpoint and headers', async () => {
-    process.env.SCSI_OTEL_METRICS_ENABLED = 'true';
-    process.env.SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT = 'http://scsi-metrics-endpoint:4318';
-    process.env.SCSI_OTEL_EXPORTER_OTLP_HEADERS = 'x-scsi=scsi-value';
+  it('should isolate metrics exporter from OTEL_* endpoint and headers', () =>
+    withTestEnv(
+      {
+        SCSI_OTEL_METRICS_ENABLED: 'true',
+        SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'http://scsi-metrics-endpoint:4318',
+        SCSI_OTEL_EXPORTER_OTLP_HEADERS: 'x-scsi=scsi-value',
+        OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'http://ambient-metrics-endpoint:9999',
+        OTEL_EXPORTER_OTLP_METRICS_HEADERS: 'x-ambient=ambient-value',
+      },
+      async () => {
+        const { getMeterProvider } = await import('../../src/utils/otel_provider');
+        const provider = getMeterProvider();
+        expect(provider).not.toBeNull();
 
-    process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT = 'http://ambient-metrics-endpoint:9999';
-    process.env.OTEL_EXPORTER_OTLP_METRICS_HEADERS = 'x-ambient=ambient-value';
+        // Access the metric reader/exporter through the provider's shared state
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const metricReader = (provider as any)._sharedState.metricCollectors[0]._metricReader;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const exporter = metricReader._exporter as any;
 
-    const { getMeterProvider } = await import('../../src/utils/otel_provider');
-    const provider = getMeterProvider();
-    expect(provider).not.toBeNull();
-
-    // Access the metric reader/exporter through the provider's shared state
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const metricReader = (provider as any)._sharedState.metricCollectors[0]._metricReader;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const exporter = metricReader._exporter as any;
-
-    expect(exporter._otlpExporter.url).toBe('http://scsi-metrics-endpoint:4318/v1/metrics');
-    expect(exporter._otlpExporter.headers['x-scsi']).toBe('scsi-value');
-    expect(exporter._otlpExporter.headers['x-ambient']).toBeUndefined();
-  });
+        expect(exporter._otlpExporter.url).toBe('http://scsi-metrics-endpoint:4318/v1/metrics');
+        expect(exporter._otlpExporter.headers['x-scsi']).toBe('scsi-value');
+        expect(exporter._otlpExporter.headers['x-ambient']).toBeUndefined();
+      }
+    ));
 });

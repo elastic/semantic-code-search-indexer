@@ -15,6 +15,7 @@ import type { CodeChunk } from '../../src/utils/elasticsearch';
 import { execFileSync } from 'child_process';
 import * as otelProvider from '../../src/utils/otel_provider';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+import { withTestEnv } from './utils/test_env';
 
 // Mock child_process but keep all other functions
 vi.mock('child_process', async () => {
@@ -28,17 +29,14 @@ vi.mock('child_process', async () => {
 describe('index_command', () => {
   // Use unique test directory in system temp to avoid parallel test conflicts
   const testQueuesDir = path.join(os.tmpdir(), `index-command-test-${process.pid}-${Date.now()}`);
-  const originalScsiLanguages = process.env.SCSI_LANGUAGES;
+  const savedScsiLanguages = process.env.SCSI_LANGUAGES;
 
   beforeEach(() => {
-    if (process.env.SCSI_LANGUAGES !== undefined) {
-      delete process.env.SCSI_LANGUAGES;
-    }
+    delete process.env.SCSI_LANGUAGES;
 
     // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
 
-    // Reset Commander options to prevent leakage between tests
     // Commander caches parsed options, so we need to reset them
     indexCommand.setOptionValue('pull', undefined);
     indexCommand.setOptionValue('clean', undefined);
@@ -57,20 +55,18 @@ describe('index_command', () => {
       configurable: true,
     });
 
-    // Clean up test directories
     if (fs.existsSync(testQueuesDir)) {
       fs.rmSync(testQueuesDir, { recursive: true });
     }
   });
 
   afterEach(() => {
-    if (originalScsiLanguages === undefined) {
+    if (savedScsiLanguages === undefined) {
       delete process.env.SCSI_LANGUAGES;
     } else {
-      process.env.SCSI_LANGUAGES = originalScsiLanguages;
+      process.env.SCSI_LANGUAGES = savedScsiLanguages;
     }
 
-    // Clean up
     if (fs.existsSync(testQueuesDir)) {
       fs.rmSync(testQueuesDir, { recursive: true });
     }
@@ -747,88 +743,86 @@ describe('index_command', () => {
       vi.restoreAllMocks();
     });
 
-    it('SHOULD constrain default languages to SCSI_LANGUAGES when --languages is omitted', async () => {
-      process.env.SCSI_LANGUAGES = 'typescript';
+    it('SHOULD constrain default languages to SCSI_LANGUAGES when --languages is omitted', () =>
+      withTestEnv({ SCSI_LANGUAGES: 'typescript' }, async () => {
+        Object.defineProperty(appConfig, 'queueBaseDir', {
+          value: testQueuesDir,
+          writable: true,
+          configurable: true,
+        });
 
-      Object.defineProperty(appConfig, 'queueBaseDir', {
-        value: testQueuesDir,
-        writable: true,
-        configurable: true,
-      });
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr === '/path/to/my-repo') {
+            return true;
+          }
+          if (pathStr.startsWith(testQueuesDir)) {
+            return false;
+          }
+          return originalExistsSync(p);
+        });
 
-      const originalExistsSync = fs.existsSync;
-      vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
-        const pathStr = p.toString();
-        if (pathStr === '/path/to/my-repo') {
-          return true;
-        }
-        if (pathStr.startsWith(testQueuesDir)) {
-          return false;
-        }
-        return originalExistsSync(p);
-      });
+        const fullIndexSpy = vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
-      const fullIndexSpy = vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-      vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
-      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--watch']);
 
-      await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--watch']);
+        expect(fullIndexSpy).toHaveBeenCalledWith(
+          '/path/to/my-repo',
+          false,
+          expect.objectContaining({
+            languages: 'typescript',
+          })
+        );
+      }));
 
-      expect(fullIndexSpy).toHaveBeenCalledWith(
-        '/path/to/my-repo',
-        false,
-        expect.objectContaining({
-          languages: 'typescript',
-        })
-      );
-    });
+    it('SHOULD let --languages override SCSI_LANGUAGES', () =>
+      withTestEnv({ SCSI_LANGUAGES: 'typescript,go' }, async () => {
+        Object.defineProperty(appConfig, 'queueBaseDir', {
+          value: testQueuesDir,
+          writable: true,
+          configurable: true,
+        });
 
-    it('SHOULD let --languages override SCSI_LANGUAGES', async () => {
-      process.env.SCSI_LANGUAGES = 'typescript,go';
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr === '/path/to/my-repo') {
+            return true;
+          }
+          if (pathStr.startsWith(testQueuesDir)) {
+            return false;
+          }
+          return originalExistsSync(p);
+        });
 
-      Object.defineProperty(appConfig, 'queueBaseDir', {
-        value: testQueuesDir,
-        writable: true,
-        configurable: true,
-      });
+        const fullIndexSpy = vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
-      const originalExistsSync = fs.existsSync;
-      vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
-        const pathStr = p.toString();
-        if (pathStr === '/path/to/my-repo') {
-          return true;
-        }
-        if (pathStr.startsWith(testQueuesDir)) {
-          return false;
-        }
-        return originalExistsSync(p);
-      });
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--watch', '--languages', 'go,python']);
 
-      const fullIndexSpy = vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-      vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
-      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+        expect(fullIndexSpy).toHaveBeenCalledWith(
+          '/path/to/my-repo',
+          false,
+          expect.objectContaining({
+            languages: 'go,python',
+          })
+        );
+      }));
 
-      await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--watch', '--languages', 'go,python']);
+    it('SHOULD throw when SCSI_LANGUAGES contains no valid languages and --languages is omitted', () =>
+      withTestEnv({ SCSI_LANGUAGES: 'not-a-real-language' }, async () => {
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
-      expect(fullIndexSpy).toHaveBeenCalledWith(
-        '/path/to/my-repo',
-        false,
-        expect.objectContaining({
-          languages: 'go,python',
-        })
-      );
-    });
-
-    it('SHOULD throw when SCSI_LANGUAGES contains no valid languages and --languages is omitted', async () => {
-      process.env.SCSI_LANGUAGES = 'not-a-real-language';
-      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
-
-      await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo'])).rejects.toThrow(
-        'No valid languages were provided via SCSI_LANGUAGES/--languages.'
-      );
-    });
+        await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo'])).rejects.toThrow(
+          'No valid languages were provided via SCSI_LANGUAGES/--languages.'
+        );
+      }));
   });
 
   describe('clone error handling', () => {
