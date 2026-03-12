@@ -269,11 +269,11 @@ describe('SqliteQueue - PID Tracking', () => {
     });
   });
 
-  describe('WHEN migrating existing database', () => {
-    it('SHOULD add worker_pid column to existing database', async () => {
-      const migrationDbPath = path.join(testDbDir, 'migration-test.db');
+  describe('WHEN upgrading an existing database', () => {
+    it('SHOULD add worker_pid column to an existing database', async () => {
+      const schemaUpgradeDbPath = path.join(testDbDir, 'schema-upgrade-test.db');
 
-      const oldDb = new Database(migrationDbPath);
+      const oldDb = new Database(schemaUpgradeDbPath);
       oldDb.exec('PRAGMA journal_mode = WAL;');
       oldDb.exec(`
         CREATE TABLE queue (
@@ -289,13 +289,13 @@ describe('SqliteQueue - PID Tracking', () => {
       oldDb.close();
 
       const migratedQueue = new SqliteQueue({
-        dbPath: migrationDbPath,
+        dbPath: schemaUpgradeDbPath,
         repoName: 'test-repo',
         branch: 'main',
       });
       await migratedQueue.initialize();
 
-      const db = new Database(migrationDbPath, { readonly: true });
+      const db = new Database(schemaUpgradeDbPath, { readonly: true });
       const tableInfo = db.prepare('PRAGMA table_info(queue)').all() as { name: string }[];
       db.close();
 

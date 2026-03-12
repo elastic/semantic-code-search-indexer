@@ -68,14 +68,11 @@ describe('Integration Test - Full Indexing Pipeline', () => {
   });
 
   it('should setup, index, and verify documents in elasticsearch', async () => {
-    // Limit to markdown for faster test execution
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'markdown';
-
     // Setup creates the index with proper mapping
-    await setup(testRepoUrl, {});
+    await setup(testRepoUrl);
 
     // Index the test repository with watch: false to prevent infinite loops
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, batchSize: '10', languages: 'markdown' });
 
     // Force Elasticsearch to refresh the index to make documents searchable
     const client = getClient();

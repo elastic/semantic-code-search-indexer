@@ -4,7 +4,7 @@ RUN apk add --no-cache python3 make g++ git
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --include=dev
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.build.json ./
 COPY src/ ./src/
 RUN npm run build
 RUN npm ci --only=production && npm cache clean --force
@@ -30,7 +30,7 @@ USER indexer
 RUN gh auth setup-git --hostname github.com --force
 
 ENV NODE_ENV=production
-# Configure OpenTelemetry via OTEL_* environment variables
+# Configure OpenTelemetry via SCSI_OTEL_* environment variables
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD node dist/index.js --help || exit 1

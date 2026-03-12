@@ -1,6 +1,5 @@
 import { createLocationsIndex, deleteDocumentsByFilePaths, getLastIndexedCommit } from '../utils/elasticsearch';
 import { languageConfigurations, parseLanguageNames } from '../languages';
-import { indexingConfig } from '../config';
 import path from 'path';
 import { Worker } from 'worker_threads';
 import PQueue from 'p-queue';
@@ -19,8 +18,10 @@ import {
 
 export interface IncrementalIndexOptions {
   queueDir: string;
-  elasticsearchIndex?: string;
-  token?: string;
+  elasticsearchIndex: string;
+  deleteDocumentsPageSize?: number;
+  parseConcurrency?: number;
+  languages?: string;
   repoName?: string;
   branch?: string;
 }
@@ -50,7 +51,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
   const metrics = createMetrics({ name: repoName, branch: gitBranch });
 
   const supportedExtensions = new Set<string>();
-  const enabledLanguageNames = parseLanguageNames(process.env.SEMANTIC_CODE_INDEXER_LANGUAGES);
+  const enabledLanguageNames = parseLanguageNames(options.languages);
   enabledLanguageNames.forEach((name) => {
     const config = languageConfigurations[name];
     config.fileSuffixes.forEach((suffix) => supportedExtensions.add(suffix));
@@ -61,7 +62,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     ...options,
   });
 
-  const lastCommitHash = await getLastIndexedCommit(gitBranch, options?.elasticsearchIndex);
+  const lastCommitHash = await getLastIndexedCommit(gitBranch, options.elasticsearchIndex);
 
   if (!lastCommitHash) {
     logger.warn('No previous commit hash found. Please run a full index first.', { gitBranch });
@@ -70,7 +71,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
 
   // Ensure the locations store exists for this index. This allows upgrading existing deployments
   // without requiring a full clean reindex just to create the new index.
-  await createLocationsIndex(options?.elasticsearchIndex);
+  await createLocationsIndex(options.elasticsearchIndex);
 
   logger.info(`Last indexed commit hash: ${lastCommitHash}`, { gitBranch });
 
@@ -111,7 +112,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
     } else if (status === 'M') {
       const file = parts[1];
       // Always remove stale indexed locations for changed files, even if this file type is no
-      // longer enabled. Otherwise changing SEMANTIC_CODE_INDEXER_LANGUAGES can leave stale docs.
+      // longer enabled. Otherwise changing the enabled language set can leave stale docs.
       filesToDelete.push(file);
       if (supportedExtensions.has(path.extname(file))) {
         filesToIndex.push(file);
@@ -128,7 +129,9 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
 
   if (filesToDelete.length > 0) {
     logger.info('Removing stale indexed locations for changed/deleted files...', { count: filesToDelete.length });
-    await deleteDocumentsByFilePaths(filesToDelete, options?.elasticsearchIndex);
+    await deleteDocumentsByFilePaths(filesToDelete, options.elasticsearchIndex, {
+      deleteDocumentsPageSize: options.deleteDocumentsPageSize,
+    });
     logger.info('Removed stale indexed locations for changed/deleted files.', { count: filesToDelete.length });
   }
 
@@ -139,19 +142,19 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
 
     let successCount = 0;
     let failureCount = 0;
-    const { cpuCores } = indexingConfig;
     const enqueueQueue = await getQueue(options, repoName, gitBranch);
     workQueue = enqueueQueue;
     // Ensure enqueue completion metadata reflects this run. If the process dies mid-enqueue,
     // the index command can detect it and safely re-enqueue from scratch.
     await enqueueQueue.markEnqueueStarted();
 
-    const producerWorkerPath = path.join(process.cwd(), 'dist', 'utils', 'producer_worker.js');
+    const producerWorkerPath = path.join(__dirname, '..', '..', 'dist', 'utils', 'producer_worker.js');
 
-    const configuredPoolSize = Number.isFinite(indexingConfig.producerWorkerPoolSize)
-      ? Math.floor(indexingConfig.producerWorkerPoolSize)
-      : cpuCores;
-    const poolSize = Math.max(1, Math.min(cpuCores, configuredPoolSize, filesToIndex.length));
+    const configuredPoolSize =
+      typeof options.parseConcurrency === 'number' && Number.isFinite(options.parseConcurrency)
+        ? Math.floor(options.parseConcurrency)
+        : 1;
+    const poolSize = Math.max(1, Math.min(configuredPoolSize, filesToIndex.length));
 
     const producerQueue = new PQueue({ concurrency: poolSize });
 
@@ -159,7 +162,7 @@ export async function incrementalIndex(directory: string, options: IncrementalIn
       { length: poolSize },
       () =>
         new Worker(producerWorkerPath, {
-          workerData: { repoName, gitBranch },
+          workerData: { repoName, gitBranch, languages: options.languages },
         })
     );
 

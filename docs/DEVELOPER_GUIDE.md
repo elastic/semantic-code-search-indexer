@@ -42,6 +42,10 @@ npm run build
 npm test
 ```
 
+### CLI Notes
+
+- Numeric CLI flags like `--concurrency`, `--batch-size`, `--delete-documents-page-size`, and `--parse-concurrency` must be **positive integers**. Invalid values fail fast with a clear error message.
+
 ---
 
 ## Testing
@@ -59,6 +63,22 @@ npm test              # Run all unit tests
 npm run test:watch    # Watch mode for TDD
 npm run test:ui       # Interactive UI mode (recommended for debugging)
 npm run test:unit     # Explicitly run unit tests only
+```
+
+**Quick sanity check (manual):**
+
+If you have an index available in Elasticsearch, you can run a quick semantic query from the CLI:
+
+```bash
+npm run search -- "where is config loaded?" --index <your-index> --limit 5
+```
+
+**CLI help tip:**
+
+When using `npm run`, pass `--` before flags so they reach the underlying command:
+
+```bash
+npm run search -- --help
 ```
 
 **Interactive UI Mode:**
@@ -201,25 +221,24 @@ The `if: always()` ensures cleanup happens even if tests fail, preventing resour
 Integration tests use `.env.test` for configuration:
 
 ```bash
-ELASTICSEARCH_ENDPOINT=http://localhost:9200
-ELASTICSEARCH_USER=elastic
-ELASTICSEARCH_PASSWORD=testpassword
-ELASTICSEARCH_INDEX=test-code-chunks
-ELASTICSEARCH_INFERENCE_ID=elser-inference-test
+SCSI_ELASTICSEARCH_ENDPOINT=http://localhost:9200
+SCSI_ELASTICSEARCH_USERNAME=elastic
+SCSI_ELASTICSEARCH_PASSWORD=testpassword
+SCSI_ELASTICSEARCH_INFERENCE_ID=elser-inference-test
 
-# Speed optimization: disable ELSER semantic_text field
-# Tests the indexing pipeline without expensive ML inference
-DISABLE_SEMANTIC_TEXT=true
+# Disable semantic search for tests (semantic_text + ELSER inference)
+# This keeps the tests focused on correctness of the indexing pipeline and makes them much faster.
+SCSI_DISABLE_SEMANTIC_TEXT=true
 
 # Timeout for bulk operations
-ELASTICSEARCH_REQUEST_TIMEOUT=120000
+SCSI_ELASTICSEARCH_REQUEST_TIMEOUT=120000
 ```
 
-**Why `DISABLE_SEMANTIC_TEXT=true`?**
-- The `semantic_text` field triggers inline ELSER inference on every document
-- ELSER is slow (100-500ms per document), making tests timeout
-- Disabling it speeds up tests 10-100x while still validating the core indexing logic
-- Full ELSER functionality is tested in manual end-to-end tests (see `docs/manual_test_plan.md`)
+**Why `SCSI_DISABLE_SEMANTIC_TEXT=true`?**
+- It **turns off semantic search** for these tests by disabling the `semantic_text` field type and the associated ELSER inference at ingest time
+- Indices created with `SCSI_DISABLE_SEMANTIC_TEXT=true` do not have a `semantic_text` mapping, so semantic search queries will fail against those indices until they are recreated with semantic text enabled.
+- It also makes the test suite much faster and less flaky
+- Full ELSER/semantic search behavior is validated separately (see `tests/integration/semantic_text_semantic_search.integration.test.ts`)
 
 #### Test Fixtures
 
@@ -249,9 +268,9 @@ Integration tests explicitly fail with setup instructions if Elasticsearch is no
 #### Tests hang or timeout
 
 **Common causes:**
-1. **ELSER inference slowness:** Set `DISABLE_SEMANTIC_TEXT=true` in `.env.test`
+1. **ELSER inference slowness:** Set `SCSI_DISABLE_SEMANTIC_TEXT=true` in `.env.test`
 2. **Worker backpressure bug:** Fixed in this branch (see `src/utils/indexer_worker.ts`)
-3. **Bulk indexing timeout:** Increase `ELASTICSEARCH_REQUEST_TIMEOUT` if needed
+3. **Bulk indexing timeout:** Increase `SCSI_ELASTICSEARCH_REQUEST_TIMEOUT` if needed
 4. **Watch mode enabled:** Integration tests set `watch: false` explicitly
 
 **Debug with logging:**

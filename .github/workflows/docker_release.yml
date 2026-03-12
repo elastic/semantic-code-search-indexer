@@ -6,29 +6,29 @@ on:
 
   pull_request:
     branches:
-      - "main"
+      - 'main'
     paths:
-      - "Dockerfile"
-      - "src/**"
-      - ".github/workflows/docker_release.yml"
-      - "package*.json"
-      - "tsconfig*.json"
+      - 'Dockerfile'
+      - 'src/**'
+      - '.github/workflows/docker_release.yml'
+      - 'package*.json'
+      - 'tsconfig*.json'
   push:
     branches:
-      - "main"
+      - 'main'
     paths:
-      - "Dockerfile"
-      - "src/**"
-      - ".github/workflows/docker_release.yml"
-      - "package*.json"
-      - "tsconfig*.json"
+      - 'Dockerfile'
+      - 'src/**'
+      - '.github/workflows/docker_release.yml'
+      - 'package*.json'
+      - 'tsconfig*.json'
 
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: "release-scsi-${{ github.sha }}"
+  group: 'release-scsi-${{ github.sha }}'
   cancel-in-progress: true
 jobs:
   docker:
@@ -70,4 +70,3 @@ jobs:
           provenance: mode=max
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-

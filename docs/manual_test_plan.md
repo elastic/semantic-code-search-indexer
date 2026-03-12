@@ -113,7 +113,7 @@ This test verifies the flow using Google Cloud Pub/Sub and a deployed Cloud Func
 
 2.  **Simulate Failure:**
     - Go to the Cloud Function's configuration in the GCP Console.
-    - Edit the function and remove or invalidate one of the environment variables (e.g., `ELASTICSEARCH_API_KEY`). Redeploy the function.
+    - Edit the function and remove or invalidate one of the environment variables (e.g., `SCSI_ELASTICSEARCH_API_KEY`). Redeploy the function.
     - This will cause the function to fail when it tries to connect to Elasticsearch.
 
 3.  **Observe Failures and Redelivery:**

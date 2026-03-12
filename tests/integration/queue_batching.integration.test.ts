@@ -22,7 +22,6 @@ async function isElasticsearchAvailable(): Promise<boolean> {
 describe('Integration Test - Queue Batching Stability', () => {
   let testRepoPath: string;
   let testRepoUrl: string;
-  let originalBatchSize: string | undefined;
 
   beforeAll(async () => {
     const esAvailable = await isElasticsearchAvailable();
@@ -60,20 +59,9 @@ function testFunction(i: number) {
     execSync('git commit -m "Initial commit"', { cwd: testRepoPath, stdio: 'ignore' });
 
     testRepoUrl = `file://${testRepoPath}`;
-
-    // Override BATCH_SIZE
-    originalBatchSize = process.env.BATCH_SIZE;
-    process.env.BATCH_SIZE = '1200'; // Set > 999 to trigger potential SQLite limits if not handled
   });
 
   afterAll(async () => {
-    // Restore env var
-    if (originalBatchSize) {
-      process.env.BATCH_SIZE = originalBatchSize;
-    } else {
-      delete process.env.BATCH_SIZE;
-    }
-
     try {
       const client = getClient();
       await client.indices.delete({ index: TEST_INDEX });
@@ -89,11 +77,8 @@ function testFunction(i: number) {
   });
 
   it('should process a large batch of documents without exceeding SQLite limits', async () => {
-    // Limit to typescript
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-
-    await setup(testRepoUrl, {});
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false });
+    await setup(testRepoUrl);
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, batchSize: '1200', languages: 'typescript' });
 
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });

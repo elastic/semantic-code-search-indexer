@@ -1,12 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import os from 'os';
 import fs from 'fs';
-
-// Don't override existing environment variables (important for tests)
-// In test mode, try to load .env.test (if it exists), otherwise skip .env to avoid interference
-const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
-dotenv.config({ path: envFile, override: false, quiet: true });
 
 // Helper to find the project root by looking for package.json
 function findProjectRoot(startPath: string): string {
@@ -22,53 +16,173 @@ function findProjectRoot(startPath: string): string {
 
 const projectRoot = findProjectRoot(__dirname);
 
+function parseEnvInt(value: string | undefined, fallback: number): number {
+  if (value === undefined || value.trim() === '') return fallback;
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+// Don't override existing environment variables (important for tests)
+// In test mode, try to load .env.test (if it exists), otherwise skip .env to avoid interference
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: path.join(projectRoot, envFile), override: false, quiet: true });
+
 export const elasticsearchConfig = {
-  endpoint: process.env.ELASTICSEARCH_ENDPOINT || process.env.ELASTICSEARCH_HOST,
-  cloudId: process.env.ELASTICSEARCH_CLOUD_ID || undefined,
-  username: process.env.ELASTICSEARCH_USER || process.env.ELASTICSEARCH_USERNAME,
-  password: process.env.ELASTICSEARCH_PASSWORD,
-  apiKey: process.env.ELASTICSEARCH_API_KEY || undefined,
-  inferenceId: process.env.ELASTICSEARCH_INFERENCE_ID || process.env.ELASTICSEARCH_MODEL || '.elser-2-elasticsearch',
-  index: process.env.ELASTICSEARCH_INDEX || 'code-chunks',
+  get endpoint() {
+    return process.env.SCSI_ELASTICSEARCH_ENDPOINT;
+  },
+  get cloudId() {
+    return process.env.SCSI_ELASTICSEARCH_CLOUD_ID || undefined;
+  },
+  get username() {
+    return process.env.SCSI_ELASTICSEARCH_USERNAME;
+  },
+  get password() {
+    return process.env.SCSI_ELASTICSEARCH_PASSWORD;
+  },
+  get apiKey() {
+    return process.env.SCSI_ELASTICSEARCH_API_KEY || undefined;
+  },
+  get inferenceId() {
+    return process.env.SCSI_ELASTICSEARCH_INFERENCE_ID || undefined;
+  },
+  get requestTimeout() {
+    return parseEnvInt(process.env.SCSI_ELASTICSEARCH_REQUEST_TIMEOUT, 90000);
+  },
+  get disableSemanticText() {
+    return process.env.SCSI_DISABLE_SEMANTIC_TEXT === 'true';
+  },
 };
 
 export const otelConfig = {
-  enabled: process.env.OTEL_LOGGING_ENABLED === 'true',
-  serviceName: process.env.OTEL_SERVICE_NAME || 'semantic-code-search-indexer',
-  endpoint:
-    process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT || process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318',
-  headers: process.env.OTEL_EXPORTER_OTLP_HEADERS || '',
-  metricsEnabled:
-    process.env.OTEL_METRICS_ENABLED === 'true' ||
-    (process.env.OTEL_METRICS_ENABLED === undefined && process.env.OTEL_LOGGING_ENABLED === 'true'),
-  metricsEndpoint:
-    process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ||
-    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
-    'http://localhost:4318',
-  metricExportIntervalMs: parseInt(process.env.OTEL_METRIC_EXPORT_INTERVAL_MILLIS || '60000', 10),
+  get enabled() {
+    return process.env.SCSI_OTEL_LOGGING_ENABLED === 'true';
+  },
+  get serviceName() {
+    return process.env.SCSI_OTEL_SERVICE_NAME || 'semantic-code-search-indexer';
+  },
+  get endpoint() {
+    return (
+      process.env.SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT ||
+      process.env.SCSI_OTEL_EXPORTER_OTLP_ENDPOINT ||
+      'http://localhost:4318'
+    );
+  },
+  get headers() {
+    return process.env.SCSI_OTEL_EXPORTER_OTLP_HEADERS || '';
+  },
+  get metricsEnabled() {
+    return (
+      process.env.SCSI_OTEL_METRICS_ENABLED === 'true' ||
+      (process.env.SCSI_OTEL_METRICS_ENABLED === undefined && process.env.SCSI_OTEL_LOGGING_ENABLED === 'true')
+    );
+  },
+  get metricsEndpoint() {
+    return (
+      process.env.SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ||
+      process.env.SCSI_OTEL_EXPORTER_OTLP_ENDPOINT ||
+      'http://localhost:4318'
+    );
+  },
+  get metricExportIntervalMs() {
+    return parseEnvInt(process.env.SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS, 60000);
+  },
+  get logLevel() {
+    return process.env.SCSI_OTEL_LOG_LEVEL;
+  },
+  get resourceAttributes() {
+    return process.env.SCSI_OTEL_RESOURCE_ATTRIBUTES;
+  },
 };
 
 export const indexingConfig = {
-  batchSize: parseInt(process.env.BATCH_SIZE || '500', 10),
-  maxQueueSize: parseInt(process.env.MAX_QUEUE_SIZE || '1000', 10),
-  cpuCores: parseInt(process.env.CPU_CORES || `${Math.max(1, Math.floor(os.cpus().length / 2))}`, 10),
-  maxChunkSizeBytes: parseInt(process.env.MAX_CHUNK_SIZE_BYTES || '1000000', 10),
-  enableDenseVectors: process.env.ENABLE_DENSE_VECTORS === 'true',
-  defaultChunkLines: parseInt(process.env.DEFAULT_CHUNK_LINES || '15', 10),
-  chunkOverlapLines: parseInt(process.env.CHUNK_OVERLAP_LINES || '3', 10),
-  markdownChunkDelimiter: process.env.MARKDOWN_CHUNK_DELIMITER || '\\n\\s*\\n',
-  // Batch size for PIT pagination in deleteDocumentsByFilePaths. Larger values reduce round trips
-  // but can increase per-request payload sizes.
-  deleteDocumentsPageSize: parseInt(process.env.DELETE_DOCUMENTS_PAGE_SIZE || '500', 10),
-  // Incremental parsing worker pool size. Reuses worker threads to reduce startup/teardown overhead.
-  // This is clamped to CPU_CORES at runtime.
-  producerWorkerPoolSize: parseInt(
-    process.env.PRODUCER_WORKER_POOL_SIZE || `${Math.max(1, Math.floor(os.cpus().length / 2))}`,
-    10
-  ),
+  get maxChunkSizeBytes() {
+    return parseEnvInt(process.env.SCSI_MAX_CHUNK_SIZE_BYTES, 1000000);
+  },
+  set maxChunkSizeBytes(v: number) {
+    process.env.SCSI_MAX_CHUNK_SIZE_BYTES = v.toString();
+  },
+
+  get enableDenseVectors() {
+    return process.env.SCSI_ENABLE_DENSE_VECTORS === 'true';
+  },
+  set enableDenseVectors(v: boolean) {
+    process.env.SCSI_ENABLE_DENSE_VECTORS = v ? 'true' : 'false';
+  },
+
+  get defaultChunkLines() {
+    return parseEnvInt(process.env.SCSI_DEFAULT_CHUNK_LINES, 15);
+  },
+  set defaultChunkLines(v: number) {
+    process.env.SCSI_DEFAULT_CHUNK_LINES = v.toString();
+  },
+
+  get chunkOverlapLines() {
+    return parseEnvInt(process.env.SCSI_CHUNK_OVERLAP_LINES, 3);
+  },
+  set chunkOverlapLines(v: number) {
+    process.env.SCSI_CHUNK_OVERLAP_LINES = v.toString();
+  },
+
+  get markdownChunkDelimiter() {
+    return process.env.SCSI_MARKDOWN_CHUNK_DELIMITER || '\\n\\s*\\n';
+  },
+  set markdownChunkDelimiter(v: string) {
+    process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = v;
+  },
+
+  get testThrowOnFilePath() {
+    return process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH;
+  },
+  set testThrowOnFilePath(v: string | undefined) {
+    if (v === undefined) delete process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH;
+    else process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH = v;
+  },
+
+  get testDelayMs() {
+    return parseEnvInt(process.env.SCSI_TEST_INDEXING_DELAY_MS, 0);
+  },
+  set testDelayMs(v: number) {
+    process.env.SCSI_TEST_INDEXING_DELAY_MS = v.toString();
+  },
 };
 
 export const appConfig = {
-  queueBaseDir: path.resolve(projectRoot, process.env.QUEUE_BASE_DIR || '.queues'),
-  githubToken: process.env.GITHUB_TOKEN,
+  get queueBaseDir() {
+    return path.resolve(projectRoot, process.env.SCSI_QUEUE_BASE_DIR || '.queues');
+  },
+  set queueBaseDir(v: string) {
+    process.env.SCSI_QUEUE_BASE_DIR = v;
+  },
+
+  get githubToken() {
+    return process.env.SCSI_GITHUB_TOKEN;
+  },
+  set githubToken(v: string | undefined) {
+    if (v === undefined) delete process.env.SCSI_GITHUB_TOKEN;
+    else process.env.SCSI_GITHUB_TOKEN = v;
+  },
+
+  get languages() {
+    return process.env.SCSI_LANGUAGES;
+  },
+  set languages(v: string | undefined) {
+    if (v === undefined) delete process.env.SCSI_LANGUAGES;
+    else process.env.SCSI_LANGUAGES = v;
+  },
+
+  get nodeEnv() {
+    return process.env.NODE_ENV;
+  },
+  set nodeEnv(v: string | undefined) {
+    if (v === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = v;
+  },
+
+  get forceLogging() {
+    return process.env.SCSI_FORCE_LOGGING === 'true';
+  },
+  set forceLogging(v: boolean) {
+    process.env.SCSI_FORCE_LOGGING = v ? 'true' : 'false';
+  },
 };

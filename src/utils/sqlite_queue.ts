@@ -100,7 +100,7 @@ export class SqliteQueue implements IQueueWithEnqueueMetadata {
       );
     `);
 
-    // Migration: Add processing_started_at column if it doesn't exist (for existing databases)
+    // Schema upgrade: add processing_started_at column if it doesn't exist (for existing databases)
     try {
       this.db.exec('ALTER TABLE queue ADD COLUMN processing_started_at TIMESTAMP;');
       this.logger.info('Added processing_started_at column to queue table');
@@ -108,7 +108,7 @@ export class SqliteQueue implements IQueueWithEnqueueMetadata {
       // Column already exists, ignore error
     }
 
-    // Migration: Add worker_pid column if it doesn't exist (for existing databases)
+    // Schema upgrade: add worker_pid column if it doesn't exist (for existing databases)
     try {
       this.db.exec('ALTER TABLE queue ADD COLUMN worker_pid INTEGER;');
       this.logger.info('Added worker_pid column to queue table');

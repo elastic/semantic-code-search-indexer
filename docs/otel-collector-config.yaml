@@ -45,15 +45,15 @@ exporters:
   # Elasticsearch exporter for logs
   elasticsearch/logs:
     endpoints:
-      - ${ELASTICSEARCH_ENDPOINT}
+      - ${SCSI_ELASTICSEARCH_ENDPOINT}
     # Authentication - use one of the following:
     # Option 1: API Key
-    api_key: ${ELASTICSEARCH_API_KEY}
+    api_key: ${SCSI_ELASTICSEARCH_API_KEY}
     # Option 2: Username/password
     # auth:
     #   authenticator: basicauth/elasticsearch
     # Option 3: Cloud ID
-    # cloudid: ${ELASTICSEARCH_CLOUD_ID}
+    # cloudid: ${SCSI_ELASTICSEARCH_CLOUD_ID}
     
     # Index configuration for logs
     logs_index: logs-semanticcode.otel-default
@@ -74,15 +74,15 @@ exporters:
   # Elasticsearch exporter for metrics
   elasticsearch/metrics:
     endpoints:
-      - ${ELASTICSEARCH_ENDPOINT}
+      - ${SCSI_ELASTICSEARCH_ENDPOINT}
     # Authentication - use one of the following:
     # Option 1: API Key
-    api_key: ${ELASTICSEARCH_API_KEY}
+    api_key: ${SCSI_ELASTICSEARCH_API_KEY}
     # Option 2: Username/password
     # auth:
     #   authenticator: basicauth/elasticsearch
     # Option 3: Cloud ID
-    # cloudid: ${ELASTICSEARCH_CLOUD_ID}
+    # cloudid: ${SCSI_ELASTICSEARCH_CLOUD_ID}
     
     # Index configuration for metrics
     metrics_index: metrics-semanticcode.otel-default
@@ -122,8 +122,8 @@ exporters:
 extensions:
   basicauth/elasticsearch:
     client_auth:
-      username: ${ELASTICSEARCH_USERNAME}
-      password: ${ELASTICSEARCH_PASSWORD}
+      username: ${SCSI_ELASTICSEARCH_USERNAME}
+      password: ${SCSI_ELASTICSEARCH_PASSWORD}
   
   # Health check extension
   health_check:
@@ -160,15 +160,15 @@ service:
 
 # Environment variable examples:
 #
-# export ELASTICSEARCH_ENDPOINT="https://elasticsearch.example.com:9200"
-# export ELASTICSEARCH_API_KEY="your-api-key-here"
+# export SCSI_ELASTICSEARCH_ENDPOINT="https://elasticsearch.example.com:9200"
+# export SCSI_ELASTICSEARCH_API_KEY="your-api-key-here"
 # 
 # Or for username/password auth:
-# export ELASTICSEARCH_USERNAME="elastic"
-# export ELASTICSEARCH_PASSWORD="changeme"
+# export SCSI_ELASTICSEARCH_USERNAME="elastic"
+# export SCSI_ELASTICSEARCH_PASSWORD="changeme"
 #
 # Or for Elastic Cloud:
-# export ELASTICSEARCH_CLOUD_ID="deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvJDEyMzQ1Njc4OTBhYmNkZWYxMjM0NTY3ODkwYWJjZGVmJDEyMzQ1Njc4OTBhYmNkZWYxMjM0NTY3ODkwYWJjZGVm"
+# export SCSI_ELASTICSEARCH_CLOUD_ID="deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvJDEyMzQ1Njc4OTBhYmNkZWYxMjM0NTY3ODkwYWJjZGVmJDEyMzQ1Njc4OTBhYmNkZWYxMjM0NTY3ODkwYWJjZGVm"
 #
 # IMPORTANT: HISTOGRAM TEMPORALITY AND MAPPING MODE
 #
@@ -222,12 +222,12 @@ service:
 #
 # Docker:
 #   docker run -p 4318:4318 -p 4317:4317 -p 13133:13133 \
-#     -e ELASTICSEARCH_ENDPOINT=https://elasticsearch.example.com:9200 \
-#     -e ELASTICSEARCH_API_KEY=your-api-key \
+#     -e SCSI_ELASTICSEARCH_ENDPOINT=https://elasticsearch.example.com:9200 \
+#     -e SCSI_ELASTICSEARCH_API_KEY=your-api-key \
 #     -v $(pwd)/otel-collector-config.yaml:/etc/otelcol/config.yaml \
 #     otel/opentelemetry-collector-contrib:latest
 #
 # Binary:
-#   export ELASTICSEARCH_ENDPOINT=https://elasticsearch.example.com:9200
-#   export ELASTICSEARCH_API_KEY=your-api-key
+#   export SCSI_ELASTICSEARCH_ENDPOINT=https://elasticsearch.example.com:9200
+#   export SCSI_ELASTICSEARCH_API_KEY=your-api-key
 #   otelcol-contrib --config otel-collector-config.yaml

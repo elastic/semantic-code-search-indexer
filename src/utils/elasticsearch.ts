@@ -8,7 +8,7 @@ import {
   FieldValue,
 } from '@elastic/elasticsearch/lib/api/types';
 import { createHash } from 'crypto';
-import { elasticsearchConfig, indexingConfig } from '../config';
+import { elasticsearchConfig, indexingConfig, appConfig } from '../config';
 export { elasticsearchConfig };
 import { logger } from './logger';
 
@@ -40,7 +40,7 @@ export function getClient(): Client {
   }
 
   const baseOptions: Partial<ClientOptions> = {
-    requestTimeout: parseInt(process.env.ELASTICSEARCH_REQUEST_TIMEOUT || '90000', 10),
+    requestTimeout: elasticsearchConfig.requestTimeout,
   };
 
   if (elasticsearchConfig.cloudId) {
@@ -60,7 +60,7 @@ export function getClient(): Client {
       };
     } else {
       throw new Error(
-        'Elasticsearch Cloud authentication not configured. Please set ELASTICSEARCH_API_KEY or ELASTICSEARCH_USER and ELASTICSEARCH_PASSWORD.'
+        'Elasticsearch Cloud authentication not configured. Please set SCSI_ELASTICSEARCH_API_KEY or SCSI_ELASTICSEARCH_USERNAME and SCSI_ELASTICSEARCH_PASSWORD.'
       );
     }
 
@@ -82,16 +82,27 @@ export function getClient(): Client {
     _client = new Client(clientOptions);
   } else {
     throw new Error(
-      'Elasticsearch connection not configured. Please set ELASTICSEARCH_CLOUD_ID or ELASTICSEARCH_ENDPOINT.'
+      'Elasticsearch connection not configured. Please set SCSI_ELASTICSEARCH_CLOUD_ID or SCSI_ELASTICSEARCH_ENDPOINT.'
     );
   }
 
   return _client;
 }
 
-const defaultIndexName = elasticsearchConfig.index;
-const elserInferenceId = elasticsearchConfig.inferenceId;
 const codeSimilarityPipeline = 'code-similarity-pipeline';
+
+function getElserInferenceIdOrThrow(): string {
+  const inferenceId = elasticsearchConfig.inferenceId;
+  if (typeof inferenceId === 'string' && inferenceId.trim().length > 0) {
+    return inferenceId.trim();
+  }
+
+  throw new Error(
+    'SCSI_ELASTICSEARCH_INFERENCE_ID is required when semantic_text is enabled. ' +
+      'Set it to an existing Elasticsearch inference endpoint id (recommended: .elser-2-elastic on Elastic Cloud / EIS). ' +
+      'If you want to run without semantic inference, set SCSI_DISABLE_SEMANTIC_TEXT=true.'
+  );
+}
 
 // Test-only: allow deterministic one-time failures in integration tests.
 const testIndexingThrownOnce = new Set<string>();
@@ -170,12 +181,17 @@ function summarizeElasticsearchError(error: unknown): ElasticsearchErrorSummary 
  * This function checks if the index already exists. If it doesn't, it creates
  * the index with the correct mappings for the code chunk documents.
  */
-export async function createIndex(index?: string): Promise<void> {
-  const indexName = index || defaultIndexName;
-  const indexExists = await getClient().indices.exists({ index: indexName });
+export async function createIndex(index: string): Promise<void> {
+  const indexName = index;
+  const client = getClient();
+
+  const semanticTextEnabled = !elasticsearchConfig.disableSemanticText;
+  const semanticTextInferenceId = semanticTextEnabled ? getElserInferenceIdOrThrow() : undefined;
+
+  const indexExists = await client.indices.exists({ index: indexName });
   if (!indexExists) {
     logger.info(`Creating index "${indexName}"...`);
-    await getClient().indices.create({
+    await client.indices.create({
       index: indexName,
       mappings: {
         properties: {
@@ -209,12 +225,14 @@ export async function createIndex(index?: string): Promise<void> {
           containerPath: { type: 'text' },
           chunk_hash: { type: 'keyword' },
           content: { type: 'text' },
-          ...(process.env.DISABLE_SEMANTIC_TEXT !== 'true' && {
-            semantic_text: {
-              type: 'semantic_text',
-              inference_id: elserInferenceId,
-            },
-          }),
+          ...(semanticTextEnabled
+            ? {
+                semantic_text: {
+                  type: 'semantic_text',
+                  inference_id: semanticTextInferenceId,
+                },
+              }
+            : {}),
           code_vector: {
             type: 'dense_vector',
             dims: 768, // Based on microsoft/codebert-base
@@ -231,8 +249,8 @@ export async function createIndex(index?: string): Promise<void> {
   }
 }
 
-function getLocationsIndexName(index?: string): string {
-  return `${index || defaultIndexName}_locations`;
+function getLocationsIndexName(indexName: string): string {
+  return `${indexName}_locations`;
 }
 
 export interface ChunkLocation {
@@ -253,7 +271,7 @@ export interface ChunkLocation {
   updated_at: string;
 }
 
-export async function createLocationsIndex(index?: string): Promise<void> {
+export async function createLocationsIndex(index: string): Promise<void> {
   const locationsIndexName = getLocationsIndexName(index);
   const indexExists = await getClient().indices.exists({ index: locationsIndexName });
   if (!indexExists) {
@@ -281,8 +299,8 @@ export async function createLocationsIndex(index?: string): Promise<void> {
   }
 }
 
-export async function createSettingsIndex(index?: string): Promise<void> {
-  const settingsIndexName = `${index || defaultIndexName}_settings`;
+export async function createSettingsIndex(index: string): Promise<void> {
+  const settingsIndexName = `${index}_settings`;
   const indexExists = await getClient().indices.exists({ index: settingsIndexName });
   if (!indexExists) {
     logger.info(`Creating index "${settingsIndexName}"...`);
@@ -301,8 +319,8 @@ export async function createSettingsIndex(index?: string): Promise<void> {
   }
 }
 
-export async function getLastIndexedCommit(branch: string, index?: string): Promise<string | null> {
-  const settingsIndexName = `${index || defaultIndexName}_settings`;
+export async function getLastIndexedCommit(branch: string, index: string): Promise<string | null> {
+  const settingsIndexName = `${index}_settings`;
   try {
     const response = await getClient().get<{ commit_hash: string }>({
       index: settingsIndexName,
@@ -317,8 +335,8 @@ export async function getLastIndexedCommit(branch: string, index?: string): Prom
   }
 }
 
-export async function updateLastIndexedCommit(branch: string, commitHash: string, index?: string): Promise<void> {
-  const settingsIndexName = `${index || defaultIndexName}_settings`;
+export async function updateLastIndexedCommit(branch: string, commitHash: string, index: string): Promise<void> {
+  const settingsIndexName = `${index}_settings`;
   await getClient().index({
     index: settingsIndexName,
     id: branch,
@@ -445,19 +463,21 @@ export interface BulkIndexResult {
  * @param chunks An array of `CodeChunk` objects to index.
  * @returns A `BulkIndexResult` with succeeded and failed documents.
  */
-export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Promise<BulkIndexResult> {
+export async function indexCodeChunks(chunks: CodeChunk[], index: string): Promise<BulkIndexResult> {
   if (chunks.length === 0) {
     return { succeeded: [], failed: [] };
   }
 
+  const semanticTextEnabled = !elasticsearchConfig.disableSemanticText;
+
   // Test-only hook: make it possible for integration tests to deterministically create
   // in-flight indexing work and exercise worker drain / concurrency scenarios.
   // This MUST remain a no-op in production.
-  if (process.env.NODE_ENV === 'test') {
+  if (appConfig.nodeEnv === 'test') {
     // Optional: throw once when a chunk from a specific file path is present.
     // This lets us verify that the worker never leaves dequeued rows stuck in 'processing'
     // even if indexing throws unexpectedly mid-batch.
-    const throwOnFilePath = process.env.TEST_INDEXING_THROW_ON_FILEPATH;
+    const throwOnFilePath = indexingConfig.testThrowOnFilePath;
     if (throwOnFilePath) {
       const shouldThrow = chunks.some((c) => c.filePath === throwOnFilePath);
       if (shouldThrow && !testIndexingThrownOnce.has(throwOnFilePath)) {
@@ -466,13 +486,13 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
       }
     }
 
-    const delayMs = Number.parseInt(process.env.TEST_INDEXING_DELAY_MS ?? '', 10);
+    const delayMs = indexingConfig.testDelayMs;
     if (Number.isFinite(delayMs) && delayMs > 0) {
       await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
     }
   }
 
-  const indexName = index || defaultIndexName;
+  const indexName = index;
   const now = new Date().toISOString();
 
   // 1) Validate input chunks and group by stable chunk document id (content-based).
@@ -532,7 +552,7 @@ export async function indexCodeChunks(chunks: CodeChunk[], index?: string): Prom
         containerPath: base.containerPath,
         chunk_hash: base.chunk_hash,
         content: base.content,
-        semantic_text: base.semantic_text,
+        ...(semanticTextEnabled ? { semantic_text: base.semantic_text } : {}),
         code_vector: base.code_vector,
         created_at: now,
         updated_at: now,
@@ -717,6 +737,46 @@ export interface SearchResult extends CodeChunk {
   score: number;
 }
 
+export async function indexHasSemanticTextField(index: string): Promise<boolean> {
+  let response: Record<string, unknown>;
+  try {
+    response = (await getClient().indices.getMapping({ index })) as unknown as Record<string, unknown>;
+  } catch (error: unknown) {
+    const statusCode =
+      error && typeof error === 'object' && 'meta' in error
+        ? (error as { meta?: { statusCode?: unknown } }).meta?.statusCode
+        : undefined;
+
+    if (typeof statusCode === 'number' && statusCode === 404) {
+      throw new Error(`Index "${index}" does not exist`);
+    }
+
+    throw error;
+  }
+
+  for (const entry of Object.values(response)) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+
+    const mappings = (entry as { mappings?: unknown }).mappings;
+    if (!mappings || typeof mappings !== 'object') {
+      continue;
+    }
+
+    const properties = (mappings as { properties?: unknown }).properties;
+    if (!properties || typeof properties !== 'object') {
+      continue;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(properties, 'semantic_text')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Performs a semantic search on the code chunks in the index.
  *
@@ -727,8 +787,8 @@ import { SearchHit } from '@elastic/elasticsearch/lib/api/types';
 
 // ... existing code ...
 
-export async function searchCodeChunks(query: string, index?: string): Promise<SearchResult[]> {
-  const indexName = index || defaultIndexName;
+export async function searchCodeChunks(query: string, index: string): Promise<SearchResult[]> {
+  const indexName = index;
   const response = await getClient().search<CodeChunk>({
     index: indexName,
     query: {
@@ -755,9 +815,9 @@ export type ChunkLocationSummary = {
 
 export async function getLocationsForChunkIds(
   chunkIds: string[],
-  options?: { index?: string; perChunkLimit?: number }
+  options: { index: string; perChunkLimit?: number }
 ): Promise<Record<string, ChunkLocationSummary[]>> {
-  const indexName = options?.index || defaultIndexName;
+  const indexName = options.index;
   const locationsIndexName = getLocationsIndexName(indexName);
   const perChunkLimit = Math.max(1, Math.min(50, Math.floor(options?.perChunkLimit ?? 5)));
 
@@ -876,9 +936,9 @@ interface FileAggregation {
  */
 export async function aggregateBySymbols(
   query: QueryDslQueryContainer,
-  index?: string
+  index: string
 ): Promise<Record<string, SymbolInfo[]>> {
-  const indexName = index || defaultIndexName;
+  const indexName = index;
   const response = await getClient().search<unknown, FileAggregation>({
     index: indexName,
     query,
@@ -951,8 +1011,8 @@ export async function aggregateBySymbols(
   return results;
 }
 
-export async function deleteIndex(index?: string): Promise<void> {
-  const indexName = index || defaultIndexName;
+export async function deleteIndex(index: string): Promise<void> {
+  const indexName = index;
   const indexExists = await getClient().indices.exists({ index: indexName });
   if (indexExists) {
     logger.info(`Deleting index "${indexName}"...`);
@@ -962,7 +1022,7 @@ export async function deleteIndex(index?: string): Promise<void> {
   }
 }
 
-export async function deleteLocationsIndex(index?: string): Promise<void> {
+export async function deleteLocationsIndex(index: string): Promise<void> {
   const locationsIndexName = getLocationsIndexName(index);
   const indexExists = await getClient().indices.exists({ index: locationsIndexName });
   if (indexExists) {
@@ -973,7 +1033,7 @@ export async function deleteLocationsIndex(index?: string): Promise<void> {
   }
 }
 
-const ELASTICSEARCH_TERMS_QUERY_BATCH_SIZE = 1000;
+const ES_TERMS_QUERY_BATCH_SIZE = 1000;
 
 function chunkArray<T>(items: T[], chunkSize: number): T[][] {
   if (chunkSize <= 0) {
@@ -988,7 +1048,8 @@ function chunkArray<T>(items: T[], chunkSize: number): T[][] {
 
 async function deleteLocationsByFilePathsAndCollectChunkIds(
   filePaths: string[],
-  indexName: string
+  indexName: string,
+  deletePageSizeOverride?: number
 ): Promise<Set<string>> {
   const client = getClient();
   const locationsIndexName = getLocationsIndexName(indexName);
@@ -998,8 +1059,8 @@ async function deleteLocationsByFilePathsAndCollectChunkIds(
     return new Set();
   }
 
-  const deletePageSize = Math.max(1, Math.min(5000, Math.floor(indexingConfig.deleteDocumentsPageSize || 500)));
-  const filePathTermsBatches = chunkArray(filePaths, ELASTICSEARCH_TERMS_QUERY_BATCH_SIZE);
+  const deletePageSize = Math.max(1, Math.min(5000, Math.floor(deletePageSizeOverride ?? 500)));
+  const filePathTermsBatches = chunkArray(filePaths, ES_TERMS_QUERY_BATCH_SIZE);
 
   logger.info('Deleting locations for stale file paths', {
     indexName: locationsIndexName,
@@ -1136,7 +1197,7 @@ async function deleteOrphanChunkDocuments(chunkIds: string[], indexName: string)
   const client = getClient();
   const locationsIndexName = getLocationsIndexName(indexName);
 
-  for (const chunk of chunkArray(chunkIds, ELASTICSEARCH_TERMS_QUERY_BATCH_SIZE)) {
+  for (const chunk of chunkArray(chunkIds, ES_TERMS_QUERY_BATCH_SIZE)) {
     const response = await client.search({
       index: locationsIndexName,
       query: {
@@ -1182,8 +1243,12 @@ async function deleteOrphanChunkDocuments(chunkIds: string[], indexName: string)
   }
 }
 
-export async function deleteDocumentsByFilePaths(filePaths: string[], index?: string): Promise<void> {
-  const indexName = index || defaultIndexName;
+export async function deleteDocumentsByFilePaths(
+  filePaths: string[],
+  index: string,
+  options?: { deleteDocumentsPageSize?: number }
+): Promise<void> {
+  const indexName = index;
   // Locations are authoritative in `<index>_locations`. The primary chunk documents do not store
   // per-file locations; we delete orphan chunk docs when their last location is removed.
 
@@ -1193,10 +1258,14 @@ export async function deleteDocumentsByFilePaths(filePaths: string[], index?: st
   if (uniqueFilePaths.length === 0) {
     return;
   }
-  const affectedChunkIds = await deleteLocationsByFilePathsAndCollectChunkIds(uniqueFilePaths, indexName);
+  const affectedChunkIds = await deleteLocationsByFilePathsAndCollectChunkIds(
+    uniqueFilePaths,
+    indexName,
+    options?.deleteDocumentsPageSize
+  );
   await deleteOrphanChunkDocuments(Array.from(affectedChunkIds), indexName);
 }
 
-export async function deleteDocumentsByFilePath(filePath: string, index?: string): Promise<void> {
+export async function deleteDocumentsByFilePath(filePath: string, index: string): Promise<void> {
   await deleteDocumentsByFilePaths([filePath], index);
 }

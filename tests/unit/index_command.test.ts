@@ -15,6 +15,7 @@ import type { CodeChunk } from '../../src/utils/elasticsearch';
 import { execFileSync } from 'child_process';
 import * as otelProvider from '../../src/utils/otel_provider';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+import { withTestEnv } from './utils/test_env';
 
 // Mock child_process but keep all other functions
 vi.mock('child_process', async () => {
@@ -28,28 +29,44 @@ vi.mock('child_process', async () => {
 describe('index_command', () => {
   // Use unique test directory in system temp to avoid parallel test conflicts
   const testQueuesDir = path.join(os.tmpdir(), `index-command-test-${process.pid}-${Date.now()}`);
+  const savedScsiLanguages = process.env.SCSI_LANGUAGES;
 
   beforeEach(() => {
+    delete process.env.SCSI_LANGUAGES;
+
     // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
 
-    // Reset Commander options to prevent leakage between tests
     // Commander caches parsed options, so we need to reset them
     indexCommand.setOptionValue('pull', undefined);
     indexCommand.setOptionValue('clean', undefined);
     indexCommand.setOptionValue('watch', undefined);
-    indexCommand.setOptionValue('token', undefined);
     indexCommand.setOptionValue('branch', undefined);
-    indexCommand.setOptionValue('concurrency', '1');
+    indexCommand.setOptionValue('githubToken', undefined);
+    indexCommand.setOptionValue('concurrency', undefined);
+    indexCommand.setOptionValue('batchSize', undefined);
+    indexCommand.setOptionValue('deleteDocumentsPageSize', undefined);
+    indexCommand.setOptionValue('parseConcurrency', undefined);
+    indexCommand.setOptionValue('languages', undefined);
 
-    // Clean up test directories
+    Object.defineProperty(appConfig, 'githubToken', {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    });
+
     if (fs.existsSync(testQueuesDir)) {
       fs.rmSync(testQueuesDir, { recursive: true });
     }
   });
 
   afterEach(() => {
-    // Clean up
+    if (savedScsiLanguages === undefined) {
+      delete process.env.SCSI_LANGUAGES;
+    } else {
+      process.env.SCSI_LANGUAGES = savedScsiLanguages;
+    }
+
     if (fs.existsSync(testQueuesDir)) {
       fs.rmSync(testQueuesDir, { recursive: true });
     }
@@ -80,9 +97,7 @@ describe('index_command', () => {
       });
 
       it('SHOULD use global token and branch when provided', () => {
-        const result = parseRepoArg('https://github.com/elastic/kibana.git', 'ghp_token123', 'main');
-
-        expect(result.token).toBe('ghp_token123');
+        const result = parseRepoArg('https://github.com/elastic/kibana.git', 'main');
         expect(result.branch).toBe('main');
       });
 
@@ -197,33 +212,6 @@ describe('index_command', () => {
         expect(result.repoPath).toContain('test-repo');
         expect(result.indexName).toContain('test-repo');
       });
-    });
-  });
-
-  describe('REPOSITORIES_TO_INDEX env var support', () => {
-    it('SHOULD parse env var when set', () => {
-      const originalEnv = process.env.REPOSITORIES_TO_INDEX;
-
-      // Test that env var is parsed correctly
-      process.env.REPOSITORIES_TO_INDEX = 'repo1 repo2 repo3';
-      const repos = process.env.REPOSITORIES_TO_INDEX.trim().split(/\s+/);
-
-      expect(repos).toEqual(['repo1', 'repo2', 'repo3']);
-
-      // Cleanup
-      process.env.REPOSITORIES_TO_INDEX = originalEnv;
-    });
-
-    it('SHOULD handle custom index names in env var', () => {
-      const originalEnv = process.env.REPOSITORIES_TO_INDEX;
-
-      process.env.REPOSITORIES_TO_INDEX = 'repo1:index1 repo2:index2';
-      const repos = process.env.REPOSITORIES_TO_INDEX.trim().split(/\s+/);
-
-      expect(repos).toEqual(['repo1:index1', 'repo2:index2']);
-
-      // Cleanup
-      process.env.REPOSITORIES_TO_INDEX = originalEnv;
     });
   });
 
@@ -529,7 +517,7 @@ describe('index_command', () => {
         // First call should have watch=true
         expect(workerSpy).toHaveBeenNthCalledWith(
           1,
-          1, // concurrency
+          2, // concurrency
           true, // watch=true for first repo
           expect.objectContaining({
             repoName: 'repo1',
@@ -539,7 +527,7 @@ describe('index_command', () => {
         // Second call should have watch=false
         expect(workerSpy).toHaveBeenNthCalledWith(
           2,
-          1, // concurrency
+          2, // concurrency
           false, // watch=false for second repo
           expect.objectContaining({
             repoName: 'repo2',
@@ -601,8 +589,14 @@ describe('index_command', () => {
         expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, undefined);
       });
 
-      it('SHOULD pass token to pullRepo when provided', async () => {
+      it('SHOULD pass appConfig github token to pullRepo when set', async () => {
         const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+
+        Object.defineProperty(appConfig, 'githubToken', {
+          value: 'ghp_test123',
+          writable: true,
+          configurable: true,
+        });
 
         vi.spyOn(fs, 'existsSync').mockReturnValue(true);
         vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
@@ -612,13 +606,19 @@ describe('index_command', () => {
         vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
         vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
-        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull', '--token', 'ghp_test123']);
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull']);
 
         expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, 'ghp_test123');
       });
 
-      it('SHOULD pass branch to pullRepo when provided', async () => {
+      it('SHOULD pass CLI --github-token to pullRepo when provided', async () => {
         const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+
+        Object.defineProperty(appConfig, 'githubToken', {
+          value: 'ghp_env_token',
+          writable: true,
+          configurable: true,
+        });
 
         vi.spyOn(fs, 'existsSync').mockReturnValue(true);
         vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
@@ -633,13 +633,27 @@ describe('index_command', () => {
           'test',
           '/path/to/my-repo',
           '--pull',
-          '--branch',
-          'develop',
-          '--token',
-          'ghp_branch_test',
+          '--github-token',
+          'ghp_cli_token',
         ]);
 
-        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', 'develop', 'ghp_branch_test');
+        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, 'ghp_cli_token');
+      });
+
+      it('SHOULD pass branch to pullRepo when provided', async () => {
+        const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+
+        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull', '--branch', 'develop']);
+
+        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', 'develop', undefined);
       });
 
       it('SHOULD NOT pass pull option to incrementalIndex (pull already done before indexing)', async () => {
@@ -716,6 +730,99 @@ describe('index_command', () => {
         expect(process.exitCode).toBe(1);
       });
     });
+  });
+
+  describe('SCSI_LANGUAGES enforcement', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      // Default branch detection
+      vi.mocked(execFileSync).mockReturnValue(Buffer.from('main\n'));
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('SHOULD constrain default languages to SCSI_LANGUAGES when --languages is omitted', () =>
+      withTestEnv({ SCSI_LANGUAGES: 'typescript' }, async () => {
+        Object.defineProperty(appConfig, 'queueBaseDir', {
+          value: testQueuesDir,
+          writable: true,
+          configurable: true,
+        });
+
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr === '/path/to/my-repo') {
+            return true;
+          }
+          if (pathStr.startsWith(testQueuesDir)) {
+            return false;
+          }
+          return originalExistsSync(p);
+        });
+
+        const fullIndexSpy = vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--watch']);
+
+        expect(fullIndexSpy).toHaveBeenCalledWith(
+          '/path/to/my-repo',
+          false,
+          expect.objectContaining({
+            languages: 'typescript',
+          })
+        );
+      }));
+
+    it('SHOULD let --languages override SCSI_LANGUAGES', () =>
+      withTestEnv({ SCSI_LANGUAGES: 'typescript,go' }, async () => {
+        Object.defineProperty(appConfig, 'queueBaseDir', {
+          value: testQueuesDir,
+          writable: true,
+          configurable: true,
+        });
+
+        const originalExistsSync = fs.existsSync;
+        vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+          const pathStr = p.toString();
+          if (pathStr === '/path/to/my-repo') {
+            return true;
+          }
+          if (pathStr.startsWith(testQueuesDir)) {
+            return false;
+          }
+          return originalExistsSync(p);
+        });
+
+        const fullIndexSpy = vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--watch', '--languages', 'go,python']);
+
+        expect(fullIndexSpy).toHaveBeenCalledWith(
+          '/path/to/my-repo',
+          false,
+          expect.objectContaining({
+            languages: 'go,python',
+          })
+        );
+      }));
+
+    it('SHOULD throw when SCSI_LANGUAGES contains no valid languages and --languages is omitted', () =>
+      withTestEnv({ SCSI_LANGUAGES: 'not-a-real-language' }, async () => {
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo'])).rejects.toThrow(
+          'No valid languages were provided via SCSI_LANGUAGES/--languages.'
+        );
+      }));
   });
 
   describe('clone error handling', () => {

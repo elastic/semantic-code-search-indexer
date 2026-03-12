@@ -104,11 +104,10 @@ describe('Integration Test - Collision Handling', () => {
   });
 
   it('should aggregate identical chunks across files into shared documents', async () => {
-    // Limit to typescript
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
+    const languages = 'typescript';
 
-    await setup(testRepoUrl, {});
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, concurrency: '2' });
+    await setup(testRepoUrl);
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, concurrency: '2', batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
@@ -170,7 +169,7 @@ describe('Integration Test - Collision Handling', () => {
     expect(locationsForFile1.hits.hits.length).toBeGreaterThan(0);
 
     // Idempotency: running indexing again without repo changes should not duplicate filePaths entries.
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, concurrency: '2' });
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, concurrency: '2', batchSize: '10', languages });
     await client.indices.refresh({ index: TEST_INDEX });
     await client.indices.refresh({ index: `${TEST_INDEX}_locations` });
 
@@ -245,18 +244,18 @@ describe('Integration Test - Collision Handling', () => {
 
   it('should work on semantic_text indices that reject scripted updates', async () => {
     // Ensure semantic_text field exists in the mapping (default behavior).
-    delete process.env.DISABLE_SEMANTIC_TEXT;
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
+    delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+    const languages = 'typescript';
 
-    await setup(testRepoUrl, {});
-    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, concurrency: '2' });
+    await setup(testRepoUrl);
+    await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], { watch: false, concurrency: '2', batchSize: '10', languages });
 
     const client = getClient();
     await client.indices.refresh({ index: TEST_INDEX });
 
     // Current behavior we care about:
     // when semantic_text is enabled in the index mapping, indexing and file-path deletions succeed.
-    const parser = new LanguageParser();
+    const parser = new LanguageParser(languages);
     const filePath = path.join(testRepoPath, 'file1.ts');
     const parsed = parser.parseFile(filePath, 'main', 'file1.ts');
     expect(parsed.chunks.length).toBeGreaterThan(0);
@@ -272,13 +271,18 @@ describe('Integration Test - Collision Handling', () => {
   }, 180000);
 
   it('should not lose locations under worker concurrency across many identical files', async () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'typescript';
-    delete process.env.DISABLE_SEMANTIC_TEXT;
+    const languages = 'typescript';
+    delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
 
-    await setup(manyFilesRepoUrl, {});
+    await setup(manyFilesRepoUrl);
     // Run with higher worker concurrency to force multiple in-flight dequeue batches.
     const manyIndexName = `${TEST_INDEX}-many`;
-    await indexRepos([`${manyFilesRepoUrl}:${manyIndexName}`], { watch: false, concurrency: '4' });
+    await indexRepos([`${manyFilesRepoUrl}:${manyIndexName}`], {
+      watch: false,
+      concurrency: '4',
+      batchSize: '10',
+      languages,
+    });
 
     const client = getClient();
     await client.indices.refresh({ index: manyIndexName });

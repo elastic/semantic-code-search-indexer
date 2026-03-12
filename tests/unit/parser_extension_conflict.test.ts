@@ -59,8 +59,7 @@ describe('LanguageParser Extension Conflicts', () => {
   });
 
   it('SHOULD not warn when .h is registered to both c and cpp', () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'c,cpp';
-    new LanguageParser();
+    new LanguageParser('c,cpp');
 
     // Verify no warning was logged for .h
     const warnCalls = vi.mocked(logger.warn).mock.calls;
@@ -72,8 +71,7 @@ describe('LanguageParser Extension Conflicts', () => {
   });
 
   it('SHOULD still warn when .h is registered to c and a non-allowed language', () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'c,conflict_h_lang';
-    new LanguageParser();
+    new LanguageParser('c,conflict_h_lang');
 
     const warnCalls = vi.mocked(logger.warn).mock.calls;
     const hWarning = warnCalls.find((call: unknown[]) =>
@@ -85,8 +83,7 @@ describe('LanguageParser Extension Conflicts', () => {
   });
 
   it('SHOULD still warn for other duplicate extensions', () => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = 'javascript,conflict_js_lang';
-    new LanguageParser();
+    new LanguageParser('javascript,conflict_js_lang');
 
     // Verify warning was logged for .js
     const warnCalls = vi.mocked(logger.warn).mock.calls;

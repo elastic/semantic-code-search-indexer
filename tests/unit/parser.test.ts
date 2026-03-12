@@ -1,10 +1,10 @@
 import { LanguageParser } from '../../src/utils/parser';
 import { CodeChunk } from '../../src/utils/elasticsearch';
 import path from 'path';
-import { indexingConfig } from '../../src/config';
 import fs from 'fs';
 import os from 'os';
 import { describe, it, expect, beforeAll } from 'vitest';
+import { withTestEnv } from './utils/test_env';
 
 const MOCK_TIMESTAMP = '[TIMESTAMP]';
 
@@ -31,8 +31,7 @@ describe('LanguageParser', () => {
   let parser: LanguageParser;
 
   beforeAll(() => {
-    process.env.SEMANTIC_CODE_INDEXER_LANGUAGES = TEST_LANGUAGES;
-    parser = new LanguageParser();
+    parser = new LanguageParser(TEST_LANGUAGES);
   });
 
   const cleanTimestamps = (chunks: CodeChunk[]) => {
@@ -84,44 +83,31 @@ describe('LanguageParser', () => {
       expect(result.metrics.parserType).toBe('markdown');
     });
 
-    it('should parse Markdown with section delimiter (---)', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
-
-      try {
+    it('should parse Markdown with section delimiter (---)', () =>
+      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/markdown_sections.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown_sections.md');
 
-        // Should create 3 chunks (split by ---)
         expect(result.chunks.length).toBe(3);
 
-        // First chunk should contain Section 1
         expect(result.chunks[0].content).toContain('Section 1');
         expect(result.chunks[0].content).toContain('first section');
 
-        // Second chunk should contain Section 2
         expect(result.chunks[1].content).toContain('Section 2');
         expect(result.chunks[1].content).toContain('second section');
 
-        // Third chunk should contain Section 3
         expect(result.chunks[2].content).toContain('Section 3');
         expect(result.chunks[2].content).toContain('final section');
 
-        // Verify line numbers are calculated correctly
         expect(result.chunks[0].startLine).toBe(1);
-        expect(result.chunks[1].startLine).toBeGreaterThan(result.chunks[0].endLine);
-        expect(result.chunks[2].startLine).toBeGreaterThan(result.chunks[1].endLine);
-      } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
-      }
-    });
+        expect(result.chunks[0].endLine).toBeDefined();
+        expect(result.chunks[1].endLine).toBeDefined();
+        expect(result.chunks[1].startLine).toBeGreaterThan(result.chunks[0].endLine!);
+        expect(result.chunks[2].startLine).toBeGreaterThan(result.chunks[1].endLine!);
+      }));
 
-    it('should parse Markdown with custom delimiter (===)', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n===\\n';
-
-      try {
-        // Create temporary test file
+    it('should parse Markdown with custom delimiter (===)', () =>
+      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n===\\n' }, () => {
         const testContent = `Part 1
 Content here
 
@@ -138,45 +124,29 @@ Final content`;
         const tempFile = path.join(__dirname, '../fixtures', 'temp_custom_delimiter.md');
         fs.writeFileSync(tempFile, testContent);
 
-        const result = parser.parseFile(tempFile, 'main', 'temp_custom_delimiter.md');
+        try {
+          const result = parser.parseFile(tempFile, 'main', 'temp_custom_delimiter.md');
 
-        // Should create 3 chunks
-        expect(result.chunks.length).toBe(3);
-        expect(result.chunks[0].content).toContain('Part 1');
-        expect(result.chunks[1].content).toContain('Part 2');
-        expect(result.chunks[2].content).toContain('Part 3');
-
-        // Clean up
-        if (fs.existsSync(tempFile)) {
-          fs.unlinkSync(tempFile);
+          expect(result.chunks.length).toBe(3);
+          expect(result.chunks[0].content).toContain('Part 1');
+          expect(result.chunks[1].content).toContain('Part 2');
+          expect(result.chunks[2].content).toContain('Part 3');
+        } finally {
+          if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
         }
-      } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
-      }
-    });
+      }));
 
-    it('should handle markdown with no delimiter matches', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
-
-      try {
-        // Use a file without --- delimiters
+    it('should handle markdown with no delimiter matches', () =>
+      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
 
-        // Should create 1 chunk (entire file)
         expect(result.chunks.length).toBe(1);
         expect(result.chunks[0].content).toContain('Markdown Fixture');
-      } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
-      }
-    });
+      }));
 
-    it('should filter empty chunks when using custom delimiter', () => {
-      const originalDelimiter = indexingConfig.markdownChunkDelimiter;
-      indexingConfig.markdownChunkDelimiter = '\\n---\\n';
-
-      try {
+    it('should filter empty chunks when using custom delimiter', () =>
+      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
         const testContent = `Content 1
 
 ---
@@ -188,21 +158,16 @@ Content 2`;
         const tempFile = path.join(__dirname, '../fixtures', 'temp_empty_chunks.md');
         fs.writeFileSync(tempFile, testContent);
 
-        const result = parser.parseFile(tempFile, 'main', 'temp_empty_chunks.md');
+        try {
+          const result = parser.parseFile(tempFile, 'main', 'temp_empty_chunks.md');
 
-        // Should only create 2 chunks (empty chunk between --- should be filtered)
-        expect(result.chunks.length).toBe(2);
-        expect(result.chunks[0].content).toContain('Content 1');
-        expect(result.chunks[1].content).toContain('Content 2');
-
-        // Clean up
-        if (fs.existsSync(tempFile)) {
-          fs.unlinkSync(tempFile);
+          expect(result.chunks.length).toBe(2);
+          expect(result.chunks[0].content).toContain('Content 1');
+          expect(result.chunks[1].content).toContain('Content 2');
+        } finally {
+          if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
         }
-      } finally {
-        indexingConfig.markdownChunkDelimiter = originalDelimiter;
-      }
-    });
+      }));
   });
 
   it('should parse YAML fixtures correctly', () => {
@@ -492,22 +457,15 @@ export -f my_func`;
     }
   });
 
-  it('should filter out chunks larger than maxChunkSizeBytes', () => {
-    const filePath = path.resolve(__dirname, '../fixtures/large_file.json');
-    const originalMaxChunkSizeBytes = indexingConfig.maxChunkSizeBytes;
-    indexingConfig.maxChunkSizeBytes = 50;
-
-    try {
+  it('should filter out chunks larger than maxChunkSizeBytes', () =>
+    withTestEnv({ SCSI_MAX_CHUNK_SIZE_BYTES: '50' }, () => {
+      const filePath = path.resolve(__dirname, '../fixtures/large_file.json');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
-      // With the new line-based chunking approach, all chunks smaller than the limit should pass
-      // The file has 5 lines. With 15-line default chunks, the entire file fits in one chunk
-      // Since the entire file content is less than 50 bytes when chunked by lines, it should be filtered
+
+      // The file fits in one chunk (5 lines < default 15), but that chunk exceeds 50 bytes
       expect(result.chunks.length).toBe(0);
       expect(result.metrics.chunksSkipped).toBe(1);
-    } finally {
-      indexingConfig.maxChunkSizeBytes = originalMaxChunkSizeBytes;
-    }
-  });
+    }));
 
   it('should extract directory information correctly', () => {
     const filePath = path.resolve(__dirname, '../fixtures/typescript.ts');
@@ -552,14 +510,8 @@ export -f my_func`;
   });
 
   describe('Configurable Line-Based Chunking', () => {
-    it('parses JSON with configurable chunk size', () => {
-      const originalChunkLines = indexingConfig.defaultChunkLines;
-      const originalOverlapLines = indexingConfig.chunkOverlapLines;
-
-      indexingConfig.defaultChunkLines = 10;
-      indexingConfig.chunkOverlapLines = 2;
-
-      try {
+    it('parses JSON with configurable chunk size', () =>
+      withTestEnv({ SCSI_DEFAULT_CHUNK_LINES: '10', SCSI_CHUNK_OVERLAP_LINES: '2' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
@@ -567,28 +519,17 @@ export -f my_func`;
         // Chunk 1: 1-10, Chunk 2: 9-18, Chunk 3: 17-26, Chunk 4: 25-32
         expect(result.chunks.length).toBeGreaterThan(1);
 
-        // First chunk should be 10 lines
         expect(result.chunks[0].startLine).toBe(1);
         expect(result.chunks[0].endLine).toBe(10);
 
-        // Second chunk should overlap by 2 lines (start at line 9)
+        // Second chunk should overlap by 2 lines (start at line 10 - 2 + 1 = 9)
         if (result.chunks.length > 1) {
-          expect(result.chunks[1].startLine).toBe(9); // 10 - 2 + 1 = 9
+          expect(result.chunks[1].startLine).toBe(9);
         }
-      } finally {
-        indexingConfig.defaultChunkLines = originalChunkLines;
-        indexingConfig.chunkOverlapLines = originalOverlapLines;
-      }
-    });
+      }));
 
-    it('parses YAML with configurable chunk size', () => {
-      const originalChunkLines = indexingConfig.defaultChunkLines;
-      const originalOverlapLines = indexingConfig.chunkOverlapLines;
-
-      indexingConfig.defaultChunkLines = 5;
-      indexingConfig.chunkOverlapLines = 1;
-
-      try {
+    it('parses YAML with configurable chunk size', () =>
+      withTestEnv({ SCSI_DEFAULT_CHUNK_LINES: '5', SCSI_CHUNK_OVERLAP_LINES: '1' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
 
@@ -599,37 +540,23 @@ export -f my_func`;
         expect(result.chunks[0].startLine).toBe(1);
         expect(result.chunks[0].endLine).toBe(5);
 
-        expect(result.chunks[1].startLine).toBe(5); // 1 + 4 = 5
+        expect(result.chunks[1].startLine).toBe(5); // 1 + step(4) = 5
         expect(result.chunks[1].endLine).toBe(8);
 
         // Verify document separator is included naturally
         expect(result.chunks[0].content).toContain('---');
-      } finally {
-        indexingConfig.defaultChunkLines = originalChunkLines;
-        indexingConfig.chunkOverlapLines = originalOverlapLines;
-      }
-    });
+      }));
 
-    it('skips oversized JSON chunks', () => {
-      const originalMaxChunkSize = indexingConfig.maxChunkSizeBytes;
-      const originalChunkLines = indexingConfig.defaultChunkLines;
-
+    it('skips oversized JSON chunks', () =>
       // Set very small chunk size to force skipping
-      indexingConfig.maxChunkSizeBytes = 10;
-      indexingConfig.defaultChunkLines = 15;
-
-      try {
+      withTestEnv({ SCSI_MAX_CHUNK_SIZE_BYTES: '10', SCSI_DEFAULT_CHUNK_LINES: '15' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
         // All chunks should be skipped due to size limit
         expect(result.chunks.length).toBe(0);
         expect(result.metrics.chunksSkipped).toBeGreaterThan(0);
-      } finally {
-        indexingConfig.maxChunkSizeBytes = originalMaxChunkSize;
-        indexingConfig.defaultChunkLines = originalChunkLines;
-      }
-    });
+      }));
 
     it('parses text files with paragraphs using paragraph strategy', () => {
       // Create a fixture with paragraphs
