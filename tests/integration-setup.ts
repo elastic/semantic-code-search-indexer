@@ -4,11 +4,10 @@ process.env.NODE_ENV = 'test';
 
 // Ensure integration tests always talk to the local Docker Elasticsearch, even if the developer
 // shell has Cloud env vars set (those would otherwise route the client to Elastic Cloud).
+// Only delete Cloud-specific vars; ELASTICSEARCH_ENDPOINT/USERNAME/PASSWORD come from .env.test
+// and must survive (dotenv loads them before this code runs via config.ts import).
 delete process.env.ELASTICSEARCH_CLOUD_ID;
 delete process.env.ELASTICSEARCH_API_KEY;
-delete process.env.ELASTICSEARCH_ENDPOINT;
-delete process.env.ELASTICSEARCH_USERNAME;
-delete process.env.ELASTICSEARCH_PASSWORD;
 
 // Import afterAll before setting SCSI_FORCE_LOGGING
 import { afterAll } from 'vitest';
