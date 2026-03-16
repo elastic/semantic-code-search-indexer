@@ -11,20 +11,19 @@ const mockedGitHelper = vi.mocked(gitHelper);
 describe('setup_command', () => {
   const originalCwd = process.cwd();
   const testReposDir = path.join(originalCwd, '.repos');
-  const savedGithubToken = process.env.SCSI_GITHUB_TOKEN;
+  const savedGithubToken = process.env.GITHUB_TOKEN;
 
   beforeEach(() => {
-    // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
     vi.clearAllMocks();
-    delete process.env.SCSI_GITHUB_TOKEN;
+    delete process.env.GITHUB_TOKEN;
   });
 
   afterEach(() => {
     if (savedGithubToken === undefined) {
-      delete process.env.SCSI_GITHUB_TOKEN;
+      delete process.env.GITHUB_TOKEN;
     } else {
-      process.env.SCSI_GITHUB_TOKEN = savedGithubToken;
+      process.env.GITHUB_TOKEN = savedGithubToken;
     }
   });
 
@@ -59,7 +58,7 @@ describe('setup_command', () => {
 
     describe('AND no token is provided', () => {
       it('SHOULD use appConfig token', () =>
-        withTestEnv({ SCSI_GITHUB_TOKEN: 'ghp_config_token' }, async () => {
+        withTestEnv({ GITHUB_TOKEN: 'ghp_config_token' }, async () => {
           const repoUrl = 'https://github.com/elastic/kibana.git';
           mockedGitHelper.cloneOrPullRepo.mockResolvedValue(undefined);
 

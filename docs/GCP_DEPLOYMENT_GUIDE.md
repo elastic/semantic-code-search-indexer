@@ -89,20 +89,20 @@ The application's configuration is managed by a `.env` file. Create this file in
 # /opt/semantic-code-search-indexer/.env
 
 # Elasticsearch Configuration
-SCSI_ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
-SCSI_ELASTICSEARCH_API_KEY="YourEncodedApiKey"
+ELASTICSEARCH_ENDPOINT="https://your-es-endpoint.elastic-cloud.com:9243"
+ELASTICSEARCH_API_KEY="YourEncodedApiKey"
 
 # OpenTelemetry Configuration (optional)
 # Enable logs and metrics export to OpenTelemetry Collector
 SCSI_OTEL_LOGGING_ENABLED="true"
 SCSI_OTEL_METRICS_ENABLED="true"
-SCSI_OTEL_SERVICE_NAME="semantic-code-search-indexer"
-SCSI_OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
+OTEL_SERVICE_NAME="semantic-code-search-indexer"
+OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
 # Optional: separate endpoints for logs and metrics
-# SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT="http://otel-collector:4318/v1/logs"
-# SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://otel-collector:4318/v1/metrics"
+# OTEL_EXPORTER_OTLP_LOGS_ENDPOINT="http://otel-collector:4318/v1/logs"
+# OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://otel-collector:4318/v1/metrics"
 # Optional: authentication headers
-# SCSI_OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
+# OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
 # Optional: metric export interval (default: 60000ms = 60s)
 # SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS="60000"
 
@@ -112,7 +112,7 @@ SCSI_OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
 SCSI_QUEUE_BASE_DIR="/var/lib/indexer/queues"
 
 # GitHub token (required for private repositories)
-SCSI_GITHUB_TOKEN="ghp_YourToken"
+GITHUB_TOKEN="ghp_YourToken"
 ```
 
 ## 2. Scheduling with Cron
@@ -140,7 +140,7 @@ We will use `cron`, a standard time-based job scheduler, to run the indexer peri
     - `npm run index -- <repos...>`: The unified index command that handles both scanning and indexing in one pass.
     - `/var/lib/indexer/repos/repo-one:repo-one-index`: Repository path with custom index name.
     - `--pull`: Git pull before indexing to get latest changes.
-    - `SCSI_GITHUB_TOKEN`: GitHub token for private repositories (optional; set via `.env` or environment).
+    - `GITHUB_TOKEN`: GitHub token for private repositories (optional; set via `.env` or environment).
     - `>> /opt/semantic-code-search-indexer/indexer.log 2>&1`: This redirects all output (both standard output and standard error) to a log file within the project directory. You must ensure this file is writable by the user running the cron job.
 
     **For watch mode (continuous indexing):**
@@ -214,8 +214,8 @@ For production monitoring, deploy an OpenTelemetry Collector to receive logs and
     ExecStart=/usr/local/bin/otelcol-contrib --config=/etc/otelcol/config.yaml
     Restart=on-failure
     RestartSec=30
-    Environment="SCSI_ELASTICSEARCH_ENDPOINT=https://your-es-endpoint.elastic-cloud.com:9243"
-    Environment="SCSI_ELASTICSEARCH_API_KEY=YourEncodedApiKey"
+    Environment="ELASTICSEARCH_ENDPOINT=https://your-es-endpoint.elastic-cloud.com:9243"
+    Environment="ELASTICSEARCH_API_KEY=YourEncodedApiKey"
 
     [Install]
     WantedBy=multi-user.target

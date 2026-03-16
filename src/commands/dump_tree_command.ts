@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { LanguageParser } from '../utils/parser';
+import { appConfig } from '../config';
 import * as fs from 'fs';
 import * as path from 'path';
 import Parser from 'tree-sitter';
@@ -18,7 +19,7 @@ export const dumpTreeCommand = new Command('dump-tree')
       const fileContent = fs.readFileSync(absolutePath, 'utf-8');
       const fileExtension = path.extname(absolutePath);
 
-      const languageParser = new LanguageParser();
+      const languageParser = new LanguageParser(appConfig.languages);
       const langConfig = languageParser.fileSuffixMap.get(fileExtension);
 
       if (!langConfig || !langConfig.parser) {

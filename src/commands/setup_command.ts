@@ -20,10 +20,7 @@ async function setup(repoUrl: string, options?: { githubToken?: string }) {
 export const setupCommand = new Command('setup')
   .description('Clones a repository to be indexed')
   .argument('<repo_url>', 'The URL of the git repository to clone')
-  .option(
-    '--github-token <token>',
-    'GitHub token for cloning/pulling private repositories (overrides SCSI_GITHUB_TOKEN)'
-  )
+  .option('--github-token <token>', 'GitHub token for cloning/pulling private repositories (overrides GITHUB_TOKEN)')
   .action((repoUrl, options) => setup(repoUrl, options));
 
 export { setup };

@@ -29,19 +29,19 @@ dotenv.config({ path: path.join(projectRoot, envFile), override: false, quiet: t
 
 export const elasticsearchConfig = {
   get endpoint() {
-    return process.env.SCSI_ELASTICSEARCH_ENDPOINT;
+    return process.env.ELASTICSEARCH_ENDPOINT;
   },
   get cloudId() {
-    return process.env.SCSI_ELASTICSEARCH_CLOUD_ID || undefined;
+    return process.env.ELASTICSEARCH_CLOUD_ID || undefined;
   },
   get username() {
-    return process.env.SCSI_ELASTICSEARCH_USERNAME;
+    return process.env.ELASTICSEARCH_USERNAME;
   },
   get password() {
-    return process.env.SCSI_ELASTICSEARCH_PASSWORD;
+    return process.env.ELASTICSEARCH_PASSWORD;
   },
   get apiKey() {
-    return process.env.SCSI_ELASTICSEARCH_API_KEY || undefined;
+    return process.env.ELASTICSEARCH_API_KEY || undefined;
   },
   get inferenceId() {
     return process.env.SCSI_ELASTICSEARCH_INFERENCE_ID || undefined;
@@ -59,17 +59,15 @@ export const otelConfig = {
     return process.env.SCSI_OTEL_LOGGING_ENABLED === 'true';
   },
   get serviceName() {
-    return process.env.SCSI_OTEL_SERVICE_NAME || 'semantic-code-search-indexer';
+    return process.env.OTEL_SERVICE_NAME || 'semantic-code-search-indexer';
   },
   get endpoint() {
     return (
-      process.env.SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT ||
-      process.env.SCSI_OTEL_EXPORTER_OTLP_ENDPOINT ||
-      'http://localhost:4318'
+      process.env.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT || process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318'
     );
   },
   get headers() {
-    return process.env.SCSI_OTEL_EXPORTER_OTLP_HEADERS || '';
+    return process.env.OTEL_EXPORTER_OTLP_HEADERS || '';
   },
   get metricsEnabled() {
     return (
@@ -79,8 +77,8 @@ export const otelConfig = {
   },
   get metricsEndpoint() {
     return (
-      process.env.SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ||
-      process.env.SCSI_OTEL_EXPORTER_OTLP_ENDPOINT ||
+      process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ||
+      process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
       'http://localhost:4318'
     );
   },
@@ -88,10 +86,10 @@ export const otelConfig = {
     return parseEnvInt(process.env.SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS, 60000);
   },
   get logLevel() {
-    return process.env.SCSI_OTEL_LOG_LEVEL;
+    return process.env.OTEL_LOG_LEVEL;
   },
   get resourceAttributes() {
-    return process.env.SCSI_OTEL_RESOURCE_ATTRIBUTES;
+    return process.env.OTEL_RESOURCE_ATTRIBUTES;
   },
 };
 
@@ -156,11 +154,11 @@ export const appConfig = {
   },
 
   get githubToken() {
-    return process.env.SCSI_GITHUB_TOKEN;
+    return process.env.GITHUB_TOKEN;
   },
   set githubToken(v: string | undefined) {
-    if (v === undefined) delete process.env.SCSI_GITHUB_TOKEN;
-    else process.env.SCSI_GITHUB_TOKEN = v;
+    if (v === undefined) delete process.env.GITHUB_TOKEN;
+    else process.env.GITHUB_TOKEN = v;
   },
 
   get languages() {

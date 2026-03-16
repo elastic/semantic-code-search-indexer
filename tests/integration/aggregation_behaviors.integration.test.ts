@@ -1,7 +1,7 @@
 import { getClient, CodeChunk, getLastIndexedCommit } from '../../src/utils/elasticsearch';
 import { setup } from '../../src/commands/setup_command';
 import { indexRepos } from '../../src/commands/index_command';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -80,6 +80,8 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   const createdIndices: string[] = [];
   const createdRepos: string[] = [];
 
+  let savedDisableSemanticText: string | undefined;
+
   beforeAll(async () => {
     const esAvailable = await isElasticsearchAvailable();
     if (!esAvailable) {
@@ -88,6 +90,18 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
       );
     }
   }, 120000);
+
+  beforeEach(() => {
+    savedDisableSemanticText = process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+  });
+
+  afterEach(() => {
+    if (savedDisableSemanticText === undefined) {
+      delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+    } else {
+      process.env.SCSI_DISABLE_SEMANTIC_TEXT = savedDisableSemanticText;
+    }
+  });
 
   afterAll(async () => {
     try {

@@ -33,6 +33,7 @@ This project is a high-performance code indexer designed to provide deep, contex
 - Elasticsearch 8.0+
   - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCSI_ELASTICSEARCH_INFERENCE_ID`.
   - If you want to run without semantic inference (e.g. for local testing), set `SCSI_DISABLE_SEMANTIC_TEXT=true`.
+  - Connection credentials use standard env var names: `ELASTICSEARCH_ENDPOINT`, `ELASTICSEARCH_CLOUD_ID`, `ELASTICSEARCH_API_KEY`, etc.
     - This disables the `semantic_text` mapping at index creation time, so semantic search queries (including the `search` command and the MCP server’s semantic tools) will not work for that index.
     - To re-enable semantic search later, recreate the index with semantic text enabled and reindex.
 - Elasticsearch credentials (API key recommended)
@@ -49,13 +50,13 @@ npm run build
 # 3. Configure Elasticsearch connection
 cp .env.example .env
 # Edit .env with your Elasticsearch connection details:
-# - Recommended (Elastic Cloud): set SCSI_ELASTICSEARCH_CLOUD_ID + SCSI_ELASTICSEARCH_API_KEY
-# - Self-managed: set SCSI_ELASTICSEARCH_ENDPOINT + credentials (username/password or API key)
+# - Recommended (Elastic Cloud): set ELASTICSEARCH_CLOUD_ID + ELASTICSEARCH_API_KEY
+# - Self-managed: set ELASTICSEARCH_ENDPOINT + credentials (username/password or API key)
 
 # 4. Recommended: Elastic Cloud + EIS (best default performance)
 # - Create an Elastic Cloud deployment/project
-# - Copy its Cloud ID into SCSI_ELASTICSEARCH_CLOUD_ID
-# - Create an API key and set it as SCSI_ELASTICSEARCH_API_KEY
+# - Copy its Cloud ID into ELASTICSEARCH_CLOUD_ID
+# - Create an API key and set it as ELASTICSEARCH_API_KEY
 # - Set SCSI_ELASTICSEARCH_INFERENCE_ID=.elser-2-elastic (EIS-backed ELSER endpoint)
 
 # 5. (Optional) Add .indexerignore to your repository
@@ -102,7 +103,7 @@ docker run --rm \
 **Notes:**
 
 - The bind mounts persist clones (`./.repos`) and queue state (`./.queues`) across runs.
-- For private repos: set `SCSI_GITHUB_TOKEN` (or pass `--github-token` to override for one run).
+- For private repos: set `GITHUB_TOKEN` (or pass `--github-token` to override for one run).
 
 ### MCP server (separate repository)
 
@@ -137,15 +138,15 @@ Clones a target repository into the `./.repos/` directory to prepare it for inde
 
 **Options:**
 
-- `--github-token <token>` - GitHub token for cloning/pulling private repositories (overrides `SCSI_GITHUB_TOKEN`)
+- `--github-token <token>` - GitHub token for cloning/pulling private repositories (overrides `GITHUB_TOKEN`)
 
 **Examples:**
 
 ```bash
 npm run setup -- https://github.com/elastic/kibana.git
 
-# Private repository (requires SCSI_GITHUB_TOKEN)
-SCSI_GITHUB_TOKEN=ghp_YourTokenHere npm run setup -- https://github.com/my-org/my-private-repo.git
+# Private repository (requires GITHUB_TOKEN)
+GITHUB_TOKEN=ghp_YourTokenHere npm run setup -- https://github.com/my-org/my-private-repo.git
 
 # Private repository (token override for this run)
 npm run setup -- https://github.com/my-org/my-private-repo.git --github-token ghp_YourTokenHere
@@ -160,7 +161,7 @@ Indexes one or more repositories by scanning the codebase, enqueuing code chunks
 - `[repos...]` - One or more repository paths, names, or URLs (format: `repo[:index]`).
 - `--clean` - Delete existing Elasticsearch index before starting (full rebuild)
 - `--pull` - Git pull before indexing
-- `--github-token <token>` - GitHub token for cloning/pulling private repositories (overrides `SCSI_GITHUB_TOKEN`)
+- `--github-token <token>` - GitHub token for cloning/pulling private repositories (overrides `GITHUB_TOKEN`)
 - `--watch` - Keep indexer running after processing queue (for continuous indexing)
 - `--concurrency <number>` - Number of parallel Elasticsearch indexing workers (default: 2)
 - `--batch-size <number>` - Number of chunks per Elasticsearch bulk request (default: 100)
@@ -194,8 +195,8 @@ npm run index -- /path/to/repo1 /path/to/repo2
 # Incremental update (only changed files)
 npm run index -- /path/to/repo --pull
 
-# Private repository (requires SCSI_GITHUB_TOKEN)
-SCSI_GITHUB_TOKEN=ghp_YourTokenHere npm run index -- https://github.com/org/private-repo.git --pull
+# Private repository (requires GITHUB_TOKEN)
+GITHUB_TOKEN=ghp_YourTokenHere npm run index -- https://github.com/org/private-repo.git --pull
 
 # Private repository (token override for this run)
 npm run index -- https://github.com/org/private-repo.git --pull --github-token ghp_YourTokenHere
@@ -300,14 +301,14 @@ The recommended and most secure method is to use a **fine-grained** PAT with rea
 
 ### Providing the Token
 
-Set `SCSI_GITHUB_TOKEN` in your environment (or in a `.env` file) before running `setup` or `index`:
+Set `GITHUB_TOKEN` in your environment (or in a `.env` file) before running `setup` or `index`:
 
     ```
     # .env file
-    SCSI_GITHUB_TOKEN=ghp_YourGlobalToken
+    GITHUB_TOKEN=ghp_YourGlobalToken
     ```
 
-You can also pass `--github-token` to `setup` or `index` to override `SCSI_GITHUB_TOKEN` for a single invocation.
+You can also pass `--github-token` to `setup` or `index` to override `GITHUB_TOKEN` for a single invocation.
 
 ---
 
@@ -428,26 +429,26 @@ Given a base index name (from CLI `repo[:index]`), the indexer creates and maint
 
 | Variable                                   | Description                                                                                                                                     | Default                             |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `SCSI_ELASTICSEARCH_ENDPOINT`              | The endpoint URL for your Elasticsearch instance.                                                                                               |                                     |
-| `SCSI_ELASTICSEARCH_CLOUD_ID`              | The Cloud ID for your Elastic Cloud instance.                                                                                                   |                                     |
-| `SCSI_ELASTICSEARCH_USERNAME`              | The username for Elasticsearch authentication.                                                                                                  |                                     |
-| `SCSI_ELASTICSEARCH_PASSWORD`              | The password for Elasticsearch authentication.                                                                                                  |                                     |
-| `SCSI_ELASTICSEARCH_API_KEY`               | An API key for Elasticsearch authentication.                                                                                                    |                                     |
+| `ELASTICSEARCH_ENDPOINT`                   | The endpoint URL for your Elasticsearch instance.                                                                                               |                                     |
+| `ELASTICSEARCH_CLOUD_ID`                   | The Cloud ID for your Elastic Cloud instance.                                                                                                   |                                     |
+| `ELASTICSEARCH_USERNAME`                   | The username for Elasticsearch authentication.                                                                                                  |                                     |
+| `ELASTICSEARCH_PASSWORD`                   | The password for Elasticsearch authentication.                                                                                                  |                                     |
+| `ELASTICSEARCH_API_KEY`                    | An API key for Elasticsearch authentication.                                                                                                    |                                     |
 | `SCSI_ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
 | `SCSI_ELASTICSEARCH_REQUEST_TIMEOUT`       | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
 | `SCSI_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable the `semantic_text` mapping at index creation time (useful for tests or deployments without ML nodes).                 | `false`                             |
 | `SCSI_OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                   | `false`                             |
 | `SCSI_OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `SCSI_OTEL_LOGGING_ENABLED`).                                                                 | Same as `SCSI_OTEL_LOGGING_ENABLED` |
-| `SCSI_OTEL_LOG_LEVEL`                      | Minimum log level for OpenTelemetry diagnostics (`debug`, `info`, `warn`, `error`).                                                             |                                     |
-| `SCSI_OTEL_RESOURCE_ATTRIBUTES`            | Resource attributes to attach to OpenTelemetry data (e.g. `deployment.environment=staging,version=1.0.0`).                                      |                                     |
-| `SCSI_OTEL_SERVICE_NAME`                   | Service name for OpenTelemetry logs and metrics.                                                                                                | `semantic-code-search-indexer`      |
-| `SCSI_OTEL_EXPORTER_OTLP_ENDPOINT`         | OpenTelemetry collector endpoint for both logs and metrics.                                                                                     | `http://localhost:4318`             |
-| `SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | Logs-specific OTLP endpoint (overrides SCSI_OTEL_EXPORTER_OTLP_ENDPOINT).                                                                       |                                     |
-| `SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | Metrics-specific OTLP endpoint (overrides SCSI_OTEL_EXPORTER_OTLP_ENDPOINT).                                                                    |                                     |
-| `SCSI_OTEL_EXPORTER_OTLP_HEADERS`          | Headers for OTLP exporter (e.g., `authorization=Bearer token`).                                                                                 |                                     |
+| `OTEL_LOG_LEVEL`                           | Minimum log level for OpenTelemetry diagnostics (`debug`, `info`, `warn`, `error`).                                                             |                                     |
+| `OTEL_RESOURCE_ATTRIBUTES`                 | Resource attributes to attach to OpenTelemetry data (e.g. `deployment.environment=staging,version=1.0.0`).                                      |                                     |
+| `OTEL_SERVICE_NAME`                        | Service name for OpenTelemetry logs and metrics.                                                                                                | `semantic-code-search-indexer`      |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`              | OpenTelemetry collector endpoint for both logs and metrics.                                                                                     | `http://localhost:4318`             |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`         | Logs-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT).                                                                            |                                     |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`      | Metrics-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT).                                                                         |                                     |
+| `OTEL_EXPORTER_OTLP_HEADERS`               | Headers for OTLP exporter (e.g., `authorization=Bearer token`).                                                                                 |                                     |
 | `SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS`  | Interval in milliseconds between metric exports.                                                                                                | `60000` (60 seconds)                |
 | `SCSI_QUEUE_BASE_DIR`                      | The base directory for all repository queue databases. Each repository gets its own SQLite queue at `SCSI_QUEUE_BASE_DIR/<repo-name>/queue.db`. | `.queues`                           |
-| `SCSI_GITHUB_TOKEN`                        | GitHub token used for cloning/pulling private repositories.                                                                                     |                                     |
+| `GITHUB_TOKEN`                             | GitHub token used for cloning/pulling private repositories.                                                                                     |                                     |
 | `SCSI_LANGUAGES`                           | Optional comma-separated default list of languages to index (used when `--languages` is not provided).                                          | All supported languages             |
 | `SCSI_MAX_CHUNK_SIZE_BYTES`                | The maximum size of a code chunk in bytes.                                                                                                      | `1000000`                           |
 | `SCSI_DEFAULT_CHUNK_LINES`                 | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs).                                                         | `15`                                |
@@ -530,28 +531,28 @@ To enable OpenTelemetry log and metrics export:
 ```bash
 SCSI_OTEL_LOGGING_ENABLED=true
 SCSI_OTEL_METRICS_ENABLED=true  # Optional, defaults to same as SCSI_OTEL_LOGGING_ENABLED
-SCSI_OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
-SCSI_OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 ```
 
 For authentication to the collector:
 
 ```bash
-SCSI_OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
+OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
 ```
 
 You can also configure separate endpoints for logs and metrics:
 
 ```bash
-SCSI_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
-SCSI_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
 ```
 
 ### Resource Attributes
 
 The following resource attributes are automatically attached to all logs and metrics:
 
-- `service.name`: Service name (from `SCSI_OTEL_SERVICE_NAME`)
+- `service.name`: Service name (from `OTEL_SERVICE_NAME`)
 - `service.version`: Version from package.json
 - `deployment.environment`: From `NODE_ENV`
 - `host.name`, `host.arch`, `host.type`, `os.type`: Host information
@@ -635,12 +636,12 @@ A complete example collector configuration is provided in [`docs/otel-collector-
 To use the example configuration:
 
 ```bash
-export SCSI_ELASTICSEARCH_ENDPOINT=https://elasticsearch:9200
-export SCSI_ELASTICSEARCH_API_KEY=your-api-key
+export ELASTICSEARCH_ENDPOINT=https://elasticsearch:9200
+export ELASTICSEARCH_API_KEY=your-api-key
 
 docker run -p 4318:4318 -p 4317:4317 -p 13133:13133 \
-  -e SCSI_ELASTICSEARCH_ENDPOINT \
-  -e SCSI_ELASTICSEARCH_API_KEY \
+  -e ELASTICSEARCH_ENDPOINT \
+  -e ELASTICSEARCH_API_KEY \
   -v $(pwd)/docs/otel-collector-config.yaml:/etc/otelcol/config.yaml \
   otel/opentelemetry-collector-contrib:latest
 ```

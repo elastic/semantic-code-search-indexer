@@ -483,7 +483,7 @@ export const indexCommand = new Command('index')
   .addOption(
     new Option(
       '--github-token <token>',
-      'GitHub token for cloning/pulling private repositories (overrides SCSI_GITHUB_TOKEN)'
+      'GitHub token for cloning/pulling private repositories (overrides GITHUB_TOKEN)'
     )
   )
   .addOption(new Option('--watch', 'Keep worker running after processing queue'))

@@ -60,7 +60,7 @@ export function getClient(): Client {
       };
     } else {
       throw new Error(
-        'Elasticsearch Cloud authentication not configured. Please set SCSI_ELASTICSEARCH_API_KEY or SCSI_ELASTICSEARCH_USERNAME and SCSI_ELASTICSEARCH_PASSWORD.'
+        'Elasticsearch Cloud authentication not configured. Please set ELASTICSEARCH_API_KEY or ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD.'
       );
     }
 
@@ -82,7 +82,7 @@ export function getClient(): Client {
     _client = new Client(clientOptions);
   } else {
     throw new Error(
-      'Elasticsearch connection not configured. Please set SCSI_ELASTICSEARCH_CLOUD_ID or SCSI_ELASTICSEARCH_ENDPOINT.'
+      'Elasticsearch connection not configured. Please set ELASTICSEARCH_CLOUD_ID or ELASTICSEARCH_ENDPOINT.'
     );
   }
 

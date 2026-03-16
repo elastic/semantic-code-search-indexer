@@ -277,7 +277,7 @@ describe('Elasticsearch Client Configuration', () => {
         );
       }));
 
-    it('SHOULD prioritize SCSI_ELASTICSEARCH_CLOUD_ID over SCSI_ELASTICSEARCH_ENDPOINT when both are set', () => {
+    it('SHOULD prioritize ELASTICSEARCH_CLOUD_ID over ELASTICSEARCH_ENDPOINT when both are set', () => {
       // This validates our configuration logic by checking what was actually used
       const config = elasticsearch.elasticsearchConfig;
 

@@ -8,13 +8,13 @@ The `code-indexer` tool uses the official Elasticsearch Node.js client. Connecti
 
 | Environment Variable | Description |
 | :--- | :--- |
-| `SCSI_ELASTICSEARCH_ENDPOINT` | The HTTP endpoint of your Elasticsearch cluster. |
-| `SCSI_ELASTICSEARCH_CLOUD_ID` | The Cloud ID for an Elastic Cloud deployment. |
-| `SCSI_ELASTICSEARCH_USERNAME` | The username for authentication. |
-| `SCSI_ELASTICSEARCH_PASSWORD` | The password for authentication. |
-| `SCSI_ELASTICSEARCH_API_KEY` | An API key for authentication. |
+| `ELASTICSEARCH_ENDPOINT` | The HTTP endpoint of your Elasticsearch cluster. |
+| `ELASTICSEARCH_CLOUD_ID` | The Cloud ID for an Elastic Cloud deployment. |
+| `ELASTICSEARCH_USERNAME` | The username for authentication. |
+| `ELASTICSEARCH_PASSWORD` | The password for authentication. |
+| `ELASTICSEARCH_API_KEY` | An API key for authentication. |
 
-You can use either `SCSI_ELASTICSEARCH_ENDPOINT` for a self-hosted cluster or `SCSI_ELASTICSEARCH_CLOUD_ID` for an Elastic Cloud deployment. You can authenticate with either a username/password combination or an API key.
+You can use either `ELASTICSEARCH_ENDPOINT` for a self-hosted cluster or `ELASTICSEARCH_CLOUD_ID` for an Elastic Cloud deployment. You can authenticate with either a username/password combination or an API key.
 
 ### Example Connection (Node.js)
 
@@ -23,15 +23,15 @@ const { Client } = require('@elastic/elasticsearch');
 
 const client = new Client({
   cloud: {
-    id: process.env.SCSI_ELASTICSEARCH_CLOUD_ID,
+    id: process.env.ELASTICSEARCH_CLOUD_ID,
   },
   auth: {
-    username: process.env.SCSI_ELASTICSEARCH_USERNAME,
-    password: process.env.SCSI_ELASTICSEARCH_PASSWORD,
+    username: process.env.ELASTICSEARCH_USERNAME,
+    password: process.env.ELASTICSEARCH_PASSWORD,
   },
   // Or, for API key authentication:
   // auth: {
-  //   apiKey: process.env.SCSI_ELASTICSEARCH_API_KEY,
+  //   apiKey: process.env.ELASTICSEARCH_API_KEY,
   // }
 });
 ```

@@ -4,8 +4,11 @@ process.env.NODE_ENV = 'test';
 
 // Ensure integration tests always talk to the local Docker Elasticsearch, even if the developer
 // shell has Cloud env vars set (those would otherwise route the client to Elastic Cloud).
-delete process.env.SCSI_ELASTICSEARCH_CLOUD_ID;
-delete process.env.SCSI_ELASTICSEARCH_API_KEY;
+delete process.env.ELASTICSEARCH_CLOUD_ID;
+delete process.env.ELASTICSEARCH_API_KEY;
+delete process.env.ELASTICSEARCH_ENDPOINT;
+delete process.env.ELASTICSEARCH_USERNAME;
+delete process.env.ELASTICSEARCH_PASSWORD;
 
 // Import afterAll before setting SCSI_FORCE_LOGGING
 import { afterAll } from 'vitest';

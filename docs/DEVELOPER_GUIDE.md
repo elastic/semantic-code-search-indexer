@@ -221,9 +221,9 @@ The `if: always()` ensures cleanup happens even if tests fail, preventing resour
 Integration tests use `.env.test` for configuration:
 
 ```bash
-SCSI_ELASTICSEARCH_ENDPOINT=http://localhost:9200
-SCSI_ELASTICSEARCH_USERNAME=elastic
-SCSI_ELASTICSEARCH_PASSWORD=testpassword
+ELASTICSEARCH_ENDPOINT=http://localhost:9200
+ELASTICSEARCH_USERNAME=elastic
+ELASTICSEARCH_PASSWORD=testpassword
 SCSI_ELASTICSEARCH_INFERENCE_ID=elser-inference-test
 
 # Disable semantic search for tests (semantic_text + ELSER inference)

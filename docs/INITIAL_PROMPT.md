@@ -11,7 +11,7 @@ Your task is to generate the following:
     * Use the `@elastic/elasticsearch` client to store the chunks, their metadata, and their vector embeddings in an Elasticsearch index.
     * Include a function to handle both initial full indexing and subsequent incremental updates.
 
-3.  **Configuration**: For the indexing script, allow the user to provide configuration via environment variables. For Elasticsearch: `SCSI_ELASTICSEARCH_ENDPOINT`, `SCSI_ELASTICSEARCH_USERNAME`, `SCSI_ELASTICSEARCH_PASSWORD`, or if the user provides `SCSI_ELASTICSEARCH_API_KEY`, then use that instead of the username and passwords.
+3.  **Configuration**: For the indexing script, allow the user to provide configuration via environment variables. For Elasticsearch: `ELASTICSEARCH_ENDPOINT`, `ELASTICSEARCH_USERNAME`, `ELASTICSEARCH_PASSWORD`, or if the user provides `ELASTICSEARCH_API_KEY`, then use that instead of the username and passwords.
 
 4.  **Documentation**: Provide a README.md file that documents how to index the code, how to query Elasticsarch, how to setup the script, file layout, everything you'd expect from Github project to successfully run the indexer.
 

@@ -50,10 +50,10 @@ For the planned `find_similar_code` feature, we need a dense vector model that i
 
     ```bash
     eland_import_hub_model \
-      --cloud-id $SCSI_ELASTICSEARCH_CLOUD_ID \
+      --cloud-id $ELASTICSEARCH_CLOUD_ID \
       --hub-model-id microsoft/codebert-base \
       --task-type text_embedding \
-      --es-api-key $SCSI_ELASTICSEARCH_API_KEY \
+      --es-api-key $ELASTICSEARCH_API_KEY \
       --start
     ```
     This process will create a new model in Elasticsearch with the ID `microsoft__codebert-base`.

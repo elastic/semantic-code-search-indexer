@@ -88,9 +88,9 @@ export function parseHeaders(headersString: string): Record<string, string> {
 }
 
 /**
- * Parses SCSI_OTEL_RESOURCE_ATTRIBUTES environment variable into a key-value object.
+ * Parses OTEL_RESOURCE_ATTRIBUTES environment variable into a key-value object.
  *
- * @param resourceAttributesString - The SCSI_OTEL_RESOURCE_ATTRIBUTES string
+ * @param resourceAttributesString - The OTEL_RESOURCE_ATTRIBUTES string
  * @returns An object with parsed resource attributes
  *
  * @example
@@ -149,7 +149,7 @@ function withIsolatedOtelEnv<T>(callback: () => T): T {
  * Creates a Resource with auto-detected attributes and custom defaults.
  *
  * Detects resource attributes from:
- * - Environment variables (SCSI_OTEL_RESOURCE_ATTRIBUTES)
+ * - Environment variables (OTEL_RESOURCE_ATTRIBUTES)
  * - SDK defaults (telemetry.sdk.*, service.name, etc.)
  *
  * Custom attributes are used as defaults and are overridden by env vars.
@@ -158,18 +158,16 @@ function withIsolatedOtelEnv<T>(callback: () => T): T {
  * @returns A Resource instance with all detected and custom attributes
  */
 function createResource(defaultAttributes: Record<string, string | number> = {}): Resource {
+  // Read config BEFORE entering isolation (withIsolatedOtelEnv strips OTEL_* from process.env)
+  const resourceAttributesRaw = otelConfig.resourceAttributes;
+
   return withIsolatedOtelEnv(() => {
-    // Start with SDK defaults (telemetry.sdk.*, etc.) plus default service.name.
-    // We intentionally do not read standard OTEL_RESOURCE_ATTRIBUTES; we only honor SCSI_* config below.
     let resource = Resource.default();
 
-    // Merge with our custom default attributes (includes service.name from config)
     resource = resource.merge(new Resource(defaultAttributes));
 
-    // Parse and merge SCSI_OTEL_RESOURCE_ATTRIBUTES if present (highest priority)
-    const otelResourceAttributes = otelConfig.resourceAttributes;
-    if (otelResourceAttributes) {
-      const envAttributes = parseResourceAttributes(otelResourceAttributes);
+    if (resourceAttributesRaw) {
+      const envAttributes = parseResourceAttributes(resourceAttributesRaw);
       resource = resource.merge(new Resource(envAttributes));
     }
 
@@ -186,7 +184,7 @@ function createResource(defaultAttributes: Record<string, string | number> = {})
  * - Batch log record processor for efficient transmission
  *
  * Respects indexer OpenTelemetry environment variables:
- * - SCSI_OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
+ * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  *
  * @returns The LoggerProvider instance if SCSI_OTEL_LOGGING_ENABLED is true, otherwise null.
  */
@@ -206,18 +204,21 @@ export function getLoggerProvider(): LoggerProvider | null {
     [ATTR_SERVICE_VERSION]: serviceVersion,
   };
 
-  // Only set deployment.environment if not in SCSI_OTEL_RESOURCE_ATTRIBUTES
   if (!otelConfig.resourceAttributes?.includes('deployment.environment')) {
     defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = appConfig.nodeEnv || 'production';
   }
 
   const resource = createResource(defaultAttributes);
 
+  // Read config BEFORE entering isolation (withIsolatedOtelEnv strips OTEL_* from process.env)
+  const logEndpoint = otelConfig.endpoint;
+  const logHeaders = otelConfig.headers;
+
   const exporter = withIsolatedOtelEnv(
     () =>
       new OTLPLogExporter({
-        url: otelConfig.endpoint.endsWith('/v1/logs') ? otelConfig.endpoint : `${otelConfig.endpoint}/v1/logs`,
-        headers: parseHeaders(otelConfig.headers),
+        url: logEndpoint.endsWith('/v1/logs') ? logEndpoint : `${logEndpoint}/v1/logs`,
+        headers: parseHeaders(logHeaders),
       })
   );
 
@@ -239,7 +240,7 @@ export function getLoggerProvider(): LoggerProvider | null {
  * - Periodic metric reader for scheduled metric export
  *
  * Respects indexer OpenTelemetry environment variables:
- * - SCSI_OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
+ * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  *
  * @returns The MeterProvider instance if SCSI_OTEL_METRICS_ENABLED is true, otherwise null.
  */
@@ -259,20 +260,21 @@ export function getMeterProvider(): MeterProvider | null {
     [ATTR_SERVICE_VERSION]: serviceVersion,
   };
 
-  // Only set deployment.environment if not in SCSI_OTEL_RESOURCE_ATTRIBUTES
   if (!otelConfig.resourceAttributes?.includes('deployment.environment')) {
     defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = appConfig.nodeEnv || 'production';
   }
 
   const resource = createResource(defaultAttributes);
 
+  // Read config BEFORE entering isolation (withIsolatedOtelEnv strips OTEL_* from process.env)
+  const metricsEndpoint = otelConfig.metricsEndpoint;
+  const metricsHeaders = otelConfig.headers;
+
   const exporter = withIsolatedOtelEnv(
     () =>
       new OTLPMetricExporter({
-        url: otelConfig.metricsEndpoint.endsWith('/v1/metrics')
-          ? otelConfig.metricsEndpoint
-          : `${otelConfig.metricsEndpoint}/v1/metrics`,
-        headers: parseHeaders(otelConfig.headers),
+        url: metricsEndpoint.endsWith('/v1/metrics') ? metricsEndpoint : `${metricsEndpoint}/v1/metrics`,
+        headers: parseHeaders(metricsHeaders),
         // Configure Delta temporality for Elasticsearch compatibility
         // Elasticsearch exporter only supports Delta temporality for histograms
         temporalityPreference: AggregationTemporality.DELTA,
