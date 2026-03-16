@@ -46,7 +46,7 @@ The `code-indexer` creates multiple Elasticsearch indices, derived from the base
 
 ### Index Mapping
 
-Here is the mapping for the `code-chunks` index:
+Here is the mapping for the primary `<index>` (e.g. `code-chunks`):
 
 ```json
 {
@@ -148,7 +148,7 @@ To perform a semantic search, use a `semantic` query against the `semantic_text`
 ```javascript
 async function searchCode(query) {
   const response = await client.search({
-    index: 'code-chunks',
+    index: '<index>',
     query: {
       semantic: {
         field: 'semantic_text',
