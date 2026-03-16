@@ -459,7 +459,6 @@ async function indexRepos(
         error: errorMessage,
         stack: errorStack,
       });
-      console.error('Full error details:', error);
     }
   }
 

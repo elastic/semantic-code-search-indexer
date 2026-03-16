@@ -3,7 +3,7 @@ import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { MeterProvider, PeriodicExportingMetricReader, AggregationTemporality } from '@opentelemetry/sdk-metrics';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { Resource } from '@opentelemetry/resources';
+import { Resource, envDetectorSync } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { otelConfig, appConfig } from '../config';
@@ -97,54 +97,6 @@ export function parseHeaders(headersString: string): Record<string, string> {
  * parseResourceAttributes("key1=value1,key2=value2")
  * // Returns: { key1: "value1", key2: "value2" }
  */
-function parseResourceAttributes(resourceAttributesString: string): Record<string, string> {
-  const attributes: Record<string, string> = {};
-  if (!resourceAttributesString) return attributes;
-
-  resourceAttributesString.split(',').forEach((pair) => {
-    const firstEqualIndex = pair.indexOf('=');
-    if (firstEqualIndex === -1) return;
-
-    const key = pair.substring(0, firstEqualIndex).trim();
-    const value = pair.substring(firstEqualIndex + 1).trim();
-
-    if (key && value) {
-      attributes[key] = value;
-    }
-  });
-  return attributes;
-}
-
-/**
- * Runs a callback with all standard OTEL_* env vars temporarily removed.
- *
- * This enforces indexer-local configuration isolation so ambient OpenTelemetry
- * process env does not leak into exporter/resource behavior.
- */
-function withIsolatedOtelEnv<T>(callback: () => T): T {
-  const otelEntries = Object.entries(process.env).filter(([key]) => key.startsWith('OTEL_'));
-
-  if (otelEntries.length === 0) {
-    return callback();
-  }
-
-  for (const [key] of otelEntries) {
-    delete process.env[key];
-  }
-
-  try {
-    return callback();
-  } finally {
-    for (const [key, value] of otelEntries) {
-      if (value === undefined) {
-        delete process.env[key];
-      } else {
-        process.env[key] = value;
-      }
-    }
-  }
-}
-
 /**
  * Creates a Resource with auto-detected attributes and custom defaults.
  *
@@ -158,21 +110,13 @@ function withIsolatedOtelEnv<T>(callback: () => T): T {
  * @returns A Resource instance with all detected and custom attributes
  */
 function createResource(defaultAttributes: Record<string, string | number> = {}): Resource {
-  // Read config BEFORE entering isolation (withIsolatedOtelEnv strips OTEL_* from process.env)
-  const resourceAttributesRaw = otelConfig.resourceAttributes;
-
-  return withIsolatedOtelEnv(() => {
-    let resource = Resource.default();
-
-    resource = resource.merge(new Resource(defaultAttributes));
-
-    if (resourceAttributesRaw) {
-      const envAttributes = parseResourceAttributes(resourceAttributesRaw);
-      resource = resource.merge(new Resource(envAttributes));
-    }
-
-    return resource;
-  });
+  // Resource.default() includes the SDK defaults and standard OTEL_* env/resource detectors.
+  // We still merge our defaults in, but ensure OTEL_* wins on collisions by merging the
+  // env detector result last.
+  let resource = Resource.default();
+  resource = resource.merge(new Resource(defaultAttributes));
+  resource = resource.merge(envDetectorSync.detect());
+  return resource;
 }
 
 /**
@@ -202,25 +146,18 @@ export function getLoggerProvider(): LoggerProvider | null {
   const defaultAttributes: Record<string, string | number> = {
     [ATTR_SERVICE_NAME]: otelConfig.serviceName,
     [ATTR_SERVICE_VERSION]: serviceVersion,
+    [ATTR_DEPLOYMENT_ENVIRONMENT]: appConfig.nodeEnv || 'production',
   };
-
-  if (!otelConfig.resourceAttributes?.includes('deployment.environment')) {
-    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = appConfig.nodeEnv || 'production';
-  }
 
   const resource = createResource(defaultAttributes);
 
-  // Read config BEFORE entering isolation (withIsolatedOtelEnv strips OTEL_* from process.env)
   const logEndpoint = otelConfig.endpoint;
   const logHeaders = otelConfig.headers;
 
-  const exporter = withIsolatedOtelEnv(
-    () =>
-      new OTLPLogExporter({
-        url: logEndpoint.endsWith('/v1/logs') ? logEndpoint : `${logEndpoint}/v1/logs`,
-        headers: parseHeaders(logHeaders),
-      })
-  );
+  const exporter = new OTLPLogExporter({
+    url: logEndpoint.endsWith('/v1/logs') ? logEndpoint : `${logEndpoint}/v1/logs`,
+    headers: parseHeaders(logHeaders),
+  });
 
   loggerProvider = new LoggerProvider({
     resource,
@@ -258,28 +195,21 @@ export function getMeterProvider(): MeterProvider | null {
   const defaultAttributes: Record<string, string | number> = {
     [ATTR_SERVICE_NAME]: otelConfig.serviceName,
     [ATTR_SERVICE_VERSION]: serviceVersion,
+    [ATTR_DEPLOYMENT_ENVIRONMENT]: appConfig.nodeEnv || 'production',
   };
-
-  if (!otelConfig.resourceAttributes?.includes('deployment.environment')) {
-    defaultAttributes[ATTR_DEPLOYMENT_ENVIRONMENT] = appConfig.nodeEnv || 'production';
-  }
 
   const resource = createResource(defaultAttributes);
 
-  // Read config BEFORE entering isolation (withIsolatedOtelEnv strips OTEL_* from process.env)
   const metricsEndpoint = otelConfig.metricsEndpoint;
   const metricsHeaders = otelConfig.headers;
 
-  const exporter = withIsolatedOtelEnv(
-    () =>
-      new OTLPMetricExporter({
-        url: metricsEndpoint.endsWith('/v1/metrics') ? metricsEndpoint : `${metricsEndpoint}/v1/metrics`,
-        headers: parseHeaders(metricsHeaders),
-        // Configure Delta temporality for Elasticsearch compatibility
-        // Elasticsearch exporter only supports Delta temporality for histograms
-        temporalityPreference: AggregationTemporality.DELTA,
-      })
-  );
+  const exporter = new OTLPMetricExporter({
+    url: metricsEndpoint.endsWith('/v1/metrics') ? metricsEndpoint : `${metricsEndpoint}/v1/metrics`,
+    headers: parseHeaders(metricsHeaders),
+    // Configure Delta temporality for Elasticsearch compatibility
+    // Elasticsearch exporter only supports Delta temporality for histograms
+    temporalityPreference: AggregationTemporality.DELTA,
+  });
 
   const metricReader = new PeriodicExportingMetricReader({
     exporter,

@@ -9,7 +9,11 @@ export async function search(query: string, options: { index: string; limit?: st
 
   const indexName = options.index;
 
-  const limit = options.limit ? parseInt(options.limit, 10) : 10;
+  const parsedLimit = options.limit ? Number(options.limit) : 10;
+  if (!Number.isInteger(parsedLimit) || parsedLimit <= 0) {
+    throw new Error(`Invalid --limit value: ${options.limit}. Must be a positive integer.`);
+  }
+  const limit = parsedLimit;
 
   const semanticTextEnabled = await indexHasSemanticTextField(indexName);
   if (!semanticTextEnabled) {

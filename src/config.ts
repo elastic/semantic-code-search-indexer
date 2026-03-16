@@ -18,12 +18,13 @@ const projectRoot = findProjectRoot(__dirname);
 
 function parseEnvInt(value: string | undefined, fallback: number): number {
   if (value === undefined || value.trim() === '') return fallback;
-  const parsed = parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : fallback;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
-// Don't override existing environment variables (important for tests)
-// In test mode, try to load .env.test (if it exists), otherwise skip .env to avoid interference
+// Don't override existing environment variables (important for tests).
+// In test mode, load .env.test instead of .env. If the file doesn't exist,
+// dotenv silently skips it (quiet: true).
 const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
 dotenv.config({ path: path.join(projectRoot, envFile), override: false, quiet: true });
 

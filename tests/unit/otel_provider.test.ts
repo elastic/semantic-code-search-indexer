@@ -243,6 +243,31 @@ describe('OTel Provider', () => {
         expect(exporter.headers['x-auth']).toBe('token-value');
       }
     ));
+
+  it('should allow OTEL signal-specific exporter env vars to apply (e.g. logs timeout/headers)', () =>
+    withTestEnv(
+      {
+        SCSI_OTEL_LOGGING_ENABLED: 'true',
+        OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: 'http://configured-endpoint:4318',
+        OTEL_EXPORTER_OTLP_HEADERS: 'x-auth=token-value',
+        OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: '1234',
+        OTEL_EXPORTER_OTLP_LOGS_HEADERS: 'x-signal=sig-value',
+      },
+      async () => {
+        const { getLoggerProvider } = await import('../../src/utils/otel_provider');
+        const provider = getLoggerProvider();
+        expect(provider).not.toBeNull();
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const logProcessor = (provider as any)._sharedState.registeredLogRecordProcessors[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const exporter = logProcessor._exporter as any;
+
+        expect(exporter.timeoutMillis).toBe(1234);
+        expect(exporter.headers['x-signal']).toBe('sig-value');
+        expect(exporter.headers['x-auth']).toBe('token-value');
+      }
+    ));
 });
 
 describe('MeterProvider', () => {
