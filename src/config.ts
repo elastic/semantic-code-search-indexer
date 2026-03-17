@@ -22,6 +22,12 @@ function parseEnvInt(value: string | undefined, fallback: number): number {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
+function parseEnvPositiveInt(value: string | undefined, fallback: number): number {
+  if (value === undefined || value.trim() === '') return fallback;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 // Don't override existing environment variables (important for tests).
 // In test mode, load .env.test instead of .env. If the file doesn't exist,
 // dotenv silently skips it (quiet: true).
@@ -110,7 +116,7 @@ export const indexingConfig = {
   },
 
   get defaultChunkLines() {
-    return parseEnvInt(process.env.SCSI_DEFAULT_CHUNK_LINES, 15);
+    return parseEnvPositiveInt(process.env.SCSI_DEFAULT_CHUNK_LINES, 15);
   },
   set defaultChunkLines(v: number) {
     process.env.SCSI_DEFAULT_CHUNK_LINES = v.toString();

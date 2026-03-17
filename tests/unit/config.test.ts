@@ -28,3 +28,22 @@ describe('elasticsearchConfig', () => {
     });
   });
 });
+
+describe('indexingConfig', () => {
+  const originalEnv = process.env;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('treats SCSI_DEFAULT_CHUNK_LINES=0 as invalid and falls back', () =>
+    withTestEnv({ SCSI_DEFAULT_CHUNK_LINES: '0' }, async () => {
+      const { indexingConfig } = await import('../../src/config');
+      expect(indexingConfig.defaultChunkLines).toBe(15);
+    }));
+});
