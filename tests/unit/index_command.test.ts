@@ -1,5 +1,4 @@
 import { parseRepoArg, hasQueueItems, ensureRepoCloned, indexCommand } from '../../src/commands/index_command';
-import { appConfig } from '../../src/config';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
@@ -30,9 +29,13 @@ describe('index_command', () => {
   // Use unique test directory in system temp to avoid parallel test conflicts
   const testQueuesDir = path.join(os.tmpdir(), `index-command-test-${process.pid}-${Date.now()}`);
   const savedScsiLanguages = process.env.SCSI_LANGUAGES;
+  const savedGithubToken = process.env.GITHUB_TOKEN;
+  const savedQueueBaseDir = process.env.SCSI_QUEUE_BASE_DIR;
 
   beforeEach(() => {
     delete process.env.SCSI_LANGUAGES;
+    delete process.env.GITHUB_TOKEN;
+    process.env.SCSI_QUEUE_BASE_DIR = testQueuesDir;
 
     // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
@@ -49,12 +52,6 @@ describe('index_command', () => {
     indexCommand.setOptionValue('parseConcurrency', undefined);
     indexCommand.setOptionValue('languages', undefined);
 
-    Object.defineProperty(appConfig, 'githubToken', {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
-
     if (fs.existsSync(testQueuesDir)) {
       fs.rmSync(testQueuesDir, { recursive: true });
     }
@@ -65,6 +62,18 @@ describe('index_command', () => {
       delete process.env.SCSI_LANGUAGES;
     } else {
       process.env.SCSI_LANGUAGES = savedScsiLanguages;
+    }
+
+    if (savedGithubToken === undefined) {
+      delete process.env.GITHUB_TOKEN;
+    } else {
+      process.env.GITHUB_TOKEN = savedGithubToken;
+    }
+
+    if (savedQueueBaseDir === undefined) {
+      delete process.env.SCSI_QUEUE_BASE_DIR;
+    } else {
+      process.env.SCSI_QUEUE_BASE_DIR = savedQueueBaseDir;
     }
 
     if (fs.existsSync(testQueuesDir)) {
@@ -238,13 +247,6 @@ describe('index_command', () => {
           db.close();
         }
 
-        // Mock appConfig to use test directory
-        Object.defineProperty(appConfig, 'queueBaseDir', {
-          value: testQueuesDir,
-          writable: true,
-          configurable: true,
-        });
-
         const result = hasQueueItems(path.basename(queueDir));
 
         expect(result).toBe(true);
@@ -268,12 +270,6 @@ describe('index_command', () => {
         } finally {
           db.close();
         }
-
-        Object.defineProperty(appConfig, 'queueBaseDir', {
-          value: testQueuesDir,
-          writable: true,
-          configurable: true,
-        });
 
         const result = hasQueueItems(path.basename(queueDir));
 
@@ -300,12 +296,6 @@ describe('index_command', () => {
           db.close();
         }
 
-        Object.defineProperty(appConfig, 'queueBaseDir', {
-          value: testQueuesDir,
-          writable: true,
-          configurable: true,
-        });
-
         const result = hasQueueItems(path.basename(queueDir));
 
         expect(result).toBe(false);
@@ -331,12 +321,6 @@ describe('index_command', () => {
           db.close();
         }
 
-        Object.defineProperty(appConfig, 'queueBaseDir', {
-          value: testQueuesDir,
-          writable: true,
-          configurable: true,
-        });
-
         const result = hasQueueItems(path.basename(queueDir));
 
         expect(result).toBe(false);
@@ -345,12 +329,6 @@ describe('index_command', () => {
 
     describe('WHEN queue database does not exist', () => {
       it('SHOULD return false', () => {
-        Object.defineProperty(appConfig, 'queueBaseDir', {
-          value: testQueuesDir,
-          writable: true,
-          configurable: true,
-        });
-
         const result = hasQueueItems('nonexistent-repo');
 
         expect(result).toBe(false);
@@ -590,54 +568,46 @@ describe('index_command', () => {
       });
 
       it('SHOULD pass appConfig github token to pullRepo when set', async () => {
-        const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+        await withTestEnv({ GITHUB_TOKEN: 'ghp_test123' }, async () => {
+          const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
 
-        Object.defineProperty(appConfig, 'githubToken', {
-          value: 'ghp_test123',
-          writable: true,
-          configurable: true,
+          vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+          vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+          vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+          vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+          vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+          vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+          vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+          await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull']);
+
+          expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, 'ghp_test123');
         });
-
-        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
-        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
-        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
-        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
-
-        await indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--pull']);
-
-        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, 'ghp_test123');
       });
 
       it('SHOULD pass CLI --github-token to pullRepo when provided', async () => {
-        const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+        await withTestEnv({ GITHUB_TOKEN: 'ghp_env_token' }, async () => {
+          const pullRepoSpy = vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
 
-        Object.defineProperty(appConfig, 'githubToken', {
-          value: 'ghp_env_token',
-          writable: true,
-          configurable: true,
+          vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+          vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+          vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+          vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+          vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+          vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+          vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+          await indexCommand.parseAsync([
+            'node',
+            'test',
+            '/path/to/my-repo',
+            '--pull',
+            '--github-token',
+            'ghp_cli_token',
+          ]);
+
+          expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, 'ghp_cli_token');
         });
-
-        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-        vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
-        vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
-        vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
-        vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
-        vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
-        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
-
-        await indexCommand.parseAsync([
-          'node',
-          'test',
-          '/path/to/my-repo',
-          '--pull',
-          '--github-token',
-          'ghp_cli_token',
-        ]);
-
-        expect(pullRepoSpy).toHaveBeenCalledWith('/path/to/my-repo', undefined, 'ghp_cli_token');
       });
 
       it('SHOULD pass branch to pullRepo when provided', async () => {
@@ -745,12 +715,6 @@ describe('index_command', () => {
 
     it('SHOULD constrain default languages to SCSI_LANGUAGES when --languages is omitted', () =>
       withTestEnv({ SCSI_LANGUAGES: 'typescript' }, async () => {
-        Object.defineProperty(appConfig, 'queueBaseDir', {
-          value: testQueuesDir,
-          writable: true,
-          configurable: true,
-        });
-
         const originalExistsSync = fs.existsSync;
         vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
           const pathStr = p.toString();
@@ -781,12 +745,6 @@ describe('index_command', () => {
 
     it('SHOULD let --languages override SCSI_LANGUAGES', () =>
       withTestEnv({ SCSI_LANGUAGES: 'typescript,go' }, async () => {
-        Object.defineProperty(appConfig, 'queueBaseDir', {
-          value: testQueuesDir,
-          writable: true,
-          configurable: true,
-        });
-
         const originalExistsSync = fs.existsSync;
         vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
           const pathStr = p.toString();
@@ -980,12 +938,6 @@ describe('index_command', () => {
     });
 
     const setupQueueWithPendingItem = async (options: { enqueueCompleted: boolean; enqueueCommitHash?: string }) => {
-      Object.defineProperty(appConfig, 'queueBaseDir', {
-        value: testQueuesDir,
-        writable: true,
-        configurable: true,
-      });
-
       const queueDir = path.join(testQueuesDir, repoName);
       fs.mkdirSync(queueDir, { recursive: true });
 
