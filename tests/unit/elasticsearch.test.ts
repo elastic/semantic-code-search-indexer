@@ -270,7 +270,7 @@ describe('Elasticsearch Client Configuration', () => {
     });
 
     it('SHOULD require SCSI_ELASTICSEARCH_INFERENCE_ID when semantic_text is enabled', () =>
-      // undefined = delete the var, which enables semantic_text (it's only disabled when explicitly 'true')
+      // undefined = delete the var, which enables semantic_text (it's only disabled when explicitly truthy e.g. 'true', '1', 'yes')
       withTestEnv({ SCSI_DISABLE_SEMANTIC_TEXT: undefined, SCSI_ELASTICSEARCH_INFERENCE_ID: undefined }, async () => {
         await expect(elasticsearch.createIndex('test-index')).rejects.toThrow(
           'SCSI_ELASTICSEARCH_INFERENCE_ID is required'

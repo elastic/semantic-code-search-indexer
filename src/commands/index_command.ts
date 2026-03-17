@@ -18,6 +18,7 @@ const DEFAULT_PARSE_CONCURRENCY = Math.max(1, Math.floor(os.cpus().length / 2));
 interface RepoConfig {
   repoPath: string;
   repoName: string;
+  repoUrl: string;
   indexName: string;
   branch?: string;
 }
@@ -126,6 +127,7 @@ export function parseRepoArg(arg: string, globalBranch?: string): RepoConfig {
   return {
     repoPath,
     repoName,
+    repoUrl: repoSpec,
     indexName: indexName || repoName,
     branch: globalBranch,
   };
@@ -243,27 +245,8 @@ async function indexRepos(
 
     // Step 1: Clone if it's a URL and doesn't exist
     if (repoArg.includes('://') || repoArg.startsWith('git@')) {
-      // Extract the URL part (before any :index suffix)
-      let repoUrl = repoArg;
-
-      // Remove :index suffix if present (but not for SSH URLs)
-      if (repoArg.includes('://')) {
-        const lastColonIndex = repoArg.lastIndexOf(':');
-        const potentialIndex = repoArg.substring(lastColonIndex + 1);
-
-        if (
-          lastColonIndex > 0 &&
-          !potentialIndex.includes('/') &&
-          !potentialIndex.includes('.git') &&
-          potentialIndex.length > 0 &&
-          !(lastColonIndex < repoArg.indexOf('://') + 10)
-        ) {
-          repoUrl = repoArg.substring(0, lastColonIndex);
-        }
-      }
-
       try {
-        await ensureRepoCloned(repoUrl, config.repoPath, githubToken);
+        await ensureRepoCloned(config.repoUrl, config.repoPath, githubToken);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Clone failed';
         logger.error(`Failed to clone ${config.repoName}.`, { error: errorMessage });

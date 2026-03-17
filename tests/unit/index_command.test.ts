@@ -89,6 +89,7 @@ describe('index_command', () => {
         expect(result.repoName).toBe('kibana');
         expect(result.repoPath).toContain('.repos/kibana');
         expect(result.indexName).toBe('kibana');
+        expect(result.repoUrl).toBe('https://github.com/elastic/kibana.git');
       });
 
       it('SHOULD use custom index name when provided', () => {
@@ -96,6 +97,7 @@ describe('index_command', () => {
 
         expect(result.repoName).toBe('kibana');
         expect(result.indexName).toBe('custom-index');
+        expect(result.repoUrl).toBe('https://github.com/elastic/kibana.git');
       });
 
       it('SHOULD handle URLs without .git extension', () => {
@@ -122,6 +124,7 @@ describe('index_command', () => {
 
         expect(result.repoName).toBe('kibana');
         expect(result.indexName).toBe('custom-index');
+        expect(result.repoUrl).toBe('git@github.com:elastic/kibana.git');
       });
 
       it('SHOULD handle HTTPS URLs with port numbers', () => {
