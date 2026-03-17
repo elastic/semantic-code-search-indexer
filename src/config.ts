@@ -16,16 +16,33 @@ function findProjectRoot(startPath: string): string {
 
 const projectRoot = findProjectRoot(__dirname);
 
-function parseEnvInt(value: string | undefined, fallback: number): number {
+function parseEnvNonNegativeInt(envVarName: string, fallback: number): number {
+  const value = process.env[envVarName];
   if (value === undefined || value.trim() === '') return fallback;
   const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`Invalid configuration: ${envVarName} must be a non-negative integer, got "${value}"`);
+  }
+  return parsed;
 }
 
-function parseEnvPositiveInt(value: string | undefined, fallback: number): number {
+function parseEnvPositiveInt(envVarName: string, fallback: number): number {
+  const value = process.env[envVarName];
   if (value === undefined || value.trim() === '') return fallback;
   const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`Invalid configuration: ${envVarName} must be a positive integer, got "${value}"`);
+  }
+  return parsed;
+}
+
+function parseEnvBoolean(envVarName: string, fallback: boolean): boolean {
+  const value = process.env[envVarName];
+  if (value === undefined || value.trim() === '') return fallback;
+  const lower = value.trim().toLowerCase();
+  if (['true', '1', 'yes'].includes(lower)) return true;
+  if (['false', '0', 'no'].includes(lower)) return false;
+  throw new Error(`Invalid configuration: ${envVarName} must be a boolean (true/false), got "${value}"`);
 }
 
 // Don't override existing environment variables (important for tests).
@@ -54,16 +71,16 @@ export const elasticsearchConfig = {
     return process.env.SCSI_ELASTICSEARCH_INFERENCE_ID || undefined;
   },
   get requestTimeout() {
-    return parseEnvInt(process.env.SCSI_ELASTICSEARCH_REQUEST_TIMEOUT, 90000);
+    return parseEnvPositiveInt('SCSI_ELASTICSEARCH_REQUEST_TIMEOUT', 90000);
   },
   get disableSemanticText() {
-    return process.env.SCSI_DISABLE_SEMANTIC_TEXT === 'true';
+    return parseEnvBoolean('SCSI_DISABLE_SEMANTIC_TEXT', false);
   },
 };
 
 export const otelConfig = {
   get enabled() {
-    return process.env.SCSI_OTEL_LOGGING_ENABLED === 'true';
+    return parseEnvBoolean('SCSI_OTEL_LOGGING_ENABLED', false);
   },
   get serviceName() {
     return process.env.OTEL_SERVICE_NAME || 'semantic-code-search-indexer';
@@ -77,10 +94,11 @@ export const otelConfig = {
     return process.env.OTEL_EXPORTER_OTLP_HEADERS || '';
   },
   get metricsEnabled() {
-    return (
-      process.env.SCSI_OTEL_METRICS_ENABLED === 'true' ||
-      (process.env.SCSI_OTEL_METRICS_ENABLED === undefined && process.env.SCSI_OTEL_LOGGING_ENABLED === 'true')
-    );
+    const explicit = process.env.SCSI_OTEL_METRICS_ENABLED;
+    if (explicit !== undefined && explicit.trim() !== '') {
+      return parseEnvBoolean('SCSI_OTEL_METRICS_ENABLED', false);
+    }
+    return this.enabled; // Fallback to logging enabled status
   },
   get metricsEndpoint() {
     return (
@@ -90,7 +108,7 @@ export const otelConfig = {
     );
   },
   get metricExportIntervalMs() {
-    return parseEnvInt(process.env.SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS, 60000);
+    return parseEnvPositiveInt('SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS', 60000);
   },
   get logLevel() {
     return process.env.OTEL_LOG_LEVEL;
@@ -102,28 +120,28 @@ export const otelConfig = {
 
 export const indexingConfig = {
   get maxChunkSizeBytes() {
-    return parseEnvInt(process.env.SCSI_MAX_CHUNK_SIZE_BYTES, 1000000);
+    return parseEnvPositiveInt('SCSI_MAX_CHUNK_SIZE_BYTES', 1000000);
   },
   set maxChunkSizeBytes(v: number) {
     process.env.SCSI_MAX_CHUNK_SIZE_BYTES = v.toString();
   },
 
   get enableDenseVectors() {
-    return process.env.SCSI_ENABLE_DENSE_VECTORS === 'true';
+    return parseEnvBoolean('SCSI_ENABLE_DENSE_VECTORS', false);
   },
   set enableDenseVectors(v: boolean) {
     process.env.SCSI_ENABLE_DENSE_VECTORS = v ? 'true' : 'false';
   },
 
   get defaultChunkLines() {
-    return parseEnvPositiveInt(process.env.SCSI_DEFAULT_CHUNK_LINES, 15);
+    return parseEnvPositiveInt('SCSI_DEFAULT_CHUNK_LINES', 15);
   },
   set defaultChunkLines(v: number) {
     process.env.SCSI_DEFAULT_CHUNK_LINES = v.toString();
   },
 
   get chunkOverlapLines() {
-    return parseEnvInt(process.env.SCSI_CHUNK_OVERLAP_LINES, 3);
+    return parseEnvNonNegativeInt('SCSI_CHUNK_OVERLAP_LINES', 3);
   },
   set chunkOverlapLines(v: number) {
     process.env.SCSI_CHUNK_OVERLAP_LINES = v.toString();
@@ -145,7 +163,7 @@ export const indexingConfig = {
   },
 
   get testDelayMs() {
-    return parseEnvInt(process.env.SCSI_TEST_INDEXING_DELAY_MS, 0);
+    return parseEnvNonNegativeInt('SCSI_TEST_INDEXING_DELAY_MS', 0);
   },
   set testDelayMs(v: number) {
     process.env.SCSI_TEST_INDEXING_DELAY_MS = v.toString();
@@ -185,7 +203,7 @@ export const appConfig = {
   },
 
   get forceLogging() {
-    return process.env.SCSI_FORCE_LOGGING === 'true';
+    return parseEnvBoolean('SCSI_FORCE_LOGGING', false);
   },
   set forceLogging(v: boolean) {
     process.env.SCSI_FORCE_LOGGING = v ? 'true' : 'false';

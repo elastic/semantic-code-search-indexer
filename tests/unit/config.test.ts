@@ -41,9 +41,33 @@ describe('indexingConfig', () => {
     process.env = originalEnv;
   });
 
-  it('treats SCSI_DEFAULT_CHUNK_LINES=0 as invalid and falls back', () =>
+  it('throws when SCSI_DEFAULT_CHUNK_LINES=0 (must be positive)', () =>
     withTestEnv({ SCSI_DEFAULT_CHUNK_LINES: '0' }, async () => {
       const { indexingConfig } = await import('../../src/config');
-      expect(indexingConfig.defaultChunkLines).toBe(15);
+      expect(() => indexingConfig.defaultChunkLines).toThrow(/must be a positive integer/);
+    }));
+
+  it('throws when SCSI_MAX_CHUNK_SIZE_BYTES=0 (must be positive)', () =>
+    withTestEnv({ SCSI_MAX_CHUNK_SIZE_BYTES: '0' }, async () => {
+      const { indexingConfig } = await import('../../src/config');
+      expect(() => indexingConfig.maxChunkSizeBytes).toThrow(/must be a positive integer/);
+    }));
+
+  it('allows SCSI_CHUNK_OVERLAP_LINES=0', () =>
+    withTestEnv({ SCSI_CHUNK_OVERLAP_LINES: '0' }, async () => {
+      const { indexingConfig } = await import('../../src/config');
+      expect(indexingConfig.chunkOverlapLines).toBe(0);
+    }));
+
+  it('allows SCSI_TEST_INDEXING_DELAY_MS=0', () =>
+    withTestEnv({ SCSI_TEST_INDEXING_DELAY_MS: '0' }, async () => {
+      const { indexingConfig } = await import('../../src/config');
+      expect(indexingConfig.testDelayMs).toBe(0);
+    }));
+
+  it('throws when boolean config receives invalid string', () =>
+    withTestEnv({ SCSI_ENABLE_DENSE_VECTORS: 'maybe' }, async () => {
+      const { indexingConfig } = await import('../../src/config');
+      expect(() => indexingConfig.enableDenseVectors).toThrow(/must be a boolean/);
     }));
 });
