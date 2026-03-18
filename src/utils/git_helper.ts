@@ -4,35 +4,37 @@ import path from 'path';
 import { logger } from './logger';
 
 /**
- * Clone a repository if it doesn't exist, or pull latest changes if it does
+ * Clone a repository if it doesn't exist, or fetch and hard-reset if it does.
+ * Uses fetch + reset --hard to handle upstream force-pushes gracefully.
  */
 export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?: string): Promise<void> {
   const git = simpleGit();
 
   if (fs.existsSync(repoPath)) {
-    logger.info(`Repository already exists at ${repoPath}. Pulling latest changes...`);
+    logger.info(`Repository already exists at ${repoPath}. Fetching latest changes...`);
+    const repoGit = git.cwd(repoPath);
     try {
       // Inject token into remote URL if provided (replaces existing token if present)
       if (token) {
-        const remoteUrlRaw = await git.cwd(repoPath).remote(['get-url', 'origin']);
+        const remoteUrlRaw = await repoGit.remote(['get-url', 'origin']);
         if (remoteUrlRaw) {
           const remoteUrl = remoteUrlRaw.trim();
           // Remove existing oauth2 auth if present, then inject new token
           const urlWithoutAuth = remoteUrl.replace(/https:\/\/oauth2:[^@]+@/, 'https://');
           const newRemoteUrl = urlWithoutAuth.replace('https://', `https://oauth2:${token}@`);
-          await git.cwd(repoPath).remote(['set-url', 'origin', newRemoteUrl]);
+          await repoGit.remote(['set-url', 'origin', newRemoteUrl]);
         }
       }
       // Use fetch + reset instead of pull to handle force-pushed branches
-      const currentBranch = (await git.cwd(repoPath).revparse(['--abbrev-ref', 'HEAD'])).trim();
+      const currentBranch = (await repoGit.revparse(['--abbrev-ref', 'HEAD'])).trim();
       if (currentBranch === 'HEAD') {
         throw new Error('Cannot update repository in detached HEAD state');
       }
-      await git.cwd(repoPath).fetch('origin', currentBranch);
-      await git.cwd(repoPath).reset(['--hard', `origin/${currentBranch}`]);
+      await repoGit.fetch('origin', currentBranch);
+      await repoGit.reset(['--hard', `origin/${currentBranch}`]);
       logger.info('Repository updated successfully.');
     } catch (error) {
-      logger.error(`Error updating repository: ${error}`);
+      logger.error('Failed to update repository', { error });
       throw error;
     }
     return;
@@ -60,10 +62,11 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
 }
 
 /**
- * Pull latest changes in a repository
+ * Fetch and hard-reset a repository to match the remote branch.
+ * Uses fetch + reset --hard to handle upstream force-pushes gracefully.
  */
 export async function pullRepo(repoPath: string, branch?: string, token?: string): Promise<void> {
-  logger.info(`Pulling latest changes in ${repoPath}...`);
+  logger.info(`Fetching latest changes in ${repoPath}...`);
 
   const git = simpleGit(repoPath);
 
@@ -94,7 +97,7 @@ export async function pullRepo(repoPath: string, branch?: string, token?: string
     }
     logger.info('Repository updated successfully.');
   } catch (error) {
-    logger.error(`Error updating repository: ${error}`);
+    logger.error('Failed to update repository', { error });
     throw error;
   }
 }
