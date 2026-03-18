@@ -88,10 +88,10 @@ reviews:
       - 'skip review'
       - 'draft'
 
-finishing_touches:
-  unit_tests:
-    enabled: false
-  docstrings:
-    enabled: false
-  simplify:
-    enabled: false
+  finishing_touches:
+    unit_tests:
+      enabled: false
+    docstrings:
+      enabled: false
+    simplify:
+      enabled: false
