@@ -1,10 +1,19 @@
 import { pullRepo, cloneOrPullRepo } from '../../src/utils/git_helper';
 import simpleGit from 'simple-git';
 import fs from 'fs';
+import { logger } from '../../src/utils/logger';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('simple-git');
 vi.mock('fs');
+vi.mock('../../src/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
 
 const mockedSimpleGit = vi.mocked(simpleGit);
 const mockedFs = vi.mocked(fs);
@@ -14,7 +23,9 @@ describe('git_helper', () => {
     let gitInstance: {
       remote: ReturnType<typeof vi.fn>;
       checkout: ReturnType<typeof vi.fn>;
-      pull: ReturnType<typeof vi.fn>;
+      fetch: ReturnType<typeof vi.fn>;
+      reset: ReturnType<typeof vi.fn>;
+      revparse: ReturnType<typeof vi.fn>;
     };
 
     beforeEach(() => {
@@ -23,29 +34,34 @@ describe('git_helper', () => {
       gitInstance = {
         remote: vi.fn().mockResolvedValue('https://github.com/org/repo.git\n'),
         checkout: vi.fn().mockResolvedValue(undefined),
-        pull: vi.fn().mockResolvedValue(undefined),
+        fetch: vi.fn().mockResolvedValue(undefined),
+        reset: vi.fn().mockResolvedValue(undefined),
+        revparse: vi.fn().mockResolvedValue('main\n'),
       };
 
       mockedSimpleGit.mockReturnValue(gitInstance as unknown as ReturnType<typeof simpleGit>);
     });
 
     describe('WHEN called without token or branch', () => {
-      it('SHOULD pull from origin without modifying remote URL', async () => {
+      it('SHOULD fetch and reset to origin without modifying remote URL', async () => {
         await pullRepo('/path/to/repo');
 
         expect(gitInstance.remote).not.toHaveBeenCalled();
         expect(gitInstance.checkout).not.toHaveBeenCalled();
-        expect(gitInstance.pull).toHaveBeenCalledWith('origin');
+        expect(gitInstance.revparse).toHaveBeenCalledWith(['--abbrev-ref', 'HEAD']);
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
       });
     });
 
     describe('WHEN called with branch but no token', () => {
-      it('SHOULD checkout branch and pull from origin', async () => {
+      it('SHOULD checkout branch, fetch and reset to origin', async () => {
         await pullRepo('/path/to/repo', 'develop');
 
         expect(gitInstance.remote).not.toHaveBeenCalled();
         expect(gitInstance.checkout).toHaveBeenCalledWith('develop');
-        expect(gitInstance.pull).toHaveBeenCalledWith('origin', 'develop');
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'develop');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/develop']);
       });
     });
 
@@ -59,7 +75,8 @@ describe('git_helper', () => {
           'origin',
           'https://oauth2:ghp_token123@github.com/org/repo.git',
         ]);
-        expect(gitInstance.pull).toHaveBeenCalledWith('origin');
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
       });
 
       it('SHOULD replace existing oauth2 token with new token', async () => {
@@ -68,18 +85,18 @@ describe('git_helper', () => {
         await pullRepo('/path/to/repo', undefined, 'ghp_new_token');
 
         expect(gitInstance.remote).toHaveBeenCalledWith(['get-url', 'origin']);
-        // Should replace old token with new token
         expect(gitInstance.remote).toHaveBeenCalledWith([
           'set-url',
           'origin',
           'https://oauth2:ghp_new_token@github.com/org/repo.git',
         ]);
-        expect(gitInstance.pull).toHaveBeenCalledWith('origin');
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
       });
     });
 
     describe('WHEN called with both token and branch', () => {
-      it('SHOULD inject token, checkout branch, and pull from origin with branch', async () => {
+      it('SHOULD inject token, checkout branch, and fetch/reset from origin with branch', async () => {
         await pullRepo('/path/to/repo', 'main', 'ghp_token123');
 
         expect(gitInstance.remote).toHaveBeenCalledWith(['get-url', 'origin']);
@@ -89,16 +106,44 @@ describe('git_helper', () => {
           'https://oauth2:ghp_token123@github.com/org/repo.git',
         ]);
         expect(gitInstance.checkout).toHaveBeenCalledWith('main');
-        expect(gitInstance.pull).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
       });
     });
 
     describe('WHEN git operation fails', () => {
       it('SHOULD throw the error', async () => {
-        const pullError = new Error('Network error');
-        gitInstance.pull.mockRejectedValue(pullError);
+        const fetchError = new Error('Network error');
+        gitInstance.fetch.mockRejectedValue(fetchError);
 
-        await expect(pullRepo('/path/to/repo')).rejects.toThrow('Network error');
+        await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow('Network error');
+      });
+
+      it('SHOULD redact oauth tokens in error log messages and re-thrown error', async () => {
+        const tokenError = new Error('fatal: could not read from https://oauth2:ghp_secret123@github.com/org/repo.git');
+        gitInstance.fetch.mockRejectedValue(tokenError);
+
+        await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow(
+          'fatal: could not read from https://***@github.com/org/repo.git'
+        );
+
+        expect(logger.error).toHaveBeenCalledWith(
+          'Failed to update repository',
+          expect.objectContaining({
+            repoPath: '/path/to/repo',
+            branch: 'main',
+            errorMessage: 'fatal: could not read from https://***@github.com/org/repo.git',
+          })
+        );
+      });
+
+      it('SHOULD redact non-oauth HTTPS credentials in error messages', async () => {
+        const tokenError = new Error('fatal: could not read from https://user:pass@github.com/org/repo.git');
+        gitInstance.fetch.mockRejectedValue(tokenError);
+
+        await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow(
+          'fatal: could not read from https://***@github.com/org/repo.git'
+        );
       });
     });
 
@@ -111,7 +156,16 @@ describe('git_helper', () => {
         expect(gitInstance.remote).toHaveBeenCalledWith(['get-url', 'origin']);
         // Should NOT call set-url since URL is empty
         expect(gitInstance.remote).toHaveBeenCalledTimes(1);
-        expect(gitInstance.pull).toHaveBeenCalledWith('origin');
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
+      });
+    });
+
+    describe('WHEN in detached HEAD state', () => {
+      it('SHOULD throw an error', async () => {
+        gitInstance.revparse.mockResolvedValue('HEAD\n');
+
+        await expect(pullRepo('/path/to/repo')).rejects.toThrow('Cannot update repository in detached HEAD state');
       });
     });
   });
@@ -120,19 +174,25 @@ describe('git_helper', () => {
     let gitInstance: {
       cwd: ReturnType<typeof vi.fn>;
       remote: ReturnType<typeof vi.fn>;
-      pull: ReturnType<typeof vi.fn>;
+      fetch: ReturnType<typeof vi.fn>;
+      reset: ReturnType<typeof vi.fn>;
+      revparse: ReturnType<typeof vi.fn>;
       clone: ReturnType<typeof vi.fn>;
     };
 
     beforeEach(() => {
       vi.clearAllMocks();
 
-      gitInstance = {
-        cwd: vi.fn().mockReturnThis(),
+      const self = {
         remote: vi.fn().mockResolvedValue('https://github.com/org/repo.git\n'),
-        pull: vi.fn().mockResolvedValue(undefined),
+        fetch: vi.fn().mockResolvedValue(undefined),
+        reset: vi.fn().mockResolvedValue(undefined),
+        revparse: vi.fn().mockResolvedValue('main\n'),
         clone: vi.fn().mockResolvedValue(undefined),
+        cwd: vi.fn(),
       };
+      self.cwd.mockReturnValue(self);
+      gitInstance = self;
 
       mockedSimpleGit.mockReturnValue(gitInstance as unknown as ReturnType<typeof simpleGit>);
       mockedFs.existsSync.mockReturnValue(false);
@@ -169,11 +229,13 @@ describe('git_helper', () => {
         mockedFs.existsSync.mockReturnValue(true);
       });
 
-      it('SHOULD pull instead of clone', async () => {
+      it('SHOULD fetch and reset instead of clone', async () => {
         await cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo');
 
         expect(gitInstance.clone).not.toHaveBeenCalled();
-        expect(gitInstance.pull).toHaveBeenCalled();
+        expect(gitInstance.revparse).toHaveBeenCalledWith(['--abbrev-ref', 'HEAD']);
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
       });
 
       it('SHOULD inject token into remote URL when provided', async () => {
@@ -192,7 +254,6 @@ describe('git_helper', () => {
 
         await cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo', 'ghp_new_token');
 
-        // Old token replaced with new token
         expect(gitInstance.remote).toHaveBeenCalledWith([
           'set-url',
           'origin',
@@ -209,9 +270,20 @@ describe('git_helper', () => {
         await cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo', 'ghp_token123');
 
         expect(gitInstance.remote).toHaveBeenCalledWith(['get-url', 'origin']);
-        // Should NOT call set-url since URL is empty
         expect(gitInstance.remote).toHaveBeenCalledTimes(1);
-        expect(gitInstance.pull).toHaveBeenCalled();
+        expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
+      });
+    });
+
+    describe('WHEN in detached HEAD state', () => {
+      it('SHOULD throw an error', async () => {
+        mockedFs.existsSync.mockReturnValue(true);
+        gitInstance.revparse.mockResolvedValue('HEAD\n');
+
+        await expect(cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')).rejects.toThrow(
+          'Cannot update repository in detached HEAD state'
+        );
       });
     });
 
@@ -224,16 +296,33 @@ describe('git_helper', () => {
           'Auth failed'
         );
       });
-    });
 
-    describe('WHEN pull fails', () => {
-      it('SHOULD throw the error', async () => {
-        mockedFs.existsSync.mockReturnValue(true);
-        const pullError = new Error('Merge conflict');
-        gitInstance.pull.mockRejectedValue(pullError);
+      it('SHOULD redact oauth tokens in clone error log messages', async () => {
+        const cloneError = new Error('fatal: could not read from https://oauth2:ghp_secret@github.com/org/repo.git');
+        gitInstance.clone.mockRejectedValue(cloneError);
 
         await expect(cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')).rejects.toThrow(
-          'Merge conflict'
+          'fatal: could not read from https://***@github.com/org/repo.git'
+        );
+
+        expect(logger.error).toHaveBeenCalledWith(
+          'Failed to clone repository',
+          expect.objectContaining({
+            repoPath: '/path/to/repo',
+            errorMessage: 'fatal: could not read from https://***@github.com/org/repo.git',
+          })
+        );
+      });
+    });
+
+    describe('WHEN fetch/reset fails', () => {
+      it('SHOULD throw the error', async () => {
+        mockedFs.existsSync.mockReturnValue(true);
+        const fetchError = new Error('Network error');
+        gitInstance.fetch.mockRejectedValue(fetchError);
+
+        await expect(cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')).rejects.toThrow(
+          'Network error'
         );
       });
     });
