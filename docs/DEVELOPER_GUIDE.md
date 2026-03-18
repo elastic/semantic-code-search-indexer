@@ -224,19 +224,19 @@ Integration tests use `.env.test` for configuration:
 ELASTICSEARCH_ENDPOINT=http://localhost:9200
 ELASTICSEARCH_USERNAME=elastic
 ELASTICSEARCH_PASSWORD=testpassword
-SCSI_ELASTICSEARCH_INFERENCE_ID=elser-inference-test
+SCS_IDXR_ELASTICSEARCH_INFERENCE_ID=elser-inference-test
 
 # Disable semantic search for tests (semantic_text + ELSER inference)
 # This keeps the tests focused on correctness of the indexing pipeline and makes them much faster.
-SCSI_DISABLE_SEMANTIC_TEXT=true
+SCS_IDXR_DISABLE_SEMANTIC_TEXT=true
 
 # Timeout for bulk operations
-SCSI_ELASTICSEARCH_REQUEST_TIMEOUT=120000
+SCS_IDXR_ELASTICSEARCH_REQUEST_TIMEOUT=120000
 ```
 
-**Why `SCSI_DISABLE_SEMANTIC_TEXT=true`?**
+**Why `SCS_IDXR_DISABLE_SEMANTIC_TEXT=true`?**
 - It **turns off semantic search** for these tests by disabling the `semantic_text` field type and the associated ELSER inference at ingest time
-- Indices created with `SCSI_DISABLE_SEMANTIC_TEXT=true` do not have a `semantic_text` mapping, so semantic search queries will fail against those indices until they are recreated with semantic text enabled.
+- Indices created with `SCS_IDXR_DISABLE_SEMANTIC_TEXT=true` do not have a `semantic_text` mapping, so semantic search queries will fail against those indices until they are recreated with semantic text enabled.
 - It also makes the test suite much faster and less flaky
 - Full ELSER/semantic search behavior is validated separately (see `tests/integration/semantic_text_semantic_search.integration.test.ts`)
 
@@ -268,9 +268,9 @@ Integration tests explicitly fail with setup instructions if Elasticsearch is no
 #### Tests hang or timeout
 
 **Common causes:**
-1. **ELSER inference slowness:** Set `SCSI_DISABLE_SEMANTIC_TEXT=true` in `.env.test`
+1. **ELSER inference slowness:** Set `SCS_IDXR_DISABLE_SEMANTIC_TEXT=true` in `.env.test`
 2. **Worker backpressure bug:** Fixed in this branch (see `src/utils/indexer_worker.ts`)
-3. **Bulk indexing timeout:** Increase `SCSI_ELASTICSEARCH_REQUEST_TIMEOUT` if needed
+3. **Bulk indexing timeout:** Increase `SCS_IDXR_ELASTICSEARCH_REQUEST_TIMEOUT` if needed
 4. **Watch mode enabled:** Integration tests set `watch: false` explicitly
 
 **Debug with logging:**

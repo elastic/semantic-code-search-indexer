@@ -138,7 +138,7 @@ function createResource(defaultAttributes: Record<string, string | number> = {})
  * Respects indexer OpenTelemetry environment variables:
  * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  *
- * @returns The LoggerProvider instance if SCSI_OTEL_LOGGING_ENABLED is true, otherwise null.
+ * @returns The LoggerProvider instance if SCS_IDXR_OTEL_LOGGING_ENABLED is true, otherwise null.
  */
 export function getLoggerProvider(): LoggerProvider | null {
   if (!otelConfig.enabled) {
@@ -187,7 +187,7 @@ export function getLoggerProvider(): LoggerProvider | null {
  * Respects indexer OpenTelemetry environment variables:
  * - OTEL_RESOURCE_ATTRIBUTES: Additional resource attributes
  *
- * @returns The MeterProvider instance if SCSI_OTEL_METRICS_ENABLED is true, otherwise null.
+ * @returns The MeterProvider instance if SCS_IDXR_OTEL_METRICS_ENABLED is true, otherwise null.
  */
 export function getMeterProvider(): MeterProvider | null {
   if (!otelConfig.metricsEnabled) {

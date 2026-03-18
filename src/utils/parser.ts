@@ -521,7 +521,7 @@ export class LanguageParser {
   /**
    * Parses Markdown files by splitting content into chunks based on configured delimiter.
    * Each chunk represents a logical section separated by the delimiter.
-   * The delimiter can be configured via SCSI_MARKDOWN_CHUNK_DELIMITER environment variable.
+   * The delimiter can be configured via SCS_IDXR_MARKDOWN_CHUNK_DELIMITER environment variable.
    *
    * @param filePath - Absolute path to the file
    * @param gitBranch - Git branch name

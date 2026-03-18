@@ -244,7 +244,7 @@ describe('Integration Test - Collision Handling', () => {
 
   it('should work on semantic_text indices that reject scripted updates', async () => {
     // Ensure semantic_text field exists in the mapping (default behavior).
-    delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+    delete process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT;
     const languages = 'typescript';
 
     await setup(testRepoUrl);
@@ -272,7 +272,7 @@ describe('Integration Test - Collision Handling', () => {
 
   it('should not lose locations under worker concurrency across many identical files', async () => {
     const languages = 'typescript';
-    delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+    delete process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT;
 
     await setup(manyFilesRepoUrl);
     // Run with higher worker concurrency to force multiple in-flight dequeue batches.

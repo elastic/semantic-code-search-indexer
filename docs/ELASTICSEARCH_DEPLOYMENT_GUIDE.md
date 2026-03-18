@@ -21,10 +21,10 @@ This setup enables two powerful features:
 
 ELSER (Elastic Learned Sparse EncodeR) powers the primary semantic search functionality.
 
-The index mapping uses Elasticsearch’s `semantic_text` field with an `inference_id`. Configure that via `SCSI_ELASTICSEARCH_INFERENCE_ID` in the indexer.
+The index mapping uses Elasticsearch’s `semantic_text` field with an `inference_id`. Configure that via `SCS_IDXR_ELASTICSEARCH_INFERENCE_ID` in the indexer.
 
 1.  Navigate to the **Dev Tools** console in your Kibana instance.
-2.  Create (or reuse) an inference endpoint ID that resolves to an ELSER sparse embedding endpoint, then set `SCSI_ELASTICSEARCH_INFERENCE_ID` to that ID.
+2.  Create (or reuse) an inference endpoint ID that resolves to an ELSER sparse embedding endpoint, then set `SCS_IDXR_ELASTICSEARCH_INFERENCE_ID` to that ID.
 
 The exact setup depends on your Elasticsearch deployment and version. The indexer repository includes an example of creating an inference endpoint for local testing in `scripts/setup-integration-tests.sh` (see how it configures an endpoint like `elser-inference-test` via `/_inference/sparse_embedding/...`).
 

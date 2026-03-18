@@ -84,7 +84,7 @@ describe('LanguageParser', () => {
     });
 
     it('should parse Markdown with section delimiter (---)', () =>
-      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/markdown_sections.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown_sections.md');
 
@@ -107,7 +107,7 @@ describe('LanguageParser', () => {
       }));
 
     it('should parse Markdown with custom delimiter (===)', () =>
-      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n===\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n===\\n' }, () => {
         const testContent = `Part 1
 Content here
 
@@ -137,7 +137,7 @@ Final content`;
       }));
 
     it('should handle markdown with no delimiter matches', () =>
-      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
 
@@ -146,7 +146,7 @@ Final content`;
       }));
 
     it('should filter empty chunks when using custom delimiter', () =>
-      withTestEnv({ SCSI_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
         const testContent = `Content 1
 
 ---
@@ -458,7 +458,7 @@ export -f my_func`;
   });
 
   it('should filter out chunks larger than maxChunkSizeBytes', () =>
-    withTestEnv({ SCSI_MAX_CHUNK_SIZE_BYTES: '50' }, () => {
+    withTestEnv({ SCS_IDXR_MAX_CHUNK_SIZE_BYTES: '50' }, () => {
       const filePath = path.resolve(__dirname, '../fixtures/large_file.json');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
 
@@ -511,7 +511,7 @@ export -f my_func`;
 
   describe('Configurable Line-Based Chunking', () => {
     it('parses JSON with configurable chunk size', () =>
-      withTestEnv({ SCSI_DEFAULT_CHUNK_LINES: '10', SCSI_CHUNK_OVERLAP_LINES: '2' }, () => {
+      withTestEnv({ SCS_IDXR_DEFAULT_CHUNK_LINES: '10', SCS_IDXR_CHUNK_OVERLAP_LINES: '2' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
@@ -529,7 +529,7 @@ export -f my_func`;
       }));
 
     it('parses YAML with configurable chunk size', () =>
-      withTestEnv({ SCSI_DEFAULT_CHUNK_LINES: '5', SCSI_CHUNK_OVERLAP_LINES: '1' }, () => {
+      withTestEnv({ SCS_IDXR_DEFAULT_CHUNK_LINES: '5', SCS_IDXR_CHUNK_OVERLAP_LINES: '1' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
 
@@ -549,7 +549,7 @@ export -f my_func`;
 
     it('skips oversized JSON chunks', () =>
       // Set very small chunk size to force skipping
-      withTestEnv({ SCSI_MAX_CHUNK_SIZE_BYTES: '10', SCSI_DEFAULT_CHUNK_LINES: '15' }, () => {
+      withTestEnv({ SCS_IDXR_MAX_CHUNK_SIZE_BYTES: '10', SCS_IDXR_DEFAULT_CHUNK_LINES: '15' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 

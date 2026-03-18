@@ -48,10 +48,10 @@ This project is a high-performance code indexer designed to provide deep, contex
 
 - Node.js v20+ (check with `node -v`)
 - Elasticsearch 8.0+
-  - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCSI_ELASTICSEARCH_INFERENCE_ID`.
-  - If you want to run without semantic inference (e.g. for local testing), set `SCSI_DISABLE_SEMANTIC_TEXT=true`.
+  - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCS_IDXR_ELASTICSEARCH_INFERENCE_ID`.
+  - If you want to run without semantic inference (e.g. for local testing), set `SCS_IDXR_DISABLE_SEMANTIC_TEXT=true`.
     This disables the `semantic_text` mapping **at index creation time**, so semantic search queries (including the `search` command and the MCP server’s semantic tools) will not work for that index.
-    Changing `SCSI_DISABLE_SEMANTIC_TEXT` later does **not** modify an existing index’s mapping; to re-enable semantic search you must **recreate the index** with semantic text enabled and reindex.
+    Changing `SCS_IDXR_DISABLE_SEMANTIC_TEXT` later does **not** modify an existing index’s mapping; to re-enable semantic search you must **recreate the index** with semantic text enabled and reindex.
   - Connection credentials use standard env var names: `ELASTICSEARCH_ENDPOINT`, `ELASTICSEARCH_CLOUD_ID`, `ELASTICSEARCH_API_KEY`, etc.
 - Elasticsearch credentials (API key recommended)
 
@@ -74,7 +74,7 @@ cp .env.example .env
 # - Create an Elastic Cloud deployment/project
 # - Copy its Cloud ID into ELASTICSEARCH_CLOUD_ID
 # - Create an API key and set it as ELASTICSEARCH_API_KEY
-# - Set SCSI_ELASTICSEARCH_INFERENCE_ID=.elser-2-elastic (EIS-backed ELSER endpoint)
+# - Set SCS_IDXR_ELASTICSEARCH_INFERENCE_ID=.elser-2-elastic (EIS-backed ELSER endpoint)
 
 # 5. (Optional) Add .indexerignore to your repository
 # Copy .indexerignore.example to your repo as .indexerignore to exclude files
@@ -184,7 +184,7 @@ Indexes one or more repositories by scanning the codebase, enqueuing code chunks
 - `--batch-size <number>` - Number of chunks per Elasticsearch bulk request (default: 100)
 - `--delete-documents-page-size <number>` - PIT pagination size for incremental deletion scans (default: 500)
 - `--parse-concurrency <number>` - Maximum parallel file parsing jobs (default: half your CPU cores)
-- `--languages <names>` - Comma-separated list of languages to index (default: `SCSI_LANGUAGES` if set, otherwise all languages)
+- `--languages <names>` - Comma-separated list of languages to index (default: `SCS_IDXR_LANGUAGES` if set, otherwise all languages)
 - `--branch <branch>` - Branch name for logging/metadata (default: auto-detect)
 
 **Validation:** `--concurrency`, `--batch-size`, `--delete-documents-page-size`, and `--parse-concurrency` must be **positive integers**. Invalid values fail fast with a clear error message.
@@ -256,7 +256,7 @@ npm run search -- --help
 **Notes:**
 
 - The `search` command requires the target index to have a `semantic_text` mapping.
-  - If the index was created with `SCSI_DISABLE_SEMANTIC_TEXT=true`, semantic search (including `npm run search`) will not work for that index until you recreate the index with semantic text enabled and reindex.
+  - If the index was created with `SCS_IDXR_DISABLE_SEMANTIC_TEXT=true`, semantic search (including `npm run search`) will not work for that index until you recreate the index with semantic text enabled and reindex.
 - If the index does not exist, the command fails with a clear `Index "<name>" does not exist` error.
 
 **Examples:**
@@ -451,11 +451,11 @@ Given a base index name (from CLI `repo[:index]`), the indexer creates and maint
 | `ELASTICSEARCH_USERNAME`                   | The username for Elasticsearch authentication.                                                                                                  |                                     |
 | `ELASTICSEARCH_PASSWORD`                   | The password for Elasticsearch authentication.                                                                                                  |                                     |
 | `ELASTICSEARCH_API_KEY`                    | An API key for Elasticsearch authentication.                                                                                                    |                                     |
-| `SCSI_ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                 | Required                            |
-| `SCSI_ELASTICSEARCH_REQUEST_TIMEOUT`       | Elasticsearch request timeout in milliseconds.                                                                                                  | `90000`                             |
-| `SCSI_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable the `semantic_text` mapping at index creation time (useful for tests or deployments without ML nodes).                 | `false`                             |
-| `SCSI_OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                   | `false`                             |
-| `SCSI_OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `SCSI_OTEL_LOGGING_ENABLED`).                                                                 | Same as `SCSI_OTEL_LOGGING_ENABLED` |
+| `SCS_IDXR_ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID used by `semantic_text` (ELSER). Recommended: `.elser-2-elastic` (EIS).                                     | Required                                |
+| `SCS_IDXR_ELASTICSEARCH_REQUEST_TIMEOUT`       | Elasticsearch request timeout in milliseconds.                                                                                                      | `90000`                                 |
+| `SCS_IDXR_DISABLE_SEMANTIC_TEXT`               | Set to `true` to disable the `semantic_text` mapping at index creation time (useful for tests or deployments without ML nodes).                     | `false`                                 |
+| `SCS_IDXR_OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                       | `false`                                 |
+| `SCS_IDXR_OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `SCS_IDXR_OTEL_LOGGING_ENABLED`).                                                                 | Same as `SCS_IDXR_OTEL_LOGGING_ENABLED` |
 | `OTEL_LOG_LEVEL`                           | Minimum log level for OpenTelemetry diagnostics (`debug`, `info`, `warn`, `error`).                                                             |                                     |
 | `OTEL_RESOURCE_ATTRIBUTES`                 | Resource attributes to attach to OpenTelemetry data (e.g. `deployment.environment=staging,version=1.0.0`).                                      |                                     |
 | `OTEL_SERVICE_NAME`                        | Service name for OpenTelemetry logs and metrics.                                                                                                | `semantic-code-search-indexer`      |
@@ -463,28 +463,28 @@ Given a base index name (from CLI `repo[:index]`), the indexer creates and maint
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`         | Logs-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT).                                                                            |                                     |
 | `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`      | Metrics-specific OTLP endpoint (overrides OTEL_EXPORTER_OTLP_ENDPOINT).                                                                         |                                     |
 | `OTEL_EXPORTER_OTLP_HEADERS`               | Headers for OTLP exporter (e.g., `authorization=Bearer token`).                                                                                 |                                     |
-| `SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS`  | Interval in milliseconds between metric exports.                                                                                                | `60000` (60 seconds)                |
-| `SCSI_QUEUE_BASE_DIR`                      | The base directory for all repository queue databases. Each repository gets its own SQLite queue at `SCSI_QUEUE_BASE_DIR/<repo-name>/queue.db`. | `.queues`                           |
+| `SCS_IDXR_OTEL_METRIC_EXPORT_INTERVAL_MILLIS`  | Interval in milliseconds between metric exports.                                                                                                | `60000` (60 seconds)                |
+| `SCS_IDXR_QUEUE_BASE_DIR`                      | The base directory for all repository queue databases. Each repository gets its own SQLite queue at `SCS_IDXR_QUEUE_BASE_DIR/<repo-name>/queue.db`. | `.queues`                           |
 | `GITHUB_TOKEN`                             | GitHub token used for cloning/pulling private repositories.                                                                                     |                                     |
-| `SCSI_LANGUAGES`                           | Optional comma-separated default list of languages to index (used when `--languages` is not provided).                                          | All supported languages             |
-| `SCSI_MAX_CHUNK_SIZE_BYTES`                | The maximum size of a code chunk in bytes.                                                                                                      | `1000000`                           |
-| `SCSI_DEFAULT_CHUNK_LINES`                 | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs).                                                         | `15`                                |
-| `SCSI_CHUNK_OVERLAP_LINES`                 | Number of overlapping lines between chunks in line-based parsing.                                                                               | `3`                                 |
-| `SCSI_MARKDOWN_CHUNK_DELIMITER`            | Regular expression pattern for splitting markdown files into chunks.                                                                            | `\n\s*\n`                           |
-| `SCSI_ENABLE_DENSE_VECTORS`                | Whether to enable dense vectors for code similarity search.                                                                                     | `false`                             |
-| `SCSI_FORCE_LOGGING`                       | Set to `true` to force console logging output even when `NODE_ENV=test`.                                                                        | `false`                             |
-| `SCSI_TEST_INDEXING_THROW_ON_FILEPATH`     | (Testing only) File path to simulate an indexing failure on a specific chunk.                                                                   |                                     |
-| `SCSI_TEST_INDEXING_DELAY_MS`              | (Testing only) Delay to add before indexing chunks in milliseconds.                                                                             | `0`                                 |
+| `SCS_IDXR_LANGUAGES`                           | Optional comma-separated default list of languages to index (used when `--languages` is not provided).                                          | All supported languages             |
+| `SCS_IDXR_MAX_CHUNK_SIZE_BYTES`                | The maximum size of a code chunk in bytes.                                                                                                      | `1000000`                           |
+| `SCS_IDXR_DEFAULT_CHUNK_LINES`                 | Number of lines per chunk for line-based parsing (JSON, YAML, text without paragraphs).                                                         | `15`                                |
+| `SCS_IDXR_CHUNK_OVERLAP_LINES`                 | Number of overlapping lines between chunks in line-based parsing.                                                                               | `3`                                 |
+| `SCS_IDXR_MARKDOWN_CHUNK_DELIMITER`            | Regular expression pattern for splitting markdown files into chunks.                                                                            | `\n\s*\n`                           |
+| `SCS_IDXR_ENABLE_DENSE_VECTORS`                | Whether to enable dense vectors for code similarity search.                                                                                     | `false`                             |
+| `SCS_IDXR_FORCE_LOGGING`                       | Set to `true` to force console logging output even when `NODE_ENV=test`.                                                                        | `false`                             |
+| `SCS_IDXR_TEST_INDEXING_THROW_ON_FILEPATH`     | (Testing only) File path to simulate an indexing failure on a specific chunk.                                                                   |                                     |
+| `SCS_IDXR_TEST_INDEXING_DELAY_MS`              | (Testing only) Delay to add before indexing chunks in milliseconds.                                                                             | `0`                                 |
 | `NODE_ENV`                                 | The node environment used for selecting `.env` vs `.env.test`.                                                                                  | `development`                       |
 
 #### Elastic Inference Service (EIS) Rate Limits
 
-`semantic_text` relies on an inference endpoint (`SCSI_ELASTICSEARCH_INFERENCE_ID`) to generate embeddings/expansions at ingest time. There are two common deployment patterns:
+`semantic_text` relies on an inference endpoint (`SCS_IDXR_ELASTICSEARCH_INFERENCE_ID`) to generate embeddings/expansions at ingest time. There are two common deployment patterns:
 
 - **EIS (`.elser-2-elastic`)**: inference runs on the Elastic Inference Service (managed, GPU-backed). It does **not** consume your cluster’s ML node resources.
 - **ML nodes (`.elser-2-elasticsearch`)**: inference runs on your Elasticsearch deployment’s ML nodes. Throughput depends on how much CPU/RAM you provision for ML.
 
-To avoid silently changing behavior across deployments, this indexer does **not** pick a default inference endpoint. If `semantic_text` is enabled (the default), you **must** set `SCSI_ELASTICSEARCH_INFERENCE_ID`.
+To avoid silently changing behavior across deployments, this indexer does **not** pick a default inference endpoint. If `semantic_text` is enabled (the default), you **must** set `SCS_IDXR_ELASTICSEARCH_INFERENCE_ID`.
 
 When using an Elastic-hosted inference endpoint, your deployment may be backed by the Elastic Inference Service (EIS), which is GPU-backed and has rate limits:
 
@@ -498,17 +498,17 @@ These limits are enforced continuously. Monitor your deployment logs closely whe
 
 The indexer uses different chunking strategies depending on file type to optimize for both semantic search quality and LLM context window limits:
 
-- **JSON**: Always uses line-based chunking with configurable chunk size (`SCSI_DEFAULT_CHUNK_LINES`) and overlap (`SCSI_CHUNK_OVERLAP_LINES`). This prevents large JSON values from creating oversized chunks.
+- **JSON**: Always uses line-based chunking with configurable chunk size (`SCS_IDXR_DEFAULT_CHUNK_LINES`) and overlap (`SCS_IDXR_CHUNK_OVERLAP_LINES`). This prevents large JSON values from creating oversized chunks.
 - **YAML**: Always uses line-based chunking with the same configuration. This provides more context than single-line chunks while maintaining manageable sizes.
 - **Text files**: Uses paragraph-based chunking (splitting on double newlines) when paragraphs are detected. Falls back to line-based chunking for continuous text without paragraph breaks.
-- **Markdown**: Uses configurable delimiter-based chunking to preserve logical document structure. See `SCSI_MARKDOWN_CHUNK_DELIMITER` below for customization options.
+- **Markdown**: Uses configurable delimiter-based chunking to preserve logical document structure. See `SCS_IDXR_MARKDOWN_CHUNK_DELIMITER` below for customization options.
 - **Code files** (TypeScript, JavaScript, Python, Java, Go, etc.): Uses tree-sitter based parsing to extract functions, classes, and other semantic units.
 
 ### Markdown Chunking
 
-The markdown chunking behavior can be customized via the `SCSI_MARKDOWN_CHUNK_DELIMITER` environment variable:
+The markdown chunking behavior can be customized via the `SCS_IDXR_MARKDOWN_CHUNK_DELIMITER` environment variable:
 
-- **`SCSI_MARKDOWN_CHUNK_DELIMITER`**: Regular expression pattern for splitting markdown files into chunks
+- **`SCS_IDXR_MARKDOWN_CHUNK_DELIMITER`**: Regular expression pattern for splitting markdown files into chunks
   - **Default**: `\n\s*\n` (splits by paragraphs - double newlines)
   - **Example for section separators**: `\n---\n`
   - **Example for custom delimiter**: `\n===\n`
@@ -522,7 +522,7 @@ The markdown chunking behavior can be customized via the `SCSI_MARKDOWN_CHUNK_DE
   **Example**:
 
   ```bash
-  export SCSI_MARKDOWN_CHUNK_DELIMITER='\n---\n'
+  export SCS_IDXR_MARKDOWN_CHUNK_DELIMITER='\n---\n'
   npm run index
   ```
 
@@ -546,8 +546,8 @@ By default, the indexer outputs text-format logs to the console (except when `NO
 To enable OpenTelemetry log and metrics export:
 
 ```bash
-SCSI_OTEL_LOGGING_ENABLED=true
-SCSI_OTEL_METRICS_ENABLED=true  # Optional, defaults to same as SCSI_OTEL_LOGGING_ENABLED
+SCS_IDXR_OTEL_LOGGING_ENABLED=true
+SCS_IDXR_OTEL_METRICS_ENABLED=true  # Optional, defaults to same as SCS_IDXR_OTEL_LOGGING_ENABLED
 OTEL_SERVICE_NAME=my-indexer  # Optional, defaults to 'semantic-code-search-indexer'
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 ```
@@ -717,7 +717,7 @@ PUT _ingest/pipeline/code-similarity-pipeline
 Set the following environment variable in your `.env` file:
 
 ```
-SCSI_ENABLE_DENSE_VECTORS=true
+SCS_IDXR_ENABLE_DENSE_VECTORS=true
 ```
 
 **3. Re-index Your Data**

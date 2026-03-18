@@ -14,16 +14,16 @@ describe('elasticsearchConfig', () => {
   });
 
   describe('inferenceId configuration', () => {
-    it('uses SCSI_ELASTICSEARCH_INFERENCE_ID when set', () =>
-      withTestEnv({ SCSI_ELASTICSEARCH_INFERENCE_ID: 'custom-inference-id' }, async () => {
+    it('uses SCS_IDXR_ELASTICSEARCH_INFERENCE_ID when set', () =>
+      withTestEnv({ SCS_IDXR_ELASTICSEARCH_INFERENCE_ID: 'custom-inference-id' }, async () => {
         const { elasticsearchConfig } = await import('../../src/config');
         expect(elasticsearchConfig.inferenceId).toBe('custom-inference-id');
       }));
 
-    it('is undefined when SCSI_ELASTICSEARCH_INFERENCE_ID is not set', async () => {
+    it('is undefined when SCS_IDXR_ELASTICSEARCH_INFERENCE_ID is not set', async () => {
       const { elasticsearchConfig } = await import('../../src/config');
       // Delete after import — dotenv re-runs on fresh import and sets the value from .env.test
-      delete process.env.SCSI_ELASTICSEARCH_INFERENCE_ID;
+      delete process.env.SCS_IDXR_ELASTICSEARCH_INFERENCE_ID;
       expect(elasticsearchConfig.inferenceId).toBeUndefined();
     });
   });
@@ -41,32 +41,32 @@ describe('indexingConfig', () => {
     process.env = originalEnv;
   });
 
-  it('throws when SCSI_DEFAULT_CHUNK_LINES=0 (must be positive)', () =>
-    withTestEnv({ SCSI_DEFAULT_CHUNK_LINES: '0' }, async () => {
+  it('throws when SCS_IDXR_DEFAULT_CHUNK_LINES=0 (must be positive)', () =>
+    withTestEnv({ SCS_IDXR_DEFAULT_CHUNK_LINES: '0' }, async () => {
       const { indexingConfig } = await import('../../src/config');
       expect(() => indexingConfig.defaultChunkLines).toThrow(/must be a positive integer/);
     }));
 
-  it('throws when SCSI_MAX_CHUNK_SIZE_BYTES=0 (must be positive)', () =>
-    withTestEnv({ SCSI_MAX_CHUNK_SIZE_BYTES: '0' }, async () => {
+  it('throws when SCS_IDXR_MAX_CHUNK_SIZE_BYTES=0 (must be positive)', () =>
+    withTestEnv({ SCS_IDXR_MAX_CHUNK_SIZE_BYTES: '0' }, async () => {
       const { indexingConfig } = await import('../../src/config');
       expect(() => indexingConfig.maxChunkSizeBytes).toThrow(/must be a positive integer/);
     }));
 
-  it('allows SCSI_CHUNK_OVERLAP_LINES=0', () =>
-    withTestEnv({ SCSI_CHUNK_OVERLAP_LINES: '0' }, async () => {
+  it('allows SCS_IDXR_CHUNK_OVERLAP_LINES=0', () =>
+    withTestEnv({ SCS_IDXR_CHUNK_OVERLAP_LINES: '0' }, async () => {
       const { indexingConfig } = await import('../../src/config');
       expect(indexingConfig.chunkOverlapLines).toBe(0);
     }));
 
-  it('allows SCSI_TEST_INDEXING_DELAY_MS=0', () =>
-    withTestEnv({ SCSI_TEST_INDEXING_DELAY_MS: '0' }, async () => {
+  it('allows SCS_IDXR_TEST_INDEXING_DELAY_MS=0', () =>
+    withTestEnv({ SCS_IDXR_TEST_INDEXING_DELAY_MS: '0' }, async () => {
       const { indexingConfig } = await import('../../src/config');
       expect(indexingConfig.testDelayMs).toBe(0);
     }));
 
   it('throws when boolean config receives invalid string', () =>
-    withTestEnv({ SCSI_ENABLE_DENSE_VECTORS: 'maybe' }, async () => {
+    withTestEnv({ SCS_IDXR_ENABLE_DENSE_VECTORS: 'maybe' }, async () => {
       const { indexingConfig } = await import('../../src/config');
       expect(() => indexingConfig.enableDenseVectors).toThrow(/must be a boolean/);
     }));

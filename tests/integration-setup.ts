@@ -9,11 +9,11 @@ process.env.NODE_ENV = 'test';
 delete process.env.ELASTICSEARCH_CLOUD_ID;
 delete process.env.ELASTICSEARCH_API_KEY;
 
-// Import afterAll before setting SCSI_FORCE_LOGGING
+// Import afterAll before setting SCS_IDXR_FORCE_LOGGING
 import { afterAll } from 'vitest';
 
 // Enable logging even in test mode for integration tests
-process.env.SCSI_FORCE_LOGGING = 'true';
+process.env.SCS_IDXR_FORCE_LOGGING = 'true';
 
 import { getClient } from '../src/utils/elasticsearch';
 

@@ -49,8 +49,8 @@ describe('Integration Test - semantic_text retrievability via semantic queries',
   });
 
   it('should return hits for semantic queries when semantic_text is enabled and docs are created via index', async () => {
-    // Enable semantic_text mapping (integration env defaults to SCSI_DISABLE_SEMANTIC_TEXT=true).
-    delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+    // Enable semantic_text mapping (integration env defaults to SCS_IDXR_DISABLE_SEMANTIC_TEXT=true).
+    delete process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT;
 
     await setup(testRepoUrl);
     await indexRepos([`${testRepoUrl}:${TEST_INDEX}`], {

@@ -179,11 +179,11 @@ The indexer stores content-deduplicated chunk documents in `<index>` and per-fil
 
 ### Important Considerations
 
-*   **ELSER Model / inference:** The `semantic_text` field is configured with an `inference_id`. Configure this via `SCSI_ELASTICSEARCH_INFERENCE_ID`.
+*   **ELSER Model / inference:** The `semantic_text` field is configured with an `inference_id`. Configure this via `SCS_IDXR_ELASTICSEARCH_INFERENCE_ID`.
 *   **Index Name:** Always pass an explicit index name via the CLI (`repo[:index]`) and use that same base index name when querying (and when configuring any MCP server).
 *   **Data Freshness:** The index is updated by running the `code-indexer` tool. For the MCP server to have the latest data, the index needs to be kept up-to-date by running the indexer regularly.
 
-#### Choosing an inference endpoint (`SCSI_ELASTICSEARCH_INFERENCE_ID`): EIS vs ML nodes
+#### Choosing an inference endpoint (`SCS_IDXR_ELASTICSEARCH_INFERENCE_ID`): EIS vs ML nodes
 
 `semantic_text` relies on an inference endpoint (`inference_id`) at ingest time. In practice, you’ll usually pick between these defaults:
 
@@ -192,4 +192,4 @@ The indexer stores content-deduplicated chunk documents in `<index>` and per-fil
 
 If you’re unsure which endpoints your cluster has, list them with `GET /_inference` and pick an `inference_id` that exists on your deployment.
 
-This repo does **not** select a default inference endpoint. If `semantic_text` is enabled (default), you must set `SCSI_ELASTICSEARCH_INFERENCE_ID`.
+This repo does **not** select a default inference endpoint. If `semantic_text` is enabled (default), you must set `SCS_IDXR_ELASTICSEARCH_INFERENCE_ID`.

@@ -28,14 +28,14 @@ vi.mock('child_process', async () => {
 describe('index_command', () => {
   // Use unique test directory in system temp to avoid parallel test conflicts
   const testQueuesDir = path.join(os.tmpdir(), `index-command-test-${process.pid}-${Date.now()}`);
-  const savedScsiLanguages = process.env.SCSI_LANGUAGES;
+  const savedScsiLanguages = process.env.SCS_IDXR_LANGUAGES;
   const savedGithubToken = process.env.GITHUB_TOKEN;
-  const savedQueueBaseDir = process.env.SCSI_QUEUE_BASE_DIR;
+  const savedQueueBaseDir = process.env.SCS_IDXR_QUEUE_BASE_DIR;
 
   beforeEach(() => {
-    delete process.env.SCSI_LANGUAGES;
+    delete process.env.SCS_IDXR_LANGUAGES;
     delete process.env.GITHUB_TOKEN;
-    process.env.SCSI_QUEUE_BASE_DIR = testQueuesDir;
+    process.env.SCS_IDXR_QUEUE_BASE_DIR = testQueuesDir;
 
     // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
@@ -59,9 +59,9 @@ describe('index_command', () => {
 
   afterEach(() => {
     if (savedScsiLanguages === undefined) {
-      delete process.env.SCSI_LANGUAGES;
+      delete process.env.SCS_IDXR_LANGUAGES;
     } else {
-      process.env.SCSI_LANGUAGES = savedScsiLanguages;
+      process.env.SCS_IDXR_LANGUAGES = savedScsiLanguages;
     }
 
     if (savedGithubToken === undefined) {
@@ -71,9 +71,9 @@ describe('index_command', () => {
     }
 
     if (savedQueueBaseDir === undefined) {
-      delete process.env.SCSI_QUEUE_BASE_DIR;
+      delete process.env.SCS_IDXR_QUEUE_BASE_DIR;
     } else {
-      process.env.SCSI_QUEUE_BASE_DIR = savedQueueBaseDir;
+      process.env.SCS_IDXR_QUEUE_BASE_DIR = savedQueueBaseDir;
     }
 
     if (fs.existsSync(testQueuesDir)) {
@@ -705,7 +705,7 @@ describe('index_command', () => {
     });
   });
 
-  describe('SCSI_LANGUAGES enforcement', () => {
+  describe('SCS_IDXR_LANGUAGES enforcement', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       // Default branch detection
@@ -716,8 +716,8 @@ describe('index_command', () => {
       vi.restoreAllMocks();
     });
 
-    it('SHOULD constrain default languages to SCSI_LANGUAGES when --languages is omitted', () =>
-      withTestEnv({ SCSI_LANGUAGES: 'typescript' }, async () => {
+    it('SHOULD constrain default languages to SCS_IDXR_LANGUAGES when --languages is omitted', () =>
+      withTestEnv({ SCS_IDXR_LANGUAGES: 'typescript' }, async () => {
         const originalExistsSync = fs.existsSync;
         vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
           const pathStr = p.toString();
@@ -746,8 +746,8 @@ describe('index_command', () => {
         );
       }));
 
-    it('SHOULD let --languages override SCSI_LANGUAGES', () =>
-      withTestEnv({ SCSI_LANGUAGES: 'typescript,go' }, async () => {
+    it('SHOULD let --languages override SCS_IDXR_LANGUAGES', () =>
+      withTestEnv({ SCS_IDXR_LANGUAGES: 'typescript,go' }, async () => {
         const originalExistsSync = fs.existsSync;
         vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
           const pathStr = p.toString();
@@ -776,17 +776,17 @@ describe('index_command', () => {
         );
       }));
 
-    it('SHOULD throw when SCSI_LANGUAGES contains no valid languages and --languages is omitted', () =>
-      withTestEnv({ SCSI_LANGUAGES: 'not-a-real-language' }, async () => {
+    it('SHOULD throw when SCS_IDXR_LANGUAGES contains no valid languages and --languages is omitted', () =>
+      withTestEnv({ SCS_IDXR_LANGUAGES: 'not-a-real-language' }, async () => {
         vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
         await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo'])).rejects.toThrow(
-          'No valid languages were provided via SCSI_LANGUAGES/--languages.'
+          'No valid languages were provided via SCS_IDXR_LANGUAGES/--languages.'
         );
       }));
 
-    it('SHOULD throw when SCSI_LANGUAGES is an empty string and --languages is omitted', () =>
-      withTestEnv({ SCSI_LANGUAGES: '' }, async () => {
+    it('SHOULD throw when SCS_IDXR_LANGUAGES is an empty string and --languages is omitted', () =>
+      withTestEnv({ SCS_IDXR_LANGUAGES: '' }, async () => {
         vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
         await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo'])).rejects.toThrow(
@@ -795,7 +795,7 @@ describe('index_command', () => {
       }));
 
     it('SHOULD throw when --languages is an explicit empty string', () =>
-      withTestEnv({ SCSI_LANGUAGES: undefined }, async () => {
+      withTestEnv({ SCS_IDXR_LANGUAGES: undefined }, async () => {
         vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
 
         await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--languages', ''])).rejects.toThrow(

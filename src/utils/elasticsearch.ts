@@ -104,9 +104,9 @@ function getElserInferenceIdOrThrow(): string {
   }
 
   throw new Error(
-    'SCSI_ELASTICSEARCH_INFERENCE_ID is required when semantic_text is enabled. ' +
+    'SCS_IDXR_ELASTICSEARCH_INFERENCE_ID is required when semantic_text is enabled. ' +
       'Set it to an existing Elasticsearch inference endpoint id (recommended: .elser-2-elastic on Elastic Cloud / EIS). ' +
-      'If you want to run without semantic inference, set SCSI_DISABLE_SEMANTIC_TEXT=true.'
+      'If you want to run without semantic inference, set SCS_IDXR_DISABLE_SEMANTIC_TEXT=true.'
   );
 }
 

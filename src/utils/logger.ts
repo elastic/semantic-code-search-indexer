@@ -38,7 +38,7 @@ interface RepoInfo {
 function log(level: LogLevel, message: string, metadata: object = {}, repoInfo?: RepoInfo) {
   // Silent mode: skip console output in test environment
   if (appConfig.nodeEnv !== 'test' || appConfig.forceLogging) {
-    // Always output text to console (unless in test mode without SCSI_FORCE_LOGGING)
+    // Always output text to console (unless in test mode without SCS_IDXR_FORCE_LOGGING)
     const timestamp = new Date().toISOString();
     let logMessage = `[${timestamp}] [${level}] ${message}`;
     if (metadata && Object.keys(metadata).length > 0) {

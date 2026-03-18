@@ -89,17 +89,17 @@ describe('Integration Test - Worker drain + concurrency + stale recovery (determ
   });
 
   beforeEach(() => {
-    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
+    process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = 'true';
   });
 
   afterEach(() => {
-    delete process.env.SCSI_TEST_INDEXING_DELAY_MS;
-    delete process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH;
+    delete process.env.SCS_IDXR_TEST_INDEXING_DELAY_MS;
+    delete process.env.SCS_IDXR_TEST_INDEXING_THROW_ON_FILEPATH;
   });
 
   it('should not exit early when queue is empty but tasks are still in-flight (drain correctness)', async () => {
     // Force slow indexing so the worker experiences: queue empty while tasks are still running.
-    process.env.SCSI_TEST_INDEXING_DELAY_MS = '200';
+    process.env.SCS_IDXR_TEST_INDEXING_DELAY_MS = '200';
 
     const indexName = `${INDEX_PREFIX}-drain`;
     createdIndices.push(indexName);
@@ -136,7 +136,7 @@ describe('Integration Test - Worker drain + concurrency + stale recovery (determ
   }, 180000);
 
   it('should requeue a batch if indexing throws, so no rows remain stuck in processing', async () => {
-    process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH = 'boom.ts';
+    process.env.SCS_IDXR_TEST_INDEXING_THROW_ON_FILEPATH = 'boom.ts';
 
     const indexName = `${INDEX_PREFIX}-throw-requeue`;
     createdIndices.push(indexName);
@@ -177,7 +177,7 @@ describe('Integration Test - Worker drain + concurrency + stale recovery (determ
 
   it('should not lose locations under real worker concurrency across many dequeue batches', async () => {
     // Slow down indexing so we get overlapping in-flight work.
-    process.env.SCSI_TEST_INDEXING_DELAY_MS = '150';
+    process.env.SCS_IDXR_TEST_INDEXING_DELAY_MS = '150';
 
     const indexName = `${INDEX_PREFIX}-agg-concurrency`;
     createdIndices.push(indexName);

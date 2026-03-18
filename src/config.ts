@@ -89,19 +89,19 @@ export const elasticsearchConfig = {
     return process.env.ELASTICSEARCH_API_KEY || undefined;
   },
   get inferenceId() {
-    return process.env.SCSI_ELASTICSEARCH_INFERENCE_ID || undefined;
+    return process.env.SCS_IDXR_ELASTICSEARCH_INFERENCE_ID || undefined;
   },
   get requestTimeout() {
-    return parseEnvPositiveInt('SCSI_ELASTICSEARCH_REQUEST_TIMEOUT', 90000);
+    return parseEnvPositiveInt('SCS_IDXR_ELASTICSEARCH_REQUEST_TIMEOUT', 90000);
   },
   get disableSemanticText() {
-    return parseEnvBoolean('SCSI_DISABLE_SEMANTIC_TEXT', false);
+    return parseEnvBoolean('SCS_IDXR_DISABLE_SEMANTIC_TEXT', false);
   },
 };
 
 export const otelConfig = {
   get enabled() {
-    return parseEnvBoolean('SCSI_OTEL_LOGGING_ENABLED', false);
+    return parseEnvBoolean('SCS_IDXR_OTEL_LOGGING_ENABLED', false);
   },
   get serviceName() {
     return process.env.OTEL_SERVICE_NAME || 'semantic-code-search-indexer';
@@ -115,9 +115,9 @@ export const otelConfig = {
     return process.env.OTEL_EXPORTER_OTLP_HEADERS || '';
   },
   get metricsEnabled() {
-    const explicit = process.env.SCSI_OTEL_METRICS_ENABLED;
+    const explicit = process.env.SCS_IDXR_OTEL_METRICS_ENABLED;
     if (explicit !== undefined && explicit.trim() !== '') {
-      return parseEnvBoolean('SCSI_OTEL_METRICS_ENABLED', false);
+      return parseEnvBoolean('SCS_IDXR_OTEL_METRICS_ENABLED', false);
     }
     return this.enabled; // Fallback to logging enabled status
   },
@@ -129,7 +129,7 @@ export const otelConfig = {
     );
   },
   get metricExportIntervalMs() {
-    return parseEnvPositiveInt('SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS', 60000);
+    return parseEnvPositiveInt('SCS_IDXR_OTEL_METRIC_EXPORT_INTERVAL_MILLIS', 60000);
   },
   get logLevel() {
     return process.env.OTEL_LOG_LEVEL;
@@ -141,62 +141,62 @@ export const otelConfig = {
 
 export const indexingConfig = {
   get maxChunkSizeBytes() {
-    return parseEnvPositiveInt('SCSI_MAX_CHUNK_SIZE_BYTES', 1000000);
+    return parseEnvPositiveInt('SCS_IDXR_MAX_CHUNK_SIZE_BYTES', 1000000);
   },
   set maxChunkSizeBytes(v: number) {
-    process.env.SCSI_MAX_CHUNK_SIZE_BYTES = v.toString();
+    process.env.SCS_IDXR_MAX_CHUNK_SIZE_BYTES = v.toString();
   },
 
   get enableDenseVectors() {
-    return parseEnvBoolean('SCSI_ENABLE_DENSE_VECTORS', false);
+    return parseEnvBoolean('SCS_IDXR_ENABLE_DENSE_VECTORS', false);
   },
   set enableDenseVectors(v: boolean) {
-    process.env.SCSI_ENABLE_DENSE_VECTORS = v ? 'true' : 'false';
+    process.env.SCS_IDXR_ENABLE_DENSE_VECTORS = v ? 'true' : 'false';
   },
 
   get defaultChunkLines() {
-    return parseEnvPositiveInt('SCSI_DEFAULT_CHUNK_LINES', 15);
+    return parseEnvPositiveInt('SCS_IDXR_DEFAULT_CHUNK_LINES', 15);
   },
   set defaultChunkLines(v: number) {
-    process.env.SCSI_DEFAULT_CHUNK_LINES = v.toString();
+    process.env.SCS_IDXR_DEFAULT_CHUNK_LINES = v.toString();
   },
 
   get chunkOverlapLines() {
-    return parseEnvNonNegativeInt('SCSI_CHUNK_OVERLAP_LINES', 3);
+    return parseEnvNonNegativeInt('SCS_IDXR_CHUNK_OVERLAP_LINES', 3);
   },
   set chunkOverlapLines(v: number) {
-    process.env.SCSI_CHUNK_OVERLAP_LINES = v.toString();
+    process.env.SCS_IDXR_CHUNK_OVERLAP_LINES = v.toString();
   },
 
   get markdownChunkDelimiter() {
-    return process.env.SCSI_MARKDOWN_CHUNK_DELIMITER || '\\n\\s*\\n';
+    return process.env.SCS_IDXR_MARKDOWN_CHUNK_DELIMITER || '\\n\\s*\\n';
   },
   set markdownChunkDelimiter(v: string) {
-    process.env.SCSI_MARKDOWN_CHUNK_DELIMITER = v;
+    process.env.SCS_IDXR_MARKDOWN_CHUNK_DELIMITER = v;
   },
 
   get testThrowOnFilePath() {
-    return process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH;
+    return process.env.SCS_IDXR_TEST_INDEXING_THROW_ON_FILEPATH;
   },
   set testThrowOnFilePath(v: string | undefined) {
-    if (v === undefined) delete process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH;
-    else process.env.SCSI_TEST_INDEXING_THROW_ON_FILEPATH = v;
+    if (v === undefined) delete process.env.SCS_IDXR_TEST_INDEXING_THROW_ON_FILEPATH;
+    else process.env.SCS_IDXR_TEST_INDEXING_THROW_ON_FILEPATH = v;
   },
 
   get testDelayMs() {
-    return parseEnvNonNegativeInt('SCSI_TEST_INDEXING_DELAY_MS', 0);
+    return parseEnvNonNegativeInt('SCS_IDXR_TEST_INDEXING_DELAY_MS', 0);
   },
   set testDelayMs(v: number) {
-    process.env.SCSI_TEST_INDEXING_DELAY_MS = v.toString();
+    process.env.SCS_IDXR_TEST_INDEXING_DELAY_MS = v.toString();
   },
 };
 
 export const appConfig = {
   get queueBaseDir() {
-    return path.resolve(projectRoot, process.env.SCSI_QUEUE_BASE_DIR || '.queues');
+    return path.resolve(projectRoot, process.env.SCS_IDXR_QUEUE_BASE_DIR || '.queues');
   },
   set queueBaseDir(v: string) {
-    process.env.SCSI_QUEUE_BASE_DIR = v;
+    process.env.SCS_IDXR_QUEUE_BASE_DIR = v;
   },
 
   get githubToken() {
@@ -208,11 +208,11 @@ export const appConfig = {
   },
 
   get languages() {
-    return process.env.SCSI_LANGUAGES;
+    return process.env.SCS_IDXR_LANGUAGES;
   },
   set languages(v: string | undefined) {
-    if (v === undefined) delete process.env.SCSI_LANGUAGES;
-    else process.env.SCSI_LANGUAGES = v;
+    if (v === undefined) delete process.env.SCS_IDXR_LANGUAGES;
+    else process.env.SCS_IDXR_LANGUAGES = v;
   },
 
   get nodeEnv() {
@@ -224,9 +224,9 @@ export const appConfig = {
   },
 
   get forceLogging() {
-    return parseEnvBoolean('SCSI_FORCE_LOGGING', false);
+    return parseEnvBoolean('SCS_IDXR_FORCE_LOGGING', false);
   },
   set forceLogging(v: boolean) {
-    process.env.SCSI_FORCE_LOGGING = v ? 'true' : 'false';
+    process.env.SCS_IDXR_FORCE_LOGGING = v ? 'true' : 'false';
   },
 };

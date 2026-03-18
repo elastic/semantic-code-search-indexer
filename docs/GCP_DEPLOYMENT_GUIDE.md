@@ -94,8 +94,8 @@ ELASTICSEARCH_API_KEY="YourEncodedApiKey"
 
 # OpenTelemetry Configuration (optional)
 # Enable logs and metrics export to OpenTelemetry Collector
-SCSI_OTEL_LOGGING_ENABLED="true"
-SCSI_OTEL_METRICS_ENABLED="true"
+SCS_IDXR_OTEL_LOGGING_ENABLED="true"
+SCS_IDXR_OTEL_METRICS_ENABLED="true"
 OTEL_SERVICE_NAME="semantic-code-search-indexer"
 OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
 # Optional: separate endpoints for logs and metrics
@@ -104,12 +104,12 @@ OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
 # Optional: authentication headers
 # OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer your-token"
 # Optional: metric export interval (default: 60000ms = 60s)
-# SCSI_OTEL_METRIC_EXPORT_INTERVAL_MILLIS="60000"
+# SCS_IDXR_OTEL_METRIC_EXPORT_INTERVAL_MILLIS="60000"
 
 # Application Configuration
 # Base directory where all queue databases will be stored.
-# Each repository gets its own SQLite queue at SCSI_QUEUE_BASE_DIR/<repo-name>/queue.db
-SCSI_QUEUE_BASE_DIR="/var/lib/indexer/queues"
+# Each repository gets its own SQLite queue at SCS_IDXR_QUEUE_BASE_DIR/<repo-name>/queue.db
+SCS_IDXR_QUEUE_BASE_DIR="/var/lib/indexer/queues"
 
 # GitHub token (required for private repositories)
 GITHUB_TOKEN="ghp_YourToken"

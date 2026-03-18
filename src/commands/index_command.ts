@@ -240,7 +240,7 @@ async function indexRepos(
     const languageNames = parseLanguageNames(languages);
     if (languageNames.length === 0) {
       throw new Error(
-        'No valid languages were provided via SCSI_LANGUAGES/--languages. ' +
+        'No valid languages were provided via SCS_IDXR_LANGUAGES/--languages. ' +
           'Update the value to include at least one supported language.'
       );
     }
@@ -505,7 +505,7 @@ export const indexCommand = new Command('index')
   .addOption(
     new Option(
       '--languages <names>',
-      'Comma-separated list of languages to index (default: SCSI_LANGUAGES if set, otherwise all languages)'
+      'Comma-separated list of languages to index (default: SCS_IDXR_LANGUAGES if set, otherwise all languages)'
     )
   )
   .addOption(new Option('--branch <branch>', 'Branch name for logging/metadata (default: auto-detect)'))

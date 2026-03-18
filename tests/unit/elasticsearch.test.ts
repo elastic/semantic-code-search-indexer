@@ -269,13 +269,16 @@ describe('Elasticsearch Client Configuration', () => {
       expect(elasticsearch.elasticsearchConfig).toBeDefined();
     });
 
-    it('SHOULD require SCSI_ELASTICSEARCH_INFERENCE_ID when semantic_text is enabled', () =>
+    it('SHOULD require SCS_IDXR_ELASTICSEARCH_INFERENCE_ID when semantic_text is enabled', () =>
       // undefined = delete the var, which enables semantic_text (it's only disabled when explicitly truthy e.g. 'true' or '1')
-      withTestEnv({ SCSI_DISABLE_SEMANTIC_TEXT: undefined, SCSI_ELASTICSEARCH_INFERENCE_ID: undefined }, async () => {
-        await expect(elasticsearch.createIndex('test-index')).rejects.toThrow(
-          'SCSI_ELASTICSEARCH_INFERENCE_ID is required'
-        );
-      }));
+      withTestEnv(
+        { SCS_IDXR_DISABLE_SEMANTIC_TEXT: undefined, SCS_IDXR_ELASTICSEARCH_INFERENCE_ID: undefined },
+        async () => {
+          await expect(elasticsearch.createIndex('test-index')).rejects.toThrow(
+            'SCS_IDXR_ELASTICSEARCH_INFERENCE_ID is required'
+          );
+        }
+      ));
 
     it('SHOULD prioritize ELASTICSEARCH_CLOUD_ID over ELASTICSEARCH_ENDPOINT when both are set', () => {
       // This validates our configuration logic by checking what was actually used

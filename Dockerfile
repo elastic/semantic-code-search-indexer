@@ -30,7 +30,7 @@ USER indexer
 RUN gh auth setup-git --hostname github.com --force
 
 ENV NODE_ENV=production
-# Configure OpenTelemetry via SCSI_OTEL_* environment variables
+# Configure OpenTelemetry via SCS_IDXR_OTEL_* environment variables
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD node dist/index.js --help || exit 1

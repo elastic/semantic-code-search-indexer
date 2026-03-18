@@ -92,14 +92,14 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
   }, 120000);
 
   beforeEach(() => {
-    savedDisableSemanticText = process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+    savedDisableSemanticText = process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT;
   });
 
   afterEach(() => {
     if (savedDisableSemanticText === undefined) {
-      delete process.env.SCSI_DISABLE_SEMANTIC_TEXT;
+      delete process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT;
     } else {
-      process.env.SCSI_DISABLE_SEMANTIC_TEXT = savedDisableSemanticText;
+      process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = savedDisableSemanticText;
     }
   });
 
@@ -138,7 +138,7 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
 
   it('should update line ranges for a modified file (incremental) without affecting other file locations', async () => {
     const languages = 'typescript';
-    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
+    process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-incremental-modify`;
     createdIndices.push(indexName);
@@ -219,7 +219,7 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
 
   it('should handle incremental rename (R status) for aggregated docs', async () => {
     const languages = 'typescript';
-    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
+    process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-incremental-rename`;
     createdIndices.push(indexName);
@@ -263,7 +263,7 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
 
   it('should handle incremental deletes (D status) and delete doc when last location removed', async () => {
     const languages = 'typescript';
-    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
+    process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-incremental-delete`;
     createdIndices.push(indexName);
@@ -327,7 +327,7 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
 
   it('should make location documents filterable via root filePath field (non-nested KQL-friendly)', async () => {
     const languages = 'typescript';
-    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
+    process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-root-filepath-query`;
     createdIndices.push(indexName);
@@ -369,7 +369,7 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
 
   it('should not cap locations (120 files should produce 120 locations for a chunk id)', async () => {
     const languages = 'typescript';
-    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
+    process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = 'true';
 
     const indexName = `${INDEX_PREFIX}-cap-100`;
     createdIndices.push(indexName);
@@ -415,7 +415,7 @@ describe('Integration Test - Locations-first behaviors (incremental, deletion, f
 
   it('should isolate per-index settings (_settings) and commit hashes across multiple repos', async () => {
     const languages = 'typescript';
-    process.env.SCSI_DISABLE_SEMANTIC_TEXT = 'true';
+    process.env.SCS_IDXR_DISABLE_SEMANTIC_TEXT = 'true';
 
     const repoAPath = path.join(os.tmpdir(), `test-agg-settings-a-${Date.now()}`);
     const repoBPath = path.join(os.tmpdir(), `test-agg-settings-b-${Date.now()}`);

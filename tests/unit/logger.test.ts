@@ -21,7 +21,7 @@ describe('Logger', () => {
     describe('when NODE_ENV is not `test`', () => {
       beforeEach(() => {
         process.env.NODE_ENV = 'production';
-        process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
+        process.env.SCS_IDXR_OTEL_LOGGING_ENABLED = 'false';
       });
 
       it('outputs to the console', () => {
@@ -55,7 +55,7 @@ describe('Logger', () => {
     describe('when NODE_ENV is `test`', () => {
       beforeEach(() => {
         process.env.NODE_ENV = 'test';
-        process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
+        process.env.SCS_IDXR_OTEL_LOGGING_ENABLED = 'false';
       });
 
       it('does not output to the console', () => {
@@ -69,7 +69,7 @@ describe('Logger', () => {
   describe('log levels', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production';
-      process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
+      process.env.SCS_IDXR_OTEL_LOGGING_ENABLED = 'false';
     });
 
     describe('.info()', () => {
@@ -140,7 +140,7 @@ describe('Logger', () => {
   describe('createLogger', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production';
-      process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
+      process.env.SCS_IDXR_OTEL_LOGGING_ENABLED = 'false';
     });
 
     describe('when created with repository context', () => {
@@ -184,7 +184,7 @@ describe('Logger', () => {
   describe('repository context', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'test';
-      process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
+      process.env.SCS_IDXR_OTEL_LOGGING_ENABLED = 'false';
     });
 
     it('allows creating a logger with repository name and branch', () => {
@@ -220,7 +220,7 @@ describe('Logger', () => {
     describe('when OpenTelemetry is disabled', () => {
       beforeEach(() => {
         process.env.NODE_ENV = 'production';
-        process.env.SCSI_OTEL_LOGGING_ENABLED = 'false';
+        process.env.SCS_IDXR_OTEL_LOGGING_ENABLED = 'false';
       });
 
       it('does not throw errors', () => {
@@ -236,7 +236,7 @@ describe('Logger', () => {
     describe('when OpenTelemetry is enabled', () => {
       beforeEach(() => {
         process.env.NODE_ENV = 'production';
-        process.env.SCSI_OTEL_LOGGING_ENABLED = 'true';
+        process.env.SCS_IDXR_OTEL_LOGGING_ENABLED = 'true';
       });
 
       it('does not throw errors', () => {
