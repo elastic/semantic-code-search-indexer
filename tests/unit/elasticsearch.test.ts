@@ -247,6 +247,246 @@ describe('deleteDocumentsByFilePath', () => {
   });
 });
 
+describe('resolveAliasToIndex', () => {
+  let mockGetAlias: Mock;
+  let mockClient: Client;
+
+  beforeEach(() => {
+    mockGetAlias = vi.fn();
+    mockClient = {
+      indices: {
+        getAlias: mockGetAlias,
+      },
+    } as unknown as Client;
+
+    elasticsearch.setClient(mockClient);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    elasticsearch.setClient(undefined);
+  });
+
+  it('should return null when alias does not exist', async () => {
+    mockGetAlias.mockRejectedValue({ meta: { statusCode: 404 } });
+    await expect(elasticsearch.resolveAliasToIndex('my-alias')).resolves.toBeNull();
+  });
+
+  it('should return the only index when alias points to one index', async () => {
+    mockGetAlias.mockResolvedValue({
+      'idx-1': {
+        aliases: {
+          'my-alias': {},
+        },
+      },
+    });
+
+    await expect(elasticsearch.resolveAliasToIndex('my-alias')).resolves.toBe('idx-1');
+  });
+
+  it('should return write index when alias points to multiple indices', async () => {
+    mockGetAlias.mockResolvedValue({
+      'idx-a': {
+        aliases: {
+          'my-alias': {
+            is_write_index: true,
+          },
+        },
+      },
+      'idx-b': {
+        aliases: {
+          'my-alias': {},
+        },
+      },
+    });
+
+    await expect(elasticsearch.resolveAliasToIndex('my-alias')).resolves.toBe('idx-a');
+  });
+
+  it('should throw when alias points to multiple indices without write index', async () => {
+    mockGetAlias.mockResolvedValue({
+      'idx-a': {
+        aliases: {
+          'my-alias': {},
+        },
+      },
+      'idx-b': {
+        aliases: {
+          'my-alias': {},
+        },
+      },
+    });
+
+    await expect(elasticsearch.resolveAliasToIndex('my-alias')).rejects.toThrow(
+      'Alias "my-alias" points to multiple indices (idx-a, idx-b) with no write index configured.'
+    );
+  });
+});
+
+describe('reindex lock TTL', () => {
+  let mockGet: Mock;
+  let mockCreate: Mock;
+  let mockDelete: Mock;
+  let mockIndicesExists: Mock;
+  let mockIndicesCreate: Mock;
+  let mockClient: Client;
+
+  const nowIso = () => new Date().toISOString();
+
+  const makeLock = (options: { alias: string; expiresAt: string }) => ({
+    type: 'reindex_lock' as const,
+    alias: options.alias,
+    lock_owner: 'unit-test',
+    lock_acquired_at: nowIso(),
+    lock_expires_at: options.expiresAt,
+    updated_at: nowIso(),
+  });
+
+  beforeEach(() => {
+    mockGet = vi.fn();
+    mockCreate = vi.fn();
+    mockDelete = vi.fn();
+    mockIndicesExists = vi.fn().mockResolvedValue(true);
+    mockIndicesCreate = vi.fn().mockResolvedValue({});
+
+    mockClient = {
+      get: mockGet,
+      create: mockCreate,
+      delete: mockDelete,
+      indices: {
+        exists: mockIndicesExists,
+        create: mockIndicesCreate,
+      },
+    } as unknown as Client;
+
+    elasticsearch.setClient(mockClient);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    elasticsearch.setClient(undefined);
+  });
+
+  it('isReindexLocked SHOULD delete expired locks and return false', async () => {
+    const aliasName = 'my-alias';
+    mockGet.mockResolvedValue({
+      _source: makeLock({ alias: aliasName, expiresAt: new Date(Date.now() - 60_000).toISOString() }),
+    });
+    mockDelete.mockResolvedValue({});
+
+    await expect(elasticsearch.isReindexLocked(aliasName)).resolves.toBe(false);
+    expect(mockDelete).toHaveBeenCalledWith({
+      index: `${aliasName}_settings`,
+      id: '_reindex_lock',
+      refresh: true,
+    });
+  });
+
+  it('isReindexLocked SHOULD return true when lock is not expired', async () => {
+    const aliasName = 'my-alias';
+    mockGet.mockResolvedValue({
+      _source: makeLock({ alias: aliasName, expiresAt: new Date(Date.now() + 60_000).toISOString() }),
+    });
+
+    await expect(elasticsearch.isReindexLocked(aliasName)).resolves.toBe(true);
+    expect(mockDelete).not.toHaveBeenCalled();
+  });
+
+  it('acquireReindexLock SHOULD clear expired locks and acquire', async () => {
+    const aliasName = 'my-alias';
+    const conflictError = { meta: { statusCode: 409 } };
+
+    mockCreate.mockRejectedValueOnce(conflictError).mockResolvedValueOnce({});
+    mockGet.mockResolvedValue({
+      _source: makeLock({ alias: aliasName, expiresAt: new Date(Date.now() - 60_000).toISOString() }),
+    });
+    mockDelete.mockResolvedValue({});
+
+    const result = await elasticsearch.acquireReindexLock(aliasName, 'owner', 60_000);
+
+    expect(result.acquired).toBe(true);
+    expect(result.lock?.alias).toBe(aliasName);
+    expect(mockCreate).toHaveBeenCalledTimes(2);
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('aggregateBySymbols', () => {
+  let mockSearch: Mock;
+  let mockIndicesExists: Mock;
+  let mockClient: Client;
+
+  beforeEach(() => {
+    mockSearch = vi.fn();
+    mockIndicesExists = vi.fn().mockResolvedValue(true);
+
+    mockClient = {
+      search: mockSearch,
+      indices: {
+        exists: mockIndicesExists,
+      },
+    } as unknown as Client;
+
+    elasticsearch.setClient(mockClient);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    elasticsearch.setClient(undefined);
+  });
+
+  it('SHOULD join chunk symbols with locations by filePath', async () => {
+    mockSearch
+      // 1) Search chunk docs (ids + symbols)
+      .mockResolvedValueOnce({
+        hits: {
+          hits: [
+            {
+              _id: 'chunk-1',
+              _source: { symbols: [{ name: 'foo', kind: 'function', line: 10 }] },
+            },
+            {
+              _id: 'chunk-2',
+              _source: { symbols: [{ name: 'bar', kind: 'class', line: 5 }] },
+            },
+          ],
+        },
+      })
+      // 2) Aggregate locations by filePath -> chunk_id
+      .mockResolvedValueOnce({
+        aggregations: {
+          files: {
+            buckets: [
+              {
+                key: 'a.ts',
+                chunks: { buckets: [{ key: 'chunk-1' }] },
+              },
+              {
+                key: 'b.ts',
+                chunks: { buckets: [{ key: 'chunk-1' }, { key: 'chunk-2' }] },
+              },
+            ],
+          },
+        },
+      });
+
+    const result = await elasticsearch.aggregateBySymbols({ match_all: {} }, 'idx');
+
+    expect(Object.keys(result).sort()).toEqual(['a.ts', 'b.ts']);
+    expect(result['a.ts']).toEqual([{ name: 'foo', kind: 'function', line: 10 }]);
+
+    // Sorted by name in implementation
+    expect(result['b.ts']).toEqual([
+      { name: 'bar', kind: 'class', line: 5 },
+      { name: 'foo', kind: 'function', line: 10 },
+    ]);
+
+    // Ensure second call targets locations index.
+    const secondCallArgs = mockSearch.mock.calls[1]?.[0] as { index?: string };
+    expect(secondCallArgs.index).toBe('idx_locations');
+  });
+});
+
 describe('Elasticsearch Client Configuration', () => {
   describe('WHEN examining the client configuration', () => {
     it('SHOULD have a client instance', () => {

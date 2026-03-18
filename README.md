@@ -42,7 +42,12 @@ cp .env.example .env
 # This reduces indexing time and improves relevance by excluding tests, build artifacts, etc.
 
 # 6. Index your repository
-npm run index -- /path/to/your/repo --clean --watch --concurrency 8
+# Full rebuild (creates new backing indices + atomic alias swap)
+npm run index -- /path/to/your/repo --clean --concurrency 8
+
+# (Optional) Continuous incremental indexing (long-running)
+# Note: `--watch` is not compatible with `--clean`
+npm run index -- /path/to/your/repo --watch --concurrency 8
 ```
 
 ### Excluding Files with `.indexerignore`
@@ -85,8 +90,9 @@ Indexes one or more repositories by scanning the codebase, enqueuing code chunks
 
 **Arguments:**
 
-- `[repos...]` - One or more repository paths, names, or URLs (format: `repo[:index]`). Optional if `REPOSITORIES_TO_INDEX` env var is set.
-- `--clean` - Delete existing Elasticsearch index before starting (full rebuild)
+- `[repos...]` - One or more repository paths, names, or URLs (format: `repo[:alias]`). Optional if `REPOSITORIES_TO_INDEX` env var is set.
+- `--clean` - Create a new backing index and atomically swap aliases (full rebuild)
+- `--keep-old-indices` - Keep previous backing indices after alias swap
 - `--pull` - Git pull before indexing
 - `--watch` - Keep indexer running after processing queue (for continuous indexing)
 - `--concurrency <number>` - Number of parallel workers (default: 1, recommended: CPU core count)
@@ -108,8 +114,8 @@ npm run index -- /path/to/repo --watch --concurrency 8
 # Index a remote repository (clones automatically)
 npm run index -- https://github.com/elastic/kibana.git --clean
 
-# Index with custom Elasticsearch index name
-npm run index -- /path/to/repo:my-custom-index
+# Index with a custom alias name
+npm run index -- /path/to/repo:my-custom-alias
 
 # Index multiple repositories sequentially
 npm run index -- /path/to/repo1 /path/to/repo2 --concurrency 4
@@ -120,7 +126,7 @@ npm run index -- /path/to/repo --pull
 # Private repository with token
 npm run index -- https://github.com/org/private-repo.git --token ghp_YourToken
 
-# Using REPOSITORIES_TO_INDEX env var (backward compatibility)
+# Using REPOSITORIES_TO_INDEX env var (optional convenience)
 export REPOSITORIES_TO_INDEX="/path/to/repo1 /path/to/repo2"
 npm run index -- --concurrency 4
 ```
@@ -136,7 +142,18 @@ npm run index -- --concurrency 4
 - Without `--clean`: Automatically detects if this is a first-time index or an incremental update
   - If no previous index exists, performs a full index
   - If previous index exists, only processes changed files since last indexed commit
-- With `--clean`: Always performs a full rebuild, deleting the existing index first
+- With `--clean`: Always performs a full rebuild into a new backing index, then atomically swaps aliases
+
+**Important:** `--watch` and `--clean` are mutually exclusive. Use `--clean` for a one-off maintenance rebuild and `--watch` for long-running incremental updates.
+
+### Maintenance lock (clean rebuild safety)
+
+When running with `--clean`, the indexer uses a **per-alias maintenance lock** stored in `<alias>_settings` (document id: `_reindex_lock`):
+
+- A `--clean` run **acquires the lock**, builds new backing indices, performs an **atomic alias swap**, then **releases the lock**.
+- A non-clean run (cron/incremental) checks for the lock and, if present, logs that maintenance is in progress and **skips** that repo/alias.
+
+This is designed for GitOps-style deployments where you can run maintenance rebuilds without pausing scheduled incremental jobs.
 
 ### `npm run scaffold-language`
 
@@ -325,11 +342,11 @@ Configuration is managed via environment variables in a `.env` file.
 
 ### Elasticsearch indices created
 
-Given a base index name (from `ELASTICSEARCH_INDEX` or CLI `repo[:index]`), the indexer creates and maintains:
+Given a base alias name (from `ELASTICSEARCH_INDEX` or CLI `repo[:alias]`), the indexer creates and maintains:
 
-- `<index>`: the primary chunk index (semantic search + metadata)
-- `<index>_settings`: small settings/state index (e.g. last indexed commit per branch)
-- `<index>_locations`: dedicated per-file location index (one document per chunk occurrence)
+- `<alias>`: alias that points to the active backing chunk index
+- `<alias>_locations`: alias that points to the active backing locations index
+- `<alias>_settings`: settings/state index (e.g. last indexed commit per branch and maintenance lock)
 
 | Variable                              | Description                                                                                                                                                                                 | Default                                              |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
@@ -339,7 +356,7 @@ Given a base index name (from `ELASTICSEARCH_INDEX` or CLI `repo[:index]`), the 
 | `ELASTICSEARCH_PASSWORD`              | The password for Elasticsearch authentication.                                                                                                                                              |                                                      |
 | `ELASTICSEARCH_API_KEY`               | An API key for Elasticsearch authentication.                                                                                                                                                |                                                      |
 | `ELASTICSEARCH_INDEX`                 | The name of the Elasticsearch index to use. This is often set dynamically by the deployment scripts.                                                                                        | `code-chunks`                                        |
-| `ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is still supported for backward compatibility.                                              | `.elser-2-elasticsearch`                             |
+| `ELASTICSEARCH_INFERENCE_ID`          | The Elasticsearch inference endpoint ID for the ELSER model to use. Note: `ELASTICSEARCH_MODEL` is still supported.                                                                         | `.elser-2-elasticsearch`                             |
 | `OTEL_LOGGING_ENABLED`                | Enable OpenTelemetry logging.                                                                                                                                                               | `false`                                              |
 | `OTEL_METRICS_ENABLED`                | Enable OpenTelemetry metrics (defaults to same as `OTEL_LOGGING_ENABLED`).                                                                                                                  | Same as `OTEL_LOGGING_ENABLED`                       |
 | `OTEL_SERVICE_NAME`                   | Service name for OpenTelemetry logs and metrics.                                                                                                                                            | `semantic-code-search-indexer`                       |

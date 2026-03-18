@@ -92,6 +92,8 @@ export function getClient(): Client {
 const defaultIndexName = elasticsearchConfig.index;
 const elserInferenceId = elasticsearchConfig.inferenceId;
 const codeSimilarityPipeline = 'code-similarity-pipeline';
+const REINDEX_LOCK_DOC_ID = '_reindex_lock';
+const DEFAULT_REINDEX_LOCK_TTL_MS = Number.parseInt(process.env.REINDEX_LOCK_TTL_MS || `${12 * 60 * 60 * 1000}`, 10);
 
 // Test-only: allow deterministic one-time failures in integration tests.
 const testIndexingThrownOnce = new Set<string>();
@@ -235,6 +237,10 @@ function getLocationsIndexName(index?: string): string {
   return `${index || defaultIndexName}_locations`;
 }
 
+function getSettingsIndexName(index?: string): string {
+  return `${index || defaultIndexName}_settings`;
+}
+
 export interface ChunkLocation {
   /**
    * Stable chunk document id (sha256 of chunk identity).
@@ -282,7 +288,7 @@ export async function createLocationsIndex(index?: string): Promise<void> {
 }
 
 export async function createSettingsIndex(index?: string): Promise<void> {
-  const settingsIndexName = `${index || defaultIndexName}_settings`;
+  const settingsIndexName = getSettingsIndexName(index);
   const indexExists = await getClient().indices.exists({ index: settingsIndexName });
   if (!indexExists) {
     logger.info(`Creating index "${settingsIndexName}"...`);
@@ -290,6 +296,11 @@ export async function createSettingsIndex(index?: string): Promise<void> {
       index: settingsIndexName,
       mappings: {
         properties: {
+          type: { type: 'keyword' },
+          alias: { type: 'keyword' },
+          lock_owner: { type: 'keyword' },
+          lock_acquired_at: { type: 'date' },
+          lock_expires_at: { type: 'date' },
           branch: { type: 'keyword' },
           commit_hash: { type: 'keyword' },
           updated_at: { type: 'date' },
@@ -302,7 +313,7 @@ export async function createSettingsIndex(index?: string): Promise<void> {
 }
 
 export async function getLastIndexedCommit(branch: string, index?: string): Promise<string | null> {
-  const settingsIndexName = `${index || defaultIndexName}_settings`;
+  const settingsIndexName = getSettingsIndexName(index);
   try {
     const response = await getClient().get<{ commit_hash: string }>({
       index: settingsIndexName,
@@ -318,17 +329,237 @@ export async function getLastIndexedCommit(branch: string, index?: string): Prom
 }
 
 export async function updateLastIndexedCommit(branch: string, commitHash: string, index?: string): Promise<void> {
-  const settingsIndexName = `${index || defaultIndexName}_settings`;
+  const settingsIndexName = getSettingsIndexName(index);
   await getClient().index({
     index: settingsIndexName,
     id: branch,
     document: {
+      type: 'commit',
       branch,
       commit_hash: commitHash,
       updated_at: new Date().toISOString(),
     },
     refresh: true,
   });
+}
+
+export interface ReindexLockDocument {
+  type: 'reindex_lock';
+  alias: string;
+  lock_owner: string;
+  lock_acquired_at: string;
+  lock_expires_at: string;
+  updated_at: string;
+}
+
+export interface ReindexLockAcquireResult {
+  acquired: boolean;
+  lock: ReindexLockDocument | null;
+}
+
+type AliasMetadata = Record<string, { aliases?: Record<string, { is_write_index?: boolean }> }>;
+
+function getErrorStatusCode(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') {
+    return undefined;
+  }
+
+  const typedError = error as { meta?: { statusCode?: unknown } };
+  if (typedError.meta && typeof typedError.meta.statusCode === 'number') {
+    return typedError.meta.statusCode;
+  }
+
+  return undefined;
+}
+
+function parseLockDocument(source: unknown): ReindexLockDocument | null {
+  if (!source || typeof source !== 'object') {
+    return null;
+  }
+
+  const typedSource = source as Partial<ReindexLockDocument>;
+  if (
+    typedSource.type !== 'reindex_lock' ||
+    typeof typedSource.alias !== 'string' ||
+    typeof typedSource.lock_owner !== 'string' ||
+    typeof typedSource.lock_acquired_at !== 'string' ||
+    typeof typedSource.lock_expires_at !== 'string' ||
+    typeof typedSource.updated_at !== 'string'
+  ) {
+    return null;
+  }
+
+  return typedSource as ReindexLockDocument;
+}
+
+function isLockExpired(lockDocument: ReindexLockDocument): boolean {
+  return new Date(lockDocument.lock_expires_at).getTime() <= Date.now();
+}
+
+async function getAliasMetadata(aliasName: string): Promise<AliasMetadata> {
+  try {
+    const response = (await getClient().indices.getAlias({
+      name: aliasName,
+    })) as AliasMetadata;
+    return response;
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) === 404) {
+      return {};
+    }
+    throw error;
+  }
+}
+
+async function getReindexLock(aliasName: string): Promise<ReindexLockDocument | null> {
+  const settingsIndexName = getSettingsIndexName(aliasName);
+  try {
+    const response = await getClient().get<ReindexLockDocument>({
+      index: settingsIndexName,
+      id: REINDEX_LOCK_DOC_ID,
+    });
+    return parseLockDocument(response._source);
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function getAliasIndices(aliasName: string): Promise<string[]> {
+  const aliasMetadata = await getAliasMetadata(aliasName);
+  return Object.keys(aliasMetadata);
+}
+
+export async function resolveAliasToIndex(aliasName: string): Promise<string | null> {
+  const aliasMetadata = await getAliasMetadata(aliasName);
+  const indices = Object.keys(aliasMetadata);
+  if (indices.length === 0) {
+    return null;
+  }
+
+  if (indices.length === 1) {
+    return indices[0];
+  }
+
+  const writeIndex = indices.find((indexName) => aliasMetadata[indexName]?.aliases?.[aliasName]?.is_write_index);
+  if (writeIndex) {
+    return writeIndex;
+  }
+
+  throw new Error(
+    `Alias "${aliasName}" points to multiple indices (${indices.join(', ')}) with no write index configured.`
+  );
+}
+
+export async function swapAliasTargets(params: {
+  aliasName: string;
+  newIndexName: string;
+  locationsAliasName?: string;
+  newLocationsIndexName?: string;
+}): Promise<{
+  previousIndexNames: string[];
+  previousLocationsIndexNames: string[];
+}> {
+  const locationsAliasName = params.locationsAliasName || getLocationsIndexName(params.aliasName);
+  const newLocationsIndexName = params.newLocationsIndexName || getLocationsIndexName(params.newIndexName);
+
+  const [mainAliasIndices, locationAliasIndices] = await Promise.all([
+    getAliasIndices(params.aliasName),
+    getAliasIndices(locationsAliasName),
+  ]);
+
+  const actions: Array<{ add?: { index: string; alias: string }; remove?: { index: string; alias: string } }> = [];
+
+  for (const oldIndex of mainAliasIndices) {
+    actions.push({ remove: { index: oldIndex, alias: params.aliasName } });
+  }
+  for (const oldIndex of locationAliasIndices) {
+    actions.push({ remove: { index: oldIndex, alias: locationsAliasName } });
+  }
+
+  actions.push({ add: { index: params.newIndexName, alias: params.aliasName } });
+  actions.push({ add: { index: newLocationsIndexName, alias: locationsAliasName } });
+
+  await getClient().indices.updateAliases({ actions });
+
+  return {
+    previousIndexNames: mainAliasIndices,
+    previousLocationsIndexNames: locationAliasIndices,
+  };
+}
+
+export async function isReindexLocked(aliasName: string): Promise<boolean> {
+  await createSettingsIndex(aliasName);
+  const lock = await getReindexLock(aliasName);
+  if (!lock) {
+    return false;
+  }
+
+  if (isLockExpired(lock)) {
+    await releaseReindexLock(aliasName);
+    return false;
+  }
+
+  return true;
+}
+
+export async function acquireReindexLock(
+  aliasName: string,
+  owner: string,
+  ttlMs: number = DEFAULT_REINDEX_LOCK_TTL_MS
+): Promise<ReindexLockAcquireResult> {
+  await createSettingsIndex(aliasName);
+  const settingsIndexName = getSettingsIndexName(aliasName);
+  const lockDurationMs = Math.max(60_000, ttlMs);
+  const now = new Date();
+  const lockDocument: ReindexLockDocument = {
+    type: 'reindex_lock',
+    alias: aliasName,
+    lock_owner: owner,
+    lock_acquired_at: now.toISOString(),
+    lock_expires_at: new Date(now.getTime() + lockDurationMs).toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  try {
+    await getClient().create({
+      index: settingsIndexName,
+      id: REINDEX_LOCK_DOC_ID,
+      document: lockDocument,
+      refresh: true,
+    });
+    return { acquired: true, lock: lockDocument };
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) !== 409) {
+      throw error;
+    }
+
+    const existingLock = await getReindexLock(aliasName);
+    if (existingLock && isLockExpired(existingLock)) {
+      await releaseReindexLock(aliasName);
+      return acquireReindexLock(aliasName, owner, ttlMs);
+    }
+
+    return { acquired: false, lock: existingLock };
+  }
+}
+
+export async function releaseReindexLock(aliasName: string): Promise<void> {
+  const settingsIndexName = getSettingsIndexName(aliasName);
+
+  try {
+    await getClient().delete({
+      index: settingsIndexName,
+      id: REINDEX_LOCK_DOC_ID,
+      refresh: true,
+    });
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) === 404) {
+      return;
+    }
+    throw error;
+  }
 }
 
 export interface SymbolInfo {
@@ -830,46 +1061,11 @@ export async function getLocationsForChunkIds(
 /**
  * Aggregates symbols by file path.
  *
- * This function is used by the `symbol_analysis` tool to find all the symbols
- * in a set of files that match a given query.
- *
- * @param query The Elasticsearch query to use for the search.
- * @returns A promise that resolves to a record of file paths to symbol info.
- */
-interface FileAggregation {
-  files: {
-    paths: {
-      buckets: {
-        key: string;
-        to_root: {
-          symbols: {
-            names: {
-              buckets: {
-                key: string;
-                kind: {
-                  buckets: {
-                    key: string;
-                  }[];
-                };
-                line: {
-                  buckets: {
-                    key: number;
-                  }[];
-                };
-              }[];
-            };
-          };
-        };
-      }[];
-    };
-  };
-}
-
-/**
- * Aggregates symbols by file path.
- *
- * This function is used by the `symbol_analysis` tool to find all the symbols
- * in a set of files that match a given query.
+ * In the locations-first model, chunk documents are content-deduplicated and do not store file paths.
+ * We:
+ * 1) search the chunk index for matching chunk documents (collecting their ids + symbols),
+ * 2) aggregate the locations store (`<index>_locations`) to map file paths -> chunk ids,
+ * 3) join in-process to produce a per-file symbol list.
  *
  * @param query The Elasticsearch query to use for the search.
  * @returns A promise that resolves to a record of file paths to symbol info.
@@ -879,73 +1075,114 @@ export async function aggregateBySymbols(
   index?: string
 ): Promise<Record<string, SymbolInfo[]>> {
   const indexName = index || defaultIndexName;
-  const response = await getClient().search<unknown, FileAggregation>({
+  const client = getClient();
+
+  const chunkSearchLimit = 1000;
+  const chunkSearchResponse = await client.search<Pick<CodeChunk, 'symbols'>>({
     index: indexName,
     query,
+    _source: ['symbols'],
+    size: chunkSearchLimit,
+  });
+
+  const symbolsByChunkId = new Map<string, SymbolInfo[]>();
+  for (const hit of chunkSearchResponse.hits.hits) {
+    const chunkId = hit._id;
+    if (typeof chunkId !== 'string' || chunkId.length === 0) {
+      continue;
+    }
+    const source = hit._source as { symbols?: unknown } | undefined;
+    const rawSymbols = source?.symbols;
+    const symbols: SymbolInfo[] = Array.isArray(rawSymbols)
+      ? rawSymbols
+          .map((s) => {
+            const sym = s as { name?: unknown; kind?: unknown; line?: unknown };
+            if (typeof sym.name !== 'string' || sym.name.length === 0) return null;
+            if (typeof sym.kind !== 'string' || sym.kind.length === 0) return null;
+            if (typeof sym.line !== 'number') return null;
+            return { name: sym.name, kind: sym.kind, line: sym.line };
+          })
+          .filter((s): s is SymbolInfo => s !== null)
+      : [];
+    symbolsByChunkId.set(chunkId, symbols);
+  }
+
+  const chunkIds = Array.from(symbolsByChunkId.keys());
+  if (chunkIds.length === 0) {
+    return {};
+  }
+
+  const locationsIndexName = getLocationsIndexName(indexName);
+  const locationsExists = await client.indices.exists({ index: locationsIndexName });
+  if (!locationsExists) {
+    return {};
+  }
+
+  type LocationsAggregation = {
+    files?: {
+      buckets?: Array<{
+        key?: unknown;
+        chunks?: {
+          buckets?: Array<{ key?: unknown }>;
+        };
+      }>;
+    };
+  };
+
+  const locationsResponse = await client.search<unknown, LocationsAggregation>({
+    index: locationsIndexName,
+    query: {
+      terms: {
+        chunk_id: chunkIds,
+      },
+    },
+    size: 0,
     aggs: {
       files: {
-        nested: {
-          path: 'filePaths',
+        terms: {
+          field: 'filePath',
+          size: 1000,
         },
         aggs: {
-          paths: {
+          chunks: {
             terms: {
-              field: 'filePaths.path',
-              size: 1000,
-            },
-            aggs: {
-              to_root: {
-                reverse_nested: {},
-                aggs: {
-                  symbols: {
-                    nested: {
-                      path: 'symbols',
-                    },
-                    aggs: {
-                      names: {
-                        terms: {
-                          field: 'symbols.name',
-                          size: 1000,
-                        },
-                        aggs: {
-                          kind: {
-                            terms: {
-                              field: 'symbols.kind',
-                              size: 1,
-                            },
-                          },
-                          line: {
-                            terms: {
-                              field: 'symbols.line',
-                              size: 1,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
+              field: 'chunk_id',
+              size: chunkIds.length,
             },
           },
         },
       },
     },
-    size: 0,
   });
 
+  const buckets = (locationsResponse.aggregations as unknown as LocationsAggregation)?.files?.buckets ?? [];
+
   const results: Record<string, SymbolInfo[]> = {};
-  if (response.aggregations) {
-    const files = response.aggregations;
-    for (const bucket of files.files.paths.buckets) {
-      const filePath = bucket.key;
-      const symbols: SymbolInfo[] = bucket.to_root.symbols.names.buckets.map((b) => ({
-        name: b.key,
-        kind: b.kind.buckets[0]?.key ?? 'symbol',
-        line: b.line.buckets[0]?.key ?? 0,
-      }));
-      results[filePath] = symbols;
+  for (const bucket of buckets) {
+    const filePath = bucket.key;
+    if (typeof filePath !== 'string') {
+      continue;
     }
+
+    const symbolsByKey = new Map<string, SymbolInfo>();
+    const chunkBuckets = bucket.chunks?.buckets ?? [];
+    for (const chunkBucket of chunkBuckets) {
+      const chunkId = chunkBucket.key;
+      if (typeof chunkId !== 'string') {
+        continue;
+      }
+      const symbols = symbolsByChunkId.get(chunkId) ?? [];
+      for (const s of symbols) {
+        const key = `${s.name}:${s.kind}:${s.line}`;
+        if (!symbolsByKey.has(key)) {
+          symbolsByKey.set(key, s);
+        }
+      }
+    }
+
+    const symbols = Array.from(symbolsByKey.values());
+    symbols.sort((a, b) => a.name.localeCompare(b.name));
+    results[filePath] = symbols;
   }
 
   return results;

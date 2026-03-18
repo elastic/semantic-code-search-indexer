@@ -4,7 +4,7 @@
 
 Successfully implemented indexed directory fields to enable efficient directory-level aggregations and discovery in the semantic code search indexer. This enhancement enables the MCP server to help LLMs navigate large codebases (70K+ files) by discovering significant directories before diving into specific files.
 
-Note: Per-file directory and path information is stored in a dedicated `<index>_locations` index (one document per chunk occurrence). The primary `<index>` stores content-deduplicated chunk documents and intentionally does **not** store file paths or directory metadata.
+Note: Per-file directory and path information is stored in a dedicated `<alias>_locations` index (one document per chunk occurrence). The primary `<alias>` (an alias pointing to a backing chunk index) stores content-deduplicated chunk documents and intentionally does **not** store file paths or directory metadata.
 
 ## Changes Made
 
@@ -17,8 +17,8 @@ Note: Per-file directory and path information is stored in a dedicated `<index>_
   - `directoryDepth: number` - Depth in directory tree (0 for root)
   
 - Updated Elasticsearch storage model:
-  - The primary chunk index (`<index>`) stores content-deduplicated chunk documents (no file paths / directories).
-  - The locations index (`<index>_locations`) stores per-file occurrences, including:
+  - The primary chunk index (`<alias>`) stores content-deduplicated chunk documents (no file paths / directories).
+  - The locations index (`<alias>_locations`) stores per-file occurrences, including:
     - `filePath` (`wildcard`)
     - `directoryPath` (`keyword`)
     - `directoryName` (`keyword`)

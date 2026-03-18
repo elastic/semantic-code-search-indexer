@@ -30,6 +30,8 @@ describe('index_command', () => {
   const testQueuesDir = path.join(os.tmpdir(), `index-command-test-${process.pid}-${Date.now()}`);
 
   beforeEach(() => {
+    vi.restoreAllMocks();
+
     // Reset process.exitCode to prevent leakage between tests
     process.exitCode = 0;
 
@@ -41,6 +43,18 @@ describe('index_command', () => {
     indexCommand.setOptionValue('token', undefined);
     indexCommand.setOptionValue('branch', undefined);
     indexCommand.setOptionValue('concurrency', '1');
+
+    // Alias-first defaults: tests can override these per scenario.
+    vi.spyOn(elasticsearchModule, 'resolveAliasToIndex').mockResolvedValue('resolved-test-index');
+    vi.spyOn(elasticsearchModule, 'swapAliasTargets').mockResolvedValue({
+      previousIndexNames: [],
+      previousLocationsIndexNames: [],
+    });
+    vi.spyOn(elasticsearchModule, 'acquireReindexLock').mockResolvedValue({ acquired: true, lock: null });
+    vi.spyOn(elasticsearchModule, 'releaseReindexLock').mockResolvedValue(undefined);
+    vi.spyOn(elasticsearchModule, 'isReindexLocked').mockResolvedValue(false);
+    vi.spyOn(elasticsearchModule, 'createSettingsIndex').mockResolvedValue(undefined);
+    vi.spyOn(elasticsearchModule, 'deleteIndex').mockResolvedValue(undefined);
 
     // Clean up test directories
     if (fs.existsSync(testQueuesDir)) {
@@ -744,6 +758,49 @@ describe('index_command', () => {
     });
   });
 
+  describe('clone URL parsing', () => {
+    it('WHEN cloning an SSH repo with :alias SHOULD strip the alias suffix from the clone URL', async () => {
+      const repoUrlWithAlias = 'git@github.com:elastic/kibana.git:custom-index';
+      const expectedCloneUrl = 'git@github.com:elastic/kibana.git';
+
+      let repoExists = false;
+      const originalExistsSync = fs.existsSync;
+      vi.spyOn(fs, 'existsSync').mockImplementation((p: fs.PathLike) => {
+        const pathStr = p.toString();
+        if (pathStr.includes('.repos/kibana')) {
+          return repoExists;
+        }
+        return originalExistsSync(p);
+      });
+
+      vi.spyOn(gitHelper, 'cloneOrPullRepo').mockImplementation(async (url) => {
+        expect(url).toBe(expectedCloneUrl);
+        repoExists = true;
+      });
+
+      // Avoid real work
+      vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+      vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+      vi.spyOn(incrementalModule, 'incrementalIndex').mockResolvedValue(undefined);
+      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+      vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+      // Mock branch + HEAD reads used later in the flow
+      vi.mocked(execFileSync).mockImplementation((cmd: string, args?: readonly string[]) => {
+        if (cmd === 'git' && Array.isArray(args) && args[0] === 'rev-parse' && args[1] === '--abbrev-ref') {
+          return Buffer.from('main\n');
+        }
+        if (cmd === 'git' && Array.isArray(args) && args[0] === 'rev-parse' && args[1] === 'HEAD') {
+          return Buffer.from('head-commit\n');
+        }
+        return Buffer.from('');
+      });
+
+      await indexCommand.parseAsync(['node', 'test', repoUrlWithAlias]);
+    });
+  });
+
   describe('clone error handling - multi-repo', () => {
     it('WHEN clone fails for first repo SHOULD skip failed repo, continue processing, and set exitCode 1 at end', async () => {
       // Use unique repo names to avoid conflicts with other tests
@@ -847,6 +904,85 @@ describe('index_command', () => {
         expect(workerSpy).toHaveBeenCalledTimes(1);
         expect(process.exitCode).toBe(1);
       });
+    });
+  });
+
+  describe('alias-first maintenance behavior', () => {
+    const repoPath = '/path/to/my-repo';
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(execFileSync).mockImplementation((cmd: string, args?: readonly string[]) => {
+        if (cmd === 'git' && Array.isArray(args) && args[0] === 'rev-parse' && args[1] === '--abbrev-ref') {
+          return Buffer.from('main\n');
+        }
+        if (cmd === 'git' && Array.isArray(args) && args[0] === 'rev-parse' && args[1] === 'HEAD') {
+          return Buffer.from('head-commit\n');
+        }
+        return Buffer.from('');
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('WHEN maintenance lock exists on non-clean run SHOULD skip indexing work', async () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+      vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+      vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+      vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+      vi.spyOn(elasticsearchModule, 'isReindexLocked').mockResolvedValue(true);
+      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue(null);
+      vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+      await indexCommand.parseAsync(['node', 'test', repoPath]);
+
+      expect(elasticsearchModule.isReindexLocked).toHaveBeenCalledWith('my-repo');
+      expect(fullIndexModule.index).not.toHaveBeenCalled();
+      expect(workerModule.worker).not.toHaveBeenCalled();
+    });
+
+    it('WHEN clean run completes SHOULD swap aliases and clean old backing indices', async () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(gitHelper, 'cloneOrPullRepo').mockResolvedValue();
+      vi.spyOn(gitHelper, 'pullRepo').mockResolvedValue();
+      const fullIndexSpy = vi.spyOn(fullIndexModule, 'index').mockResolvedValue(undefined);
+      vi.spyOn(workerModule, 'worker').mockResolvedValue(undefined);
+      vi.spyOn(elasticsearchModule, 'getLastIndexedCommit').mockResolvedValue('old-commit');
+      vi.spyOn(elasticsearchModule, 'updateLastIndexedCommit').mockResolvedValue(undefined);
+      const acquireLockSpy = vi
+        .spyOn(elasticsearchModule, 'acquireReindexLock')
+        .mockResolvedValue({ acquired: true, lock: null });
+      const swapAliasesSpy = vi.spyOn(elasticsearchModule, 'swapAliasTargets').mockResolvedValue({
+        previousIndexNames: ['old-main'],
+        previousLocationsIndexNames: ['old-main_locations'],
+      });
+      const deleteIndexSpy = vi.spyOn(elasticsearchModule, 'deleteIndex').mockResolvedValue(undefined);
+      const releaseLockSpy = vi.spyOn(elasticsearchModule, 'releaseReindexLock').mockResolvedValue(undefined);
+      vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+      await indexCommand.parseAsync(['node', 'test', repoPath, '--clean']);
+
+      expect(acquireLockSpy).toHaveBeenCalledWith('my-repo', expect.any(String));
+      expect(fullIndexSpy).toHaveBeenCalledWith(
+        repoPath,
+        true,
+        expect.objectContaining({
+          elasticsearchIndex: expect.stringContaining('my-repo-scsi-'),
+          settingsIndex: 'my-repo',
+        })
+      );
+      expect(swapAliasesSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          aliasName: 'my-repo',
+        })
+      );
+      expect(deleteIndexSpy).toHaveBeenCalledWith('old-main');
+      expect(deleteIndexSpy).toHaveBeenCalledWith('old-main_locations');
+      expect(releaseLockSpy).toHaveBeenCalledWith('my-repo');
     });
   });
 
