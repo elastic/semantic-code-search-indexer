@@ -1,10 +1,19 @@
 import { pullRepo, cloneOrPullRepo } from '../../src/utils/git_helper';
 import simpleGit from 'simple-git';
 import fs from 'fs';
+import { logger } from '../../src/utils/logger';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('simple-git');
 vi.mock('fs');
+vi.mock('../../src/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
 
 const mockedSimpleGit = vi.mocked(simpleGit);
 const mockedFs = vi.mocked(fs);
@@ -108,6 +117,19 @@ describe('git_helper', () => {
         gitInstance.fetch.mockRejectedValue(fetchError);
 
         await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow('Network error');
+      });
+
+      it('SHOULD redact oauth tokens in error log messages', async () => {
+        const tokenError = new Error('fatal: could not read from https://oauth2:ghp_secret123@github.com/org/repo.git');
+        gitInstance.fetch.mockRejectedValue(tokenError);
+
+        await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow();
+
+        expect(logger.error).toHaveBeenCalledWith('Failed to update repository', {
+          repoPath: '/path/to/repo',
+          branch: 'main',
+          errorMessage: 'fatal: could not read from https://oauth2:***@github.com/org/repo.git',
+        });
       });
     });
 

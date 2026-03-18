@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from './logger';
 
+const redactOauthToken = (value: string): string => value.replace(/oauth2:[^@]+@/g, 'oauth2:***@');
+
 /**
  * Clone a repository if it doesn't exist, or fetch and hard-reset if it does.
  * Uses fetch + reset --hard to handle upstream force-pushes gracefully.
@@ -34,7 +36,8 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
       await repoGit.reset(['--hard', `origin/${currentBranch}`]);
       logger.info('Repository updated successfully.');
     } catch (error) {
-      logger.error('Failed to update repository', { error });
+      const errorMessage = error instanceof Error ? redactOauthToken(error.message) : redactOauthToken(String(error));
+      logger.error('Failed to update repository', { repoPath, errorMessage });
       throw error;
     }
     return;
@@ -56,7 +59,8 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
     }
     logger.info('Repository cloned successfully.');
   } catch (error) {
-    logger.error(`Error cloning repository: ${error}`);
+    const errorMessage = error instanceof Error ? redactOauthToken(error.message) : redactOauthToken(String(error));
+    logger.error('Failed to clone repository', { repoPath, errorMessage });
     throw error;
   }
 }
@@ -97,7 +101,8 @@ export async function pullRepo(repoPath: string, branch?: string, token?: string
     }
     logger.info('Repository updated successfully.');
   } catch (error) {
-    logger.error('Failed to update repository', { error });
+    const errorMessage = error instanceof Error ? redactOauthToken(error.message) : redactOauthToken(String(error));
+    logger.error('Failed to update repository', { repoPath, branch, errorMessage });
     throw error;
   }
 }
