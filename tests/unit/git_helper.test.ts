@@ -129,9 +129,7 @@ describe('git_helper', () => {
       it('SHOULD throw an error', async () => {
         gitInstance.revparse.mockResolvedValue('HEAD\n');
 
-        await expect(pullRepo('/path/to/repo')).rejects.toThrow(
-          'Cannot update repository in detached HEAD state'
-        );
+        await expect(pullRepo('/path/to/repo')).rejects.toThrow('Cannot update repository in detached HEAD state');
       });
     });
   });
@@ -247,9 +245,9 @@ describe('git_helper', () => {
         mockedFs.existsSync.mockReturnValue(true);
         gitInstance.revparse.mockResolvedValue('HEAD\n');
 
-        await expect(
-          cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')
-        ).rejects.toThrow('Cannot update repository in detached HEAD state');
+        await expect(cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')).rejects.toThrow(
+          'Cannot update repository in detached HEAD state'
+        );
       });
     });
 
