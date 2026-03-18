@@ -189,6 +189,8 @@ Indexes one or more repositories by scanning the codebase, enqueuing code chunks
 
 **Validation:** `--concurrency`, `--batch-size`, `--delete-documents-page-size`, and `--parse-concurrency` must be **positive integers**. Invalid values fail fast with a clear error message.
 
+**Languages note:** `SCS_IDXR_LANGUAGES` / `--languages` must be **unset** or a non-empty comma-separated list. An **empty string** (e.g. `SCS_IDXR_LANGUAGES=`) is treated as invalid and will fail fast.
+
 **Important:** The default values for `--concurrency`, `--batch-size`, and `--parse-concurrency` are intentionally conservative. They are chosen to reduce throttling, timeouts, and indexing failures across typical environments (local and remote). Only change them if you understand the trade-offs and have a measured reason to tune.
 
 **Examples:**

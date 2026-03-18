@@ -790,6 +790,10 @@ export async function indexHasSemanticTextField(index: string): Promise<boolean>
       throw new Error(`Index "${index}" does not exist`);
     }
 
+    if (typeof statusCode === 'number' && (statusCode === 401 || statusCode === 403)) {
+      throw new Error(`Not authorized to access index "${index}"`);
+    }
+
     throw error;
   }
 
