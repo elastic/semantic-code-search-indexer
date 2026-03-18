@@ -49,7 +49,9 @@ This project is a high-performance code indexer designed to provide deep, contex
 - Node.js v20+ (check with `node -v`)
 - Elasticsearch 8.0+
   - For **semantic search** (the default), your cluster must have **ELSER inference** available and you must set `SCSI_ELASTICSEARCH_INFERENCE_ID`.
-  - If you want to run without semantic inference (e.g. for local testing), set `SCSI_DISABLE_SEMANTIC_TEXT=true`. This disables the `semantic_text` mapping at index creation time, so semantic search queries (including the `search` command and the MCP server’s semantic tools) will not work for that index. To re-enable, recreate the index with semantic text enabled and reindex.
+  - If you want to run without semantic inference (e.g. for local testing), set `SCSI_DISABLE_SEMANTIC_TEXT=true`.
+    This disables the `semantic_text` mapping **at index creation time**, so semantic search queries (including the `search` command and the MCP server’s semantic tools) will not work for that index.
+    Changing `SCSI_DISABLE_SEMANTIC_TEXT` later does **not** modify an existing index’s mapping; to re-enable semantic search you must **recreate the index** with semantic text enabled and reindex.
   - Connection credentials use standard env var names: `ELASTICSEARCH_ENDPOINT`, `ELASTICSEARCH_CLOUD_ID`, `ELASTICSEARCH_API_KEY`, etc.
 - Elasticsearch credentials (API key recommended)
 
