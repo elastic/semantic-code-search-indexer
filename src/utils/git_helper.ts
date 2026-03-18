@@ -23,7 +23,10 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
           await git.cwd(repoPath).remote(['set-url', 'origin', newRemoteUrl]);
         }
       }
-      await git.cwd(repoPath).pull();
+      // Use fetch + reset instead of pull to handle force-pushed branches
+      const currentBranch = (await git.cwd(repoPath).revparse(['--abbrev-ref', 'HEAD'])).trim();
+      await git.cwd(repoPath).fetch('origin', currentBranch);
+      await git.cwd(repoPath).reset(['--hard', `origin/${currentBranch}`]);
       logger.info('Repository updated successfully.');
     } catch (error) {
       logger.error(`Error pulling repository: ${error}`);
@@ -76,9 +79,12 @@ export async function pullRepo(repoPath: string, branch?: string, token?: string
 
     if (branch) {
       await git.checkout(branch);
-      await git.pull('origin', branch);
+      await git.fetch('origin', branch);
+      await git.reset(['--hard', `origin/${branch}`]);
     } else {
-      await git.pull('origin');
+      const currentBranch = (await git.revparse(['--abbrev-ref', 'HEAD'])).trim();
+      await git.fetch('origin', currentBranch);
+      await git.reset(['--hard', `origin/${currentBranch}`]);
     }
     logger.info('Repository updated successfully.');
   } catch (error) {
