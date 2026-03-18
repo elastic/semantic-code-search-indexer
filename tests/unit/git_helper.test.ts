@@ -82,6 +82,7 @@ describe('git_helper', () => {
           'https://oauth2:ghp_new_token@github.com/org/repo.git',
         ]);
         expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
       });
     });
 
@@ -120,6 +121,17 @@ describe('git_helper', () => {
         // Should NOT call set-url since URL is empty
         expect(gitInstance.remote).toHaveBeenCalledTimes(1);
         expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
+      });
+    });
+
+    describe('WHEN in detached HEAD state', () => {
+      it('SHOULD throw an error', async () => {
+        gitInstance.revparse.mockResolvedValue('HEAD\n');
+
+        await expect(pullRepo('/path/to/repo')).rejects.toThrow(
+          'Cannot update repository in detached HEAD state'
+        );
       });
     });
   });
@@ -226,6 +238,18 @@ describe('git_helper', () => {
         expect(gitInstance.remote).toHaveBeenCalledWith(['get-url', 'origin']);
         expect(gitInstance.remote).toHaveBeenCalledTimes(1);
         expect(gitInstance.fetch).toHaveBeenCalledWith('origin', 'main');
+        expect(gitInstance.reset).toHaveBeenCalledWith(['--hard', 'origin/main']);
+      });
+    });
+
+    describe('WHEN in detached HEAD state', () => {
+      it('SHOULD throw an error', async () => {
+        mockedFs.existsSync.mockReturnValue(true);
+        gitInstance.revparse.mockResolvedValue('HEAD\n');
+
+        await expect(
+          cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')
+        ).rejects.toThrow('Cannot update repository in detached HEAD state');
       });
     });
 

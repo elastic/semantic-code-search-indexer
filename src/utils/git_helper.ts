@@ -25,11 +25,14 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
       }
       // Use fetch + reset instead of pull to handle force-pushed branches
       const currentBranch = (await git.cwd(repoPath).revparse(['--abbrev-ref', 'HEAD'])).trim();
+      if (currentBranch === 'HEAD') {
+        throw new Error('Cannot update repository in detached HEAD state');
+      }
       await git.cwd(repoPath).fetch('origin', currentBranch);
       await git.cwd(repoPath).reset(['--hard', `origin/${currentBranch}`]);
       logger.info('Repository updated successfully.');
     } catch (error) {
-      logger.error(`Error pulling repository: ${error}`);
+      logger.error(`Error updating repository: ${error}`);
       throw error;
     }
     return;
@@ -83,12 +86,15 @@ export async function pullRepo(repoPath: string, branch?: string, token?: string
       await git.reset(['--hard', `origin/${branch}`]);
     } else {
       const currentBranch = (await git.revparse(['--abbrev-ref', 'HEAD'])).trim();
+      if (currentBranch === 'HEAD') {
+        throw new Error('Cannot update repository in detached HEAD state');
+      }
       await git.fetch('origin', currentBranch);
       await git.reset(['--hard', `origin/${currentBranch}`]);
     }
     logger.info('Repository updated successfully.');
   } catch (error) {
-    logger.error(`Error pulling repository: ${error}`);
+    logger.error(`Error updating repository: ${error}`);
     throw error;
   }
 }
