@@ -354,6 +354,20 @@ describe('indexHasSemanticTextField', () => {
     await expect(elasticsearch.indexHasSemanticTextField('test-index')).resolves.toBe(false);
   });
 
+  it('should return false when semantic_text exists with wrong type', async () => {
+    mockGetMapping.mockResolvedValue({
+      'test-index': {
+        mappings: {
+          properties: {
+            semantic_text: { type: 'text' },
+          },
+        },
+      },
+    });
+
+    await expect(elasticsearch.indexHasSemanticTextField('test-index')).resolves.toBe(false);
+  });
+
   it('should throw a friendly error when index does not exist', async () => {
     const error = Object.assign(new Error('Not Found'), { meta: { statusCode: 404 } });
     mockGetMapping.mockRejectedValue(error);

@@ -808,11 +808,11 @@ export async function indexHasSemanticTextField(index: string): Promise<boolean>
       continue;
     }
 
+    const semanticText = (properties as Record<string, unknown>).semantic_text;
     if (
-      Object.prototype.hasOwnProperty.call(properties, 'semantic_text') &&
-      (properties as Record<string, unknown>).semantic_text &&
-      typeof (properties as Record<string, unknown>).semantic_text === 'object' &&
-      ((properties as Record<string, unknown>).semantic_text as Record<string, unknown>).type === 'semantic_text'
+      semanticText &&
+      typeof semanticText === 'object' &&
+      (semanticText as Record<string, unknown>).type === 'semantic_text'
     ) {
       return true;
     }
