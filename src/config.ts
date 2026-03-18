@@ -16,6 +16,13 @@ function findProjectRoot(startPath: string): string {
 
 const projectRoot = findProjectRoot(__dirname);
 
+/**
+ * Parses an environment variable into a non-negative integer.
+ *
+ * @param envVarName The name of the environment variable.
+ * @param fallback The default value if the environment variable is not set.
+ * @returns The parsed non-negative integer.
+ */
 function parseEnvNonNegativeInt(envVarName: string, fallback: number): number {
   const value = process.env[envVarName];
   if (value === undefined || value.trim() === '') return fallback;
@@ -26,6 +33,13 @@ function parseEnvNonNegativeInt(envVarName: string, fallback: number): number {
   return parsed;
 }
 
+/**
+ * Parses an environment variable into a positive integer.
+ *
+ * @param envVarName The name of the environment variable.
+ * @param fallback The default value if the environment variable is not set.
+ * @returns The parsed positive integer.
+ */
 function parseEnvPositiveInt(envVarName: string, fallback: number): number {
   const value = process.env[envVarName];
   if (value === undefined || value.trim() === '') return fallback;
@@ -36,6 +50,13 @@ function parseEnvPositiveInt(envVarName: string, fallback: number): number {
   return parsed;
 }
 
+/**
+ * Parses an environment variable into a boolean.
+ *
+ * @param envVarName The name of the environment variable.
+ * @param fallback The default value if the environment variable is not set.
+ * @returns The parsed boolean.
+ */
 function parseEnvBoolean(envVarName: string, fallback: boolean): boolean {
   const value = process.env[envVarName];
   if (value === undefined || value.trim() === '') return fallback;

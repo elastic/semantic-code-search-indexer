@@ -13,7 +13,10 @@ import { execFileSync } from 'child_process';
 import Database from 'better-sqlite3';
 import os from 'os';
 
-const DEFAULT_PARSE_CONCURRENCY = Math.max(1, Math.floor(os.cpus().length / 2));
+const DEFAULT_PARSE_CONCURRENCY = Math.max(
+  1,
+  Math.floor((typeof os.availableParallelism === 'function' ? os.availableParallelism() : os.cpus().length) / 2)
+);
 
 interface RepoConfig {
   repoPath: string;
@@ -202,6 +205,14 @@ async function indexRepos(
     );
   }
 
+  /**
+   * Parses a string option into a positive integer, throwing an error if invalid.
+   *
+   * @param optionName The name of the option for error messaging.
+   * @param value The value to parse.
+   * @param fallback The default value if the input is undefined.
+   * @returns The parsed integer.
+   */
   function parsePositiveInt(optionName: string, value: string | undefined, fallback: number): number {
     if (value === undefined) {
       return fallback;
@@ -222,6 +233,9 @@ async function indexRepos(
   const githubToken = options.githubToken ?? appConfig.githubToken;
 
   let languages = options.languages ?? appConfig.languages;
+  if (languages !== undefined && languages.trim().length === 0) {
+    throw new Error('Invalid languages value: empty string. Provide at least one supported language name.');
+  }
   if (languages !== undefined) {
     const languageNames = parseLanguageNames(languages);
     if (languageNames.length === 0) {
@@ -442,6 +456,10 @@ async function indexRepos(
         error: errorMessage,
         stack: errorStack,
       });
+      if (isSingleRepo) {
+        throw error;
+      }
+      failedRepos.push(config.repoName);
     }
   }
 

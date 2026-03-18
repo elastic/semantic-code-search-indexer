@@ -6,6 +6,7 @@ import {
   BulkOperationType,
   BulkResponseItem,
   FieldValue,
+  SearchHit,
 } from '@elastic/elasticsearch/lib/api/types';
 import { createHash } from 'crypto';
 import { elasticsearchConfig, indexingConfig, appConfig } from '../config';
@@ -91,6 +92,11 @@ export function getClient(): Client {
 
 const codeSimilarityPipeline = 'code-similarity-pipeline';
 
+/**
+ * Retrieves the configured ELSER inference ID, throwing an error if it is not set.
+ *
+ * @returns The configured ELSER inference ID.
+ */
 function getElserInferenceIdOrThrow(): string {
   const inferenceId = elasticsearchConfig.inferenceId;
   if (typeof inferenceId === 'string' && inferenceId.trim().length > 0) {
@@ -271,6 +277,12 @@ export interface ChunkLocation {
   updated_at: string;
 }
 
+/**
+ * Creates the Elasticsearch index for storing code chunk locations.
+ *
+ * @param index The base name of the Elasticsearch index.
+ * @returns A promise that resolves when the index is created or already exists.
+ */
 export async function createLocationsIndex(index: string): Promise<void> {
   const locationsIndexName = getLocationsIndexName(index);
   const indexExists = await getClient().indices.exists({ index: locationsIndexName });
@@ -299,6 +311,12 @@ export async function createLocationsIndex(index: string): Promise<void> {
   }
 }
 
+/**
+ * Creates the Elasticsearch index for storing settings.
+ *
+ * @param index The base name of the Elasticsearch index.
+ * @returns A promise that resolves when the index is created or already exists.
+ */
 export async function createSettingsIndex(index: string): Promise<void> {
   const settingsIndexName = `${index}_settings`;
   const indexExists = await getClient().indices.exists({ index: settingsIndexName });
@@ -319,6 +337,13 @@ export async function createSettingsIndex(index: string): Promise<void> {
   }
 }
 
+/**
+ * Retrieves the last indexed commit hash for a given branch.
+ *
+ * @param branch The branch name.
+ * @param index The base name of the Elasticsearch index.
+ * @returns A promise that resolves to the commit hash or null if not found.
+ */
 export async function getLastIndexedCommit(branch: string, index: string): Promise<string | null> {
   const settingsIndexName = `${index}_settings`;
   try {
@@ -335,6 +360,14 @@ export async function getLastIndexedCommit(branch: string, index: string): Promi
   }
 }
 
+/**
+ * Updates the last indexed commit hash for a given branch.
+ *
+ * @param branch The branch name.
+ * @param commitHash The new commit hash.
+ * @param index The base name of the Elasticsearch index.
+ * @returns A promise that resolves when the update is complete.
+ */
 export async function updateLastIndexedCommit(branch: string, commitHash: string, index: string): Promise<void> {
   const settingsIndexName = `${index}_settings`;
   await getClient().index({
@@ -737,6 +770,12 @@ export interface SearchResult extends CodeChunk {
   score: number;
 }
 
+/**
+ * Checks if the specified index has a semantic_text field.
+ *
+ * @param index The name of the Elasticsearch index to check
+ * @returns A promise that resolves to true if the semantic_text field exists, false otherwise
+ */
 export async function indexHasSemanticTextField(index: string): Promise<boolean> {
   let response: Record<string, unknown>;
   try {
@@ -769,7 +808,12 @@ export async function indexHasSemanticTextField(index: string): Promise<boolean>
       continue;
     }
 
-    if (Object.prototype.hasOwnProperty.call(properties, 'semantic_text')) {
+    if (
+      Object.prototype.hasOwnProperty.call(properties, 'semantic_text') &&
+      (properties as Record<string, unknown>).semantic_text &&
+      typeof (properties as Record<string, unknown>).semantic_text === 'object' &&
+      ((properties as Record<string, unknown>).semantic_text as Record<string, unknown>).type === 'semantic_text'
+    ) {
       return true;
     }
   }
@@ -781,16 +825,15 @@ export async function indexHasSemanticTextField(index: string): Promise<boolean>
  * Performs a semantic search on the code chunks in the index.
  *
  * @param query The natural language query to search for.
+ * @param index The name of the Elasticsearch index to search.
+ * @param size The number of results to return (default: 10).
  * @returns A promise that resolves to an array of search results.
  */
-import { SearchHit } from '@elastic/elasticsearch/lib/api/types';
-
-// ... existing code ...
-
-export async function searchCodeChunks(query: string, index: string): Promise<SearchResult[]> {
+export async function searchCodeChunks(query: string, index: string, size: number = 10): Promise<SearchResult[]> {
   const indexName = index;
   const response = await getClient().search<CodeChunk>({
     index: indexName,
+    size,
     query: {
       semantic: {
         field: 'semantic_text',
@@ -1011,6 +1054,12 @@ export async function aggregateBySymbols(
   return results;
 }
 
+/**
+ * Deletes the Elasticsearch index.
+ *
+ * @param index The base name of the Elasticsearch index.
+ * @returns A promise that resolves when the index is deleted or if it does not exist.
+ */
 export async function deleteIndex(index: string): Promise<void> {
   const indexName = index;
   const indexExists = await getClient().indices.exists({ index: indexName });
@@ -1022,6 +1071,12 @@ export async function deleteIndex(index: string): Promise<void> {
   }
 }
 
+/**
+ * Deletes the Elasticsearch locations index.
+ *
+ * @param index The base name of the Elasticsearch index.
+ * @returns A promise that resolves when the locations index is deleted or if it does not exist.
+ */
 export async function deleteLocationsIndex(index: string): Promise<void> {
   const locationsIndexName = getLocationsIndexName(index);
   const indexExists = await getClient().indices.exists({ index: locationsIndexName });
@@ -1243,6 +1298,14 @@ async function deleteOrphanChunkDocuments(chunkIds: string[], indexName: string)
   }
 }
 
+/**
+ * Deletes documents from the Elasticsearch index by their file paths.
+ *
+ * @param filePaths An array of file paths to delete documents for.
+ * @param index The base name of the Elasticsearch index.
+ * @param options Optional settings for deletion, such as pagination size.
+ * @returns A promise that resolves when the documents are deleted.
+ */
 export async function deleteDocumentsByFilePaths(
   filePaths: string[],
   index: string,
@@ -1266,6 +1329,13 @@ export async function deleteDocumentsByFilePaths(
   await deleteOrphanChunkDocuments(Array.from(affectedChunkIds), indexName);
 }
 
+/**
+ * Deletes documents from the Elasticsearch index by a single file path.
+ *
+ * @param filePath The file path to delete documents for.
+ * @param index The base name of the Elasticsearch index.
+ * @returns A promise that resolves when the documents are deleted.
+ */
 export async function deleteDocumentsByFilePath(filePath: string, index: string): Promise<void> {
   await deleteDocumentsByFilePaths([filePath], index);
 }

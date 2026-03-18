@@ -5,11 +5,28 @@ Until we settle on a stable release/versioning process with backwards-compatibil
 
 If you deploy this, **pin to a specific commit SHA** and upgrade intentionally.
 
-If you want an older, known-good version from **October 2025 (pre–most breaking changes)** that is compatible with
-the current MCP Docker image, use this pairing:
+If you want an older, known-good version from **October 2025 (pre–most breaking changes)**, use this exact pairing
+and follow the documentation as it existed at those SHAs:
 
-- **Indexer**: commit `2fe4a9a4fefe84252a9c5ffe95875162bdb79cd0` (on `main`)
-- **MCP**: `simianhacker/semantic-code-search-mcp-server:latest`
+- **Indexer**: commit `2fe4a9a4fefe84252a9c5ffe95875162bdb79cd0` (docs:
+  [`README.md` @ `2fe4a9a4`](https://github.com/elastic/semantic-code-search-indexer/blob/2fe4a9a4fefe84252a9c5ffe95875162bdb79cd0/README.md))
+- **Indexer Docker image**:
+  `docker.elastic.co/observability-ci/scsi:sha-2fe4a9a@sha256:ca849ec8c1d6d3f08dbda9981ed2ca3855bb47436fcc6077708aa9c1173e6e7f`
+  - Note (indexer image only): published as `linux/amd64`. On Apple Silicon, pull/run it with `--platform=linux/amd64`.
+- **MCP server**: commit `7e33104dbde51bbd16fec8e9f6d123daff4979dc` (docs:
+  [`README.md` @ `7e33104d`](https://github.com/elastic/semantic-code-search-mcp-server/blob/7e33104dbde51bbd16fec8e9f6d123daff4979dc/README.md))
+- **MCP server Docker image** (manually-controlled `latest`, created 2025-10-20; pin the digest for reproducibility):
+  `simianhacker/semantic-code-search-mcp-server@sha256:92f088c022c05713e01f5327a1d330448d4816a70dd7069add03dbc07680a746`
+  - If this digest doesn’t support your platform, build from source (below).
+
+If you’d rather build the MCP server image from source:
+
+```bash
+git clone https://github.com/elastic/semantic-code-search-mcp-server.git
+cd semantic-code-search-mcp-server
+git checkout 7e33104dbde51bbd16fec8e9f6d123daff4979dc
+docker build -t semantic-code-search-mcp-server:7e33104d .
+```
 
 # Semantic Code Search Indexer
 
@@ -301,10 +318,10 @@ The recommended and most secure method is to use a **fine-grained** PAT with rea
 
 Set `GITHUB_TOKEN` in your environment (or in a `.env` file) before running `setup` or `index`:
 
-    ```
-    # .env file
-    GITHUB_TOKEN=ghp_YourGlobalToken
-    ```
+```bash
+# .env file
+GITHUB_TOKEN=ghp_YourGlobalToken
+```
 
 You can also pass `--github-token` to `setup` or `index` to override `GITHUB_TOKEN` for a single invocation.
 

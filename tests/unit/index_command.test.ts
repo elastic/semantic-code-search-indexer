@@ -784,6 +784,24 @@ describe('index_command', () => {
           'No valid languages were provided via SCSI_LANGUAGES/--languages.'
         );
       }));
+
+    it('SHOULD throw when SCSI_LANGUAGES is an empty string and --languages is omitted', () =>
+      withTestEnv({ SCSI_LANGUAGES: '' }, async () => {
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo'])).rejects.toThrow(
+          'Invalid languages value: empty string.'
+        );
+      }));
+
+    it('SHOULD throw when --languages is an explicit empty string', () =>
+      withTestEnv({ SCSI_LANGUAGES: undefined }, async () => {
+        vi.spyOn(otelProvider, 'shutdown').mockResolvedValue(undefined);
+
+        await expect(indexCommand.parseAsync(['node', 'test', '/path/to/my-repo', '--languages', ''])).rejects.toThrow(
+          'Invalid languages value: empty string.'
+        );
+      }));
   });
 
   describe('clone error handling', () => {

@@ -36,6 +36,15 @@ if (diagLevel !== DiagLogLevel.NONE) {
 let loggerProvider: LoggerProvider | null = null;
 let meterProvider: MeterProvider | null = null;
 
+function buildOtlpSignalUrl(endpoint: string, signalPath: '/v1/logs' | '/v1/metrics'): string {
+  const trimmed = endpoint.trim();
+  const withoutTrailingSlashes = trimmed.replace(/\/+$/, '');
+  if (withoutTrailingSlashes.endsWith(signalPath)) {
+    return withoutTrailingSlashes;
+  }
+  return `${withoutTrailingSlashes}${signalPath}`;
+}
+
 /**
  * Retrieves the service version from package.json.
  *
@@ -155,7 +164,7 @@ export function getLoggerProvider(): LoggerProvider | null {
   const logHeaders = otelConfig.headers;
 
   const exporter = new OTLPLogExporter({
-    url: logEndpoint.endsWith('/v1/logs') ? logEndpoint : `${logEndpoint}/v1/logs`,
+    url: buildOtlpSignalUrl(logEndpoint, '/v1/logs'),
     headers: parseHeaders(logHeaders),
   });
 
@@ -204,7 +213,7 @@ export function getMeterProvider(): MeterProvider | null {
   const metricsHeaders = otelConfig.headers;
 
   const exporter = new OTLPMetricExporter({
-    url: metricsEndpoint.endsWith('/v1/metrics') ? metricsEndpoint : `${metricsEndpoint}/v1/metrics`,
+    url: buildOtlpSignalUrl(metricsEndpoint, '/v1/metrics'),
     headers: parseHeaders(metricsHeaders),
     // Configure Delta temporality for Elasticsearch compatibility
     // Elasticsearch exporter only supports Delta temporality for histograms

@@ -3,6 +3,12 @@ import path from 'path';
 import { appConfig } from '../config';
 import { cloneOrPullRepo } from '../utils/git_helper';
 
+/**
+ * Clones or pulls a repository for indexing.
+ *
+ * @param repoUrl The URL of the repository to clone.
+ * @param options Optional configuration including GitHub token.
+ */
 async function setup(repoUrl: string, options?: { githubToken?: string }) {
   const token = options?.githubToken ?? appConfig.githubToken;
   const reposDir = path.join(process.cwd(), '.repos');

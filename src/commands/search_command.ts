@@ -24,7 +24,7 @@ export async function search(query: string, options: { index: string; limit?: st
     );
   }
 
-  const results = await searchCodeChunks(query, indexName);
+  const results = await searchCodeChunks(query, indexName, limit);
 
   console.log(`\nSearch results (showing top ${Math.min(limit, results.length)} of ${results.length}):`);
 

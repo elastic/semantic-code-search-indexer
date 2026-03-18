@@ -2,6 +2,68 @@ import { parseHeaders } from '../../src/utils/otel_provider';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 import { withTestEnv } from './utils/test_env';
 
+declare global {
+  var lastLoggerProviderArgs: unknown[] | undefined;
+
+  var lastLogExporterArgs: unknown[] | undefined;
+
+  var lastLogExporterInstance: unknown | undefined;
+
+  var lastMeterProviderArgs: unknown[] | undefined;
+
+  var lastMetricExporterArgs: unknown[] | undefined;
+
+  var lastMetricExporterInstance: unknown | undefined;
+}
+
+vi.mock('@opentelemetry/sdk-logs', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const MockProvider = class extends (actual.LoggerProvider as new (...args: unknown[]) => Record<string, unknown>) {
+    constructor(...args: unknown[]) {
+      super(...args);
+      globalThis.lastLoggerProviderArgs = args;
+    }
+  };
+  return { ...actual, LoggerProvider: MockProvider };
+});
+
+vi.mock('@opentelemetry/exporter-logs-otlp-http', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const MockExporter = class extends (actual.OTLPLogExporter as new (...args: unknown[]) => Record<string, unknown>) {
+    constructor(...args: unknown[]) {
+      super(...args);
+      globalThis.lastLogExporterArgs = args;
+      globalThis.lastLogExporterInstance = this;
+    }
+  };
+  return { ...actual, OTLPLogExporter: MockExporter };
+});
+
+vi.mock('@opentelemetry/sdk-metrics', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const MockProvider = class extends (actual.MeterProvider as new (...args: unknown[]) => Record<string, unknown>) {
+    constructor(...args: unknown[]) {
+      super(...args);
+      globalThis.lastMeterProviderArgs = args;
+    }
+  };
+  return { ...actual, MeterProvider: MockProvider };
+});
+
+vi.mock('@opentelemetry/exporter-metrics-otlp-http', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const MockExporter = class extends (actual.OTLPMetricExporter as new (
+    ...args: unknown[]
+  ) => Record<string, unknown>) {
+    constructor(...args: unknown[]) {
+      super(...args);
+      globalThis.lastMetricExporterArgs = args;
+      globalThis.lastMetricExporterInstance = this;
+    }
+  };
+  return { ...actual, OTLPMetricExporter: MockExporter };
+});
+
 describe('parseHeaders', () => {
   it('should parse simple key=value pairs', () => {
     const result = parseHeaders('key1=value1,key2=value2');
@@ -86,6 +148,12 @@ describe('OTel Provider', () => {
   beforeEach(() => {
     // Clear the module cache to ensure fresh imports
     vi.resetModules();
+    delete globalThis.lastLoggerProviderArgs;
+    delete globalThis.lastLogExporterArgs;
+    delete globalThis.lastLogExporterInstance;
+    delete globalThis.lastMeterProviderArgs;
+    delete globalThis.lastMetricExporterArgs;
+    delete globalThis.lastMetricExporterInstance;
     process.env = { ...originalEnv };
     // Ensure NODE_ENV is not 'test' for these tests
     delete process.env.NODE_ENV;
@@ -136,6 +204,9 @@ describe('OTel Provider', () => {
       const { getLoggerProvider } = await import('../../src/utils/otel_provider');
       const provider = getLoggerProvider();
       expect(provider).not.toBeNull();
+      const resource = (globalThis.lastLoggerProviderArgs?.[0] as { resource: { attributes: Record<string, unknown> } })
+        .resource;
+      expect(resource.attributes['service.name']).toBe('custom-service-name');
     }));
 
   it('should use default service name if OTEL_SERVICE_NAME is not set', async () => {
@@ -144,6 +215,9 @@ describe('OTel Provider', () => {
     const { getLoggerProvider } = await import('../../src/utils/otel_provider');
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
+    const resource = (globalThis.lastLoggerProviderArgs?.[0] as { resource: { attributes: Record<string, unknown> } })
+      .resource;
+    expect(resource.attributes['service.name']).toBe('semantic-code-search-indexer');
   });
 
   it('should allow getting a logger from the provider', async () => {
@@ -178,8 +252,8 @@ describe('OTel Provider', () => {
     const provider = getLoggerProvider();
     expect(provider).not.toBeNull();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const resource = (provider as any)._sharedState.resource;
+    const resource = (globalThis.lastLoggerProviderArgs?.[0] as { resource: { attributes: Record<string, unknown> } })
+      .resource;
     const attributes = resource.attributes;
 
     expect(attributes['git.indexer.branch']).toBeUndefined();
@@ -193,8 +267,8 @@ describe('OTel Provider', () => {
       const provider = getLoggerProvider();
       expect(provider).not.toBeNull();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const resource = (provider as any)._sharedState.resource;
+      const resource = (globalThis.lastLoggerProviderArgs?.[0] as { resource: { attributes: Record<string, unknown> } })
+        .resource;
       const attributes = resource.attributes;
 
       expect(attributes['service.name']).toBeDefined();
@@ -212,8 +286,9 @@ describe('OTel Provider', () => {
         const provider = getLoggerProvider();
         expect(provider).not.toBeNull();
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const resource = (provider as any)._sharedState.resource;
+        const resource = (
+          globalThis.lastLoggerProviderArgs?.[0] as { resource: { attributes: Record<string, unknown> } }
+        ).resource;
         const attributes = resource.attributes;
 
         expect(attributes['deployment.environment']).toBe('staging');
@@ -234,13 +309,43 @@ describe('OTel Provider', () => {
         const provider = getLoggerProvider();
         expect(provider).not.toBeNull();
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const logProcessor = (provider as any)._sharedState.registeredLogRecordProcessors[0];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const exporter = logProcessor._exporter as any;
+        const exporter = globalThis.lastLogExporterInstance as {
+          url: string;
+          headers: Record<string, string>;
+          timeoutMillis: number;
+          _otlpExporter?: { headers: Record<string, string> };
+        };
 
         expect(exporter.url).toBe('http://configured-endpoint:4318/v1/logs');
-        expect(exporter.headers['x-auth']).toBe('token-value');
+        expect(exporter._otlpExporter ? exporter._otlpExporter.headers['x-auth'] : exporter.headers['x-auth']).toBe(
+          'token-value'
+        );
+      }
+    ));
+
+  it('should normalize trailing slash in OTEL_EXPORTER_OTLP_LOGS_ENDPOINT', () =>
+    withTestEnv(
+      {
+        SCSI_OTEL_LOGGING_ENABLED: 'true',
+        OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: 'http://configured-endpoint:4318/',
+        OTEL_EXPORTER_OTLP_HEADERS: 'x-auth=token-value',
+      },
+      async () => {
+        const { getLoggerProvider } = await import('../../src/utils/otel_provider');
+        const provider = getLoggerProvider();
+        expect(provider).not.toBeNull();
+
+        const exporter = globalThis.lastLogExporterInstance as {
+          url: string;
+          headers: Record<string, string>;
+          timeoutMillis: number;
+          _otlpExporter?: { headers: Record<string, string> };
+        };
+
+        expect(exporter.url).toBe('http://configured-endpoint:4318/v1/logs');
+        expect(exporter._otlpExporter ? exporter._otlpExporter.headers['x-auth'] : exporter.headers['x-auth']).toBe(
+          'token-value'
+        );
       }
     ));
 
@@ -258,14 +363,18 @@ describe('OTel Provider', () => {
         const provider = getLoggerProvider();
         expect(provider).not.toBeNull();
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const logProcessor = (provider as any)._sharedState.registeredLogRecordProcessors[0];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const exporter = logProcessor._exporter as any;
+        const exporter = globalThis.lastLogExporterInstance as {
+          url: string;
+          headers: Record<string, string>;
+          timeoutMillis: number;
+          _otlpExporter?: { headers: Record<string, string> };
+        };
 
         expect(exporter.timeoutMillis).toBe(1234);
         expect(exporter.headers['x-signal']).toBe('sig-value');
-        expect(exporter.headers['x-auth']).toBe('token-value');
+        expect(exporter._otlpExporter ? exporter._otlpExporter.headers['x-auth'] : exporter.headers['x-auth']).toBe(
+          'token-value'
+        );
       }
     ));
 });
@@ -384,13 +493,37 @@ describe('MeterProvider', () => {
         const provider = getMeterProvider();
         expect(provider).not.toBeNull();
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const metricReader = (provider as any)._sharedState.metricCollectors[0]._metricReader;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const exporter = metricReader._exporter as any;
+        const exporter = globalThis.lastMetricExporterInstance as {
+          _otlpExporter?: { url: string; headers: Record<string, string> };
+          headers: Record<string, string>;
+        };
+        expect(exporter._otlpExporter?.url).toBe('http://configured-metrics-endpoint:4318/v1/metrics');
+        expect(exporter._otlpExporter ? exporter._otlpExporter.headers['x-auth'] : exporter.headers['x-auth']).toBe(
+          'token-value'
+        );
+      }
+    ));
 
-        expect(exporter._otlpExporter.url).toBe('http://configured-metrics-endpoint:4318/v1/metrics');
-        expect(exporter._otlpExporter.headers['x-auth']).toBe('token-value');
+  it('should normalize trailing slash in OTEL_EXPORTER_OTLP_METRICS_ENDPOINT', () =>
+    withTestEnv(
+      {
+        SCSI_OTEL_METRICS_ENABLED: 'true',
+        OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'http://configured-metrics-endpoint:4318/',
+        OTEL_EXPORTER_OTLP_HEADERS: 'x-auth=token-value',
+      },
+      async () => {
+        const { getMeterProvider } = await import('../../src/utils/otel_provider');
+        const provider = getMeterProvider();
+        expect(provider).not.toBeNull();
+
+        const exporter = globalThis.lastMetricExporterInstance as {
+          _otlpExporter?: { url: string; headers: Record<string, string> };
+          headers: Record<string, string>;
+        };
+        expect(exporter._otlpExporter?.url).toBe('http://configured-metrics-endpoint:4318/v1/metrics');
+        expect(exporter._otlpExporter ? exporter._otlpExporter.headers['x-auth'] : exporter.headers['x-auth']).toBe(
+          'token-value'
+        );
       }
     ));
 });
