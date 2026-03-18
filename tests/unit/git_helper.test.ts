@@ -119,17 +119,31 @@ describe('git_helper', () => {
         await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow('Network error');
       });
 
-      it('SHOULD redact oauth tokens in error log messages', async () => {
+      it('SHOULD redact oauth tokens in error log messages and re-thrown error', async () => {
         const tokenError = new Error('fatal: could not read from https://oauth2:ghp_secret123@github.com/org/repo.git');
         gitInstance.fetch.mockRejectedValue(tokenError);
 
-        await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow();
+        await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow(
+          'fatal: could not read from https://***@github.com/org/repo.git'
+        );
 
-        expect(logger.error).toHaveBeenCalledWith('Failed to update repository', {
-          repoPath: '/path/to/repo',
-          branch: 'main',
-          errorMessage: 'fatal: could not read from https://oauth2:***@github.com/org/repo.git',
-        });
+        expect(logger.error).toHaveBeenCalledWith(
+          'Failed to update repository',
+          expect.objectContaining({
+            repoPath: '/path/to/repo',
+            branch: 'main',
+            errorMessage: 'fatal: could not read from https://***@github.com/org/repo.git',
+          })
+        );
+      });
+
+      it('SHOULD redact non-oauth HTTPS credentials in error messages', async () => {
+        const tokenError = new Error('fatal: could not read from https://user:pass@github.com/org/repo.git');
+        gitInstance.fetch.mockRejectedValue(tokenError);
+
+        await expect(pullRepo('/path/to/repo', 'main')).rejects.toThrow(
+          'fatal: could not read from https://***@github.com/org/repo.git'
+        );
       });
     });
 
@@ -280,6 +294,23 @@ describe('git_helper', () => {
 
         await expect(cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')).rejects.toThrow(
           'Auth failed'
+        );
+      });
+
+      it('SHOULD redact oauth tokens in clone error log messages', async () => {
+        const cloneError = new Error('fatal: could not read from https://oauth2:ghp_secret@github.com/org/repo.git');
+        gitInstance.clone.mockRejectedValue(cloneError);
+
+        await expect(cloneOrPullRepo('https://github.com/org/repo.git', '/path/to/repo')).rejects.toThrow(
+          'fatal: could not read from https://***@github.com/org/repo.git'
+        );
+
+        expect(logger.error).toHaveBeenCalledWith(
+          'Failed to clone repository',
+          expect.objectContaining({
+            repoPath: '/path/to/repo',
+            errorMessage: 'fatal: could not read from https://***@github.com/org/repo.git',
+          })
         );
       });
     });

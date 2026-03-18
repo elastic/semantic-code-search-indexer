@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from './logger';
 
-const redactOauthToken = (value: string): string => value.replace(/oauth2:[^@]+@/g, 'oauth2:***@');
+const redactCredentials = (value: string): string => value.replace(/(https:\/\/)([^@\s/]+)@/g, '$1***@');
 
 /**
  * Clone a repository if it doesn't exist, or fetch and hard-reset if it does.
@@ -36,9 +36,9 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
       await repoGit.reset(['--hard', `origin/${currentBranch}`]);
       logger.info('Repository updated successfully.');
     } catch (error) {
-      const errorMessage = error instanceof Error ? redactOauthToken(error.message) : redactOauthToken(String(error));
+      const errorMessage = error instanceof Error ? redactCredentials(error.message) : redactCredentials(String(error));
       logger.error('Failed to update repository', { repoPath, errorMessage });
-      throw error;
+      throw new Error(errorMessage);
     }
     return;
   }
@@ -59,9 +59,9 @@ export async function cloneOrPullRepo(repoUrl: string, repoPath: string, token?:
     }
     logger.info('Repository cloned successfully.');
   } catch (error) {
-    const errorMessage = error instanceof Error ? redactOauthToken(error.message) : redactOauthToken(String(error));
+    const errorMessage = error instanceof Error ? redactCredentials(error.message) : redactCredentials(String(error));
     logger.error('Failed to clone repository', { repoPath, errorMessage });
-    throw error;
+    throw new Error(errorMessage);
   }
 }
 
@@ -101,8 +101,8 @@ export async function pullRepo(repoPath: string, branch?: string, token?: string
     }
     logger.info('Repository updated successfully.');
   } catch (error) {
-    const errorMessage = error instanceof Error ? redactOauthToken(error.message) : redactOauthToken(String(error));
+    const errorMessage = error instanceof Error ? redactCredentials(error.message) : redactCredentials(String(error));
     logger.error('Failed to update repository', { repoPath, branch, errorMessage });
-    throw error;
+    throw new Error(errorMessage);
   }
 }
