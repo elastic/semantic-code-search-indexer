@@ -61,9 +61,9 @@ function parseEnvBoolean(envVarName: string, fallback: boolean): boolean {
   const value = process.env[envVarName];
   if (value === undefined || value.trim() === '') return fallback;
   const lower = value.trim().toLowerCase();
-  if (['true', '1', 'yes'].includes(lower)) return true;
-  if (['false', '0', 'no'].includes(lower)) return false;
-  throw new Error(`Invalid configuration: ${envVarName} must be a boolean (true/false), got "${value}"`);
+  if (lower === 'true' || lower === '1') return true;
+  if (lower === 'false' || lower === '0') return false;
+  throw new Error(`Invalid configuration: ${envVarName} must be a boolean (true/false/1/0), got "${value}"`);
 }
 
 // Don't override existing environment variables (important for tests).

@@ -119,9 +119,8 @@ export function parseHeaders(headersString: string): Record<string, string> {
  * @returns A Resource instance with all detected and custom attributes
  */
 function createResource(defaultAttributes: Record<string, string | number> = {}): Resource {
-  // Resource.default() includes the SDK defaults and standard OTEL_* env/resource detectors.
-  // We still merge our defaults in, but ensure OTEL_* wins on collisions by merging the
-  // env detector result last.
+  // Resource.default() includes SDK default attributes (telemetry.sdk.*) and a default service name.
+  // We merge our defaults in, then merge the OTEL env detector output last so OTEL_* wins on collisions.
   let resource = Resource.default();
   resource = resource.merge(new Resource(defaultAttributes));
   resource = resource.merge(envDetectorSync.detect());
