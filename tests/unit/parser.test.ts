@@ -421,6 +421,10 @@ object Main {
         expect.objectContaining({ name: 'variable', kind: 'block.type' }),
         expect.objectContaining({ name: 'output', kind: 'block.type' }),
         expect.objectContaining({ name: 'locals', kind: 'block.type' }),
+        expect.objectContaining({ name: '"aws_s3_bucket"', kind: 'block.label' }),
+        expect.objectContaining({ name: '"logs"', kind: 'block.label' }),
+        expect.objectContaining({ name: 'bucket', kind: 'attribute.name' }),
+        expect.objectContaining({ name: 'description', kind: 'attribute.name' }),
       ])
     );
   });

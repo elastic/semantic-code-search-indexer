@@ -639,7 +639,7 @@ export class LanguageParser {
             // (e.g. Scala captures the whole import_declaration node).
             importPath = capture.node.text
               .replace(/['"]/g, '')
-              .replace(/^import\s+/, '')
+              .replace(/^\s*import\s+/, '')
               .trim();
             pathFound = true;
           } else if (capture.name === IMPORT_CAPTURE_NAMES.SYMBOL) {
