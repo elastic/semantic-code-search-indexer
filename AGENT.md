@@ -68,7 +68,11 @@ See `src/config.ts` for the full list with defaults.
 
 ## Git Hooks (Husky)
 
-Two hooks gate every commit and push — **bypassed only with `--no-verify` or `HUSKY=0`**:
+> **🚨 CRITICAL: NEVER bypass Husky hooks.** Do not use `--no-verify`, `HUSKY=0`, or any
+> other mechanism to skip hooks. No exceptions. If a hook fails, **fix the issue** — do not
+> work around the hook. Broken code must never be committed or pushed. This is a hard rule.
+
+Two hooks gate every commit and push:
 
 | Hook | Runs | Purpose |
 |------|------|---------|
