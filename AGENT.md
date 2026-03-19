@@ -8,7 +8,7 @@ A high-performance CLI tool that parses codebases into semantically meaningful c
 
 ## Architecture
 
-```
+```text
 src/
 ├── index.ts              # CLI entrypoint (commander)
 ├── config.ts             # All configuration — env vars with typed getters
@@ -68,7 +68,7 @@ See `src/config.ts` for the full list with defaults.
 
 ## Git Hooks (Husky)
 
-Two hooks gate every commit and push — **you cannot bypass these without `--no-verify`**:
+Two hooks gate every commit and push — **bypassed only with `--no-verify` or `HUSKY=0`**:
 
 | Hook | Runs | Purpose |
 |------|------|---------|
@@ -138,7 +138,7 @@ Integration tests use a separate vitest config (`vitest.integration.config.ts`) 
 
 ## Code Style & Formatting
 
-- **Prettier** enforced via ESLint plugin. Config in `.prettierrc`:
+- **Prettier** enforced via ESLint plugin. Config in `.prettierrc.json`:
   - Single quotes, trailing commas (es5), 2-space indent, 120 char print width, LF line endings
 - **ESLint** config in `eslint.config.js` (flat config format):
   - Uses `typescript-eslint` recommended rules + prettier plugin
@@ -149,7 +149,7 @@ Integration tests use a separate vitest config (`vitest.integration.config.ts`) 
 
 ## Adding a New Language
 
-1. Run the scaffold command: `npm run -- dump-tree -- --scaffold <language-name>`
+1. Run the scaffold command: `ts-node src/index.ts scaffold-language --name <language> --extensions ".ext"`
    - Or manually copy from `src/languages/templates/`
 2. Create `src/languages/<name>.ts` implementing `LanguageConfiguration`
 3. Register it in `src/languages/index.ts` (add import + add to `languageConfigurations` object)
@@ -180,6 +180,7 @@ The ES client is lazily initialized in `src/utils/elasticsearch.ts`. Commands th
 ### Logging
 
 Use the structured logger from `src/utils/logger.ts`:
+
 ```typescript
 import { logger, createLogger } from './logger';
 logger.info('message', { key: 'value' });
