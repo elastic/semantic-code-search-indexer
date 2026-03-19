@@ -5,7 +5,7 @@ trait Greeter {
   def greet(name: String): String
 }
 
-// A case class
+// A simple class
 class Person(val name: String, val age: Int)
 
 // An object with a function

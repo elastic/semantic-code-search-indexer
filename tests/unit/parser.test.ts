@@ -385,9 +385,7 @@ object Main {
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/scala.scala');
     const allImports = result.chunks.flatMap((chunk) => chunk.imports || []);
     expect(allImports).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ path: 'scala.collection.mutable.ListBuffer' }),
-      ])
+      expect.arrayContaining([expect.objectContaining({ path: 'scala.collection.mutable.ListBuffer' })])
     );
   });
 
