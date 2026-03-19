@@ -25,6 +25,8 @@ const TEST_LANGUAGES = [
   'c',
   'cpp',
   'bash',
+  'scala',
+  'hcl',
 ].join(',');
 
 describe('LanguageParser', () => {
@@ -293,6 +295,63 @@ Content 2`;
     const result = parser.parseFile(hbsFile, 'main', 'tests/fixtures/handlebars.hbs');
     expect(result.chunks.length).toBeGreaterThan(0);
     expect(result.chunks[0].language).toBe('handlebars');
+  });
+
+  it('should recognize .scala file extension', () => {
+    const scalaSource = `import scala.collection.mutable.ListBuffer
+
+object Main {
+  def hello(name: String): String = {
+    if (name.isEmpty) return "Hi"
+    s"Hello, $name"
+  }
+}`;
+    const scalaFile = path.join(os.tmpdir(), `temp_scala_${process.pid}_${Date.now()}.scala`);
+    fs.writeFileSync(scalaFile, scalaSource);
+
+    try {
+      const result = parser.parseFile(scalaFile, 'main', 'temp_scala.scala');
+      expect(result.chunks.length).toBeGreaterThan(0);
+      expect(result.chunks[0].language).toBe('scala');
+      expect(result.metrics.parserType).toBe('tree-sitter');
+    } finally {
+      fs.unlinkSync(scalaFile);
+    }
+  });
+
+  it('should recognize .tf file extension', () => {
+    const hclSource = `resource "aws_s3_bucket" "logs" {
+  bucket = "my-logs-bucket"
+  acl    = "private"
+}`;
+    const tfFile = path.join(os.tmpdir(), `temp_hcl_${process.pid}_${Date.now()}.tf`);
+    fs.writeFileSync(tfFile, hclSource);
+
+    try {
+      const result = parser.parseFile(tfFile, 'main', 'temp_hcl.tf');
+      expect(result.chunks.length).toBeGreaterThan(0);
+      expect(result.chunks[0].language).toBe('hcl');
+      expect(result.metrics.parserType).toBe('tree-sitter');
+    } finally {
+      fs.unlinkSync(tfFile);
+    }
+  });
+
+  it('should recognize .hcl file extension', () => {
+    const hclSource = `locals {
+  environment = "dev"
+}`;
+    const hclFile = path.join(os.tmpdir(), `temp_hcl_${process.pid}_${Date.now()}.hcl`);
+    fs.writeFileSync(hclFile, hclSource);
+
+    try {
+      const result = parser.parseFile(hclFile, 'main', 'temp_hcl.hcl');
+      expect(result.chunks.length).toBeGreaterThan(0);
+      expect(result.chunks[0].language).toBe('hcl');
+      expect(result.metrics.parserType).toBe('tree-sitter');
+    } finally {
+      fs.unlinkSync(hclFile);
+    }
   });
 
   it('should parse C fixtures correctly', () => {

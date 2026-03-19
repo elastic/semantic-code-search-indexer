@@ -129,4 +129,26 @@ describe('parseLanguageNames', () => {
     const allLanguages = Object.keys(languageConfigurations);
     expect(allLanguages).toContain('bash');
   });
+
+  it('should parse scala language', () => {
+    const result = parseLanguageNames('scala');
+    expect(result).toEqual(['scala']);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should include scala in supported languages', () => {
+    const allLanguages = Object.keys(languageConfigurations);
+    expect(allLanguages).toContain('scala');
+  });
+
+  it('should parse hcl language', () => {
+    const result = parseLanguageNames('hcl');
+    expect(result).toEqual(['hcl']);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should include hcl in supported languages', () => {
+    const allLanguages = Object.keys(languageConfigurations);
+    expect(allLanguages).toContain('hcl');
+  });
 });
