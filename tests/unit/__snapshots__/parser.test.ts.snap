@@ -7756,12 +7756,12 @@ resource "aws_s3_bucket" "logs" {
       {
         "kind": "block.label",
         "line": 1,
-        "name": ""aws_s3_bucket"",
+        "name": "aws_s3_bucket",
       },
       {
         "kind": "block.label",
         "line": 1,
-        "name": ""logs"",
+        "name": "logs",
       },
       {
         "kind": "attribute.name",
@@ -7877,7 +7877,7 @@ variable "region" {
       {
         "kind": "block.label",
         "line": 6,
-        "name": ""region"",
+        "name": "region",
       },
       {
         "kind": "attribute.name",
@@ -8025,7 +8025,7 @@ output "bucket_arn" {
       {
         "kind": "block.label",
         "line": 12,
-        "name": ""bucket_arn"",
+        "name": "bucket_arn",
       },
       {
         "kind": "attribute.name",
@@ -8206,12 +8206,12 @@ data "aws_caller_identity" "current" {}",
       {
         "kind": "block.label",
         "line": 21,
-        "name": ""aws_caller_identity"",
+        "name": "aws_caller_identity",
       },
       {
         "kind": "block.label",
         "line": 21,
-        "name": ""current"",
+        "name": "current",
       },
     ],
     "type": "code",
@@ -8253,7 +8253,7 @@ module "vpc" {
       {
         "kind": "block.label",
         "line": 23,
-        "name": ""vpc"",
+        "name": "vpc",
       },
       {
         "kind": "attribute.name",

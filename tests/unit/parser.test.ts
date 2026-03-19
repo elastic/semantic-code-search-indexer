@@ -297,61 +297,38 @@ Content 2`;
     expect(result.chunks[0].language).toBe('handlebars');
   });
 
-  it('should recognize .scala file extension', () => {
-    const scalaSource = `import scala.collection.mutable.ListBuffer
-
-object Main {
-  def hello(name: String): String = {
-    if (name.isEmpty) return "Hi"
-    s"Hello, $name"
-  }
-}`;
-    const scalaFile = path.join(os.tmpdir(), `temp_scala_${process.pid}_${Date.now()}.scala`);
-    fs.writeFileSync(scalaFile, scalaSource);
-
+  const assertExtensionRecognized = (source: string, ext: string, expectedLanguage: string) => {
+    const prefix = `temp_${expectedLanguage}_${process.pid}_${Date.now()}`;
+    const tmpFile = path.join(os.tmpdir(), `${prefix}${ext}`);
+    fs.writeFileSync(tmpFile, source);
     try {
-      const result = parser.parseFile(scalaFile, 'main', 'temp_scala.scala');
+      const result = parser.parseFile(tmpFile, 'main', `${prefix}${ext}`);
       expect(result.chunks.length).toBeGreaterThan(0);
-      expect(result.chunks[0].language).toBe('scala');
+      expect(result.chunks[0].language).toBe(expectedLanguage);
       expect(result.metrics.parserType).toBe('tree-sitter');
     } finally {
-      fs.unlinkSync(scalaFile);
+      fs.unlinkSync(tmpFile);
     }
+  };
+
+  it('should recognize .scala file extension', () => {
+    assertExtensionRecognized(
+      `import scala.collection.mutable.ListBuffer\nobject Main { def hello(name: String): String = s"Hello, $name" }`,
+      '.scala',
+      'scala'
+    );
   });
 
   it('should recognize .tf file extension', () => {
-    const hclSource = `resource "aws_s3_bucket" "logs" {
-  bucket = "my-logs-bucket"
-  acl    = "private"
-}`;
-    const tfFile = path.join(os.tmpdir(), `temp_hcl_${process.pid}_${Date.now()}.tf`);
-    fs.writeFileSync(tfFile, hclSource);
-
-    try {
-      const result = parser.parseFile(tfFile, 'main', 'temp_hcl.tf');
-      expect(result.chunks.length).toBeGreaterThan(0);
-      expect(result.chunks[0].language).toBe('hcl');
-      expect(result.metrics.parserType).toBe('tree-sitter');
-    } finally {
-      fs.unlinkSync(tfFile);
-    }
+    assertExtensionRecognized(
+      `resource "aws_s3_bucket" "logs" {\n  bucket = "my-logs-bucket"\n  acl    = "private"\n}`,
+      '.tf',
+      'hcl'
+    );
   });
 
   it('should recognize .hcl file extension', () => {
-    const hclSource = `locals {
-  environment = "dev"
-}`;
-    const hclFile = path.join(os.tmpdir(), `temp_hcl_${process.pid}_${Date.now()}.hcl`);
-    fs.writeFileSync(hclFile, hclSource);
-
-    try {
-      const result = parser.parseFile(hclFile, 'main', 'temp_hcl.hcl');
-      expect(result.chunks.length).toBeGreaterThan(0);
-      expect(result.chunks[0].language).toBe('hcl');
-      expect(result.metrics.parserType).toBe('tree-sitter');
-    } finally {
-      fs.unlinkSync(hclFile);
-    }
+    assertExtensionRecognized(`locals {\n  environment = "dev"\n}`, '.hcl', 'hcl');
   });
 
   it('should parse Scala fixtures correctly', () => {
@@ -421,8 +398,8 @@ object Main {
         expect.objectContaining({ name: 'variable', kind: 'block.type' }),
         expect.objectContaining({ name: 'output', kind: 'block.type' }),
         expect.objectContaining({ name: 'locals', kind: 'block.type' }),
-        expect.objectContaining({ name: '"aws_s3_bucket"', kind: 'block.label' }),
-        expect.objectContaining({ name: '"logs"', kind: 'block.label' }),
+        expect.objectContaining({ name: 'aws_s3_bucket', kind: 'block.label' }),
+        expect.objectContaining({ name: 'logs', kind: 'block.label' }),
         expect.objectContaining({ name: 'bucket', kind: 'attribute.name' }),
         expect.objectContaining({ name: 'description', kind: 'attribute.name' }),
       ])
