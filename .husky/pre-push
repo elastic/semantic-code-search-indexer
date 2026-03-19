@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "Building, running tests, linting, and checking formatting before commit..."
+echo "Pre-push check: build, test, lint, and format..."
 npm run build && npm run test && npm run lint && npm run format:check
