@@ -17,11 +17,13 @@ import {
   LANG_TEXT,
   LANG_GRADLE,
   LANG_HANDLEBARS,
+  LANG_SQL,
   PARSER_TYPE_MARKDOWN,
   PARSER_TYPE_YAML,
   PARSER_TYPE_JSON,
   PARSER_TYPE_TEXT,
   PARSER_TYPE_HANDLEBARS,
+  PARSER_TYPE_SQL,
   PARSER_TYPE_TREE_SITTER,
 } from './constants';
 import { isSharedExtensionAllowed } from './shared_extensions';
@@ -146,6 +148,29 @@ interface ChunkParams {
   startIndex: number;
   endIndex: number;
   timestamp: string;
+}
+
+/**
+ * Represents a dependency extracted from SQL content.
+ * Used for dbt ref(), source(), macro calls, and table references.
+ */
+interface SqlDependency {
+  type: 'ref' | 'source' | 'macro' | 'table';
+  name: string;
+  schema?: string;
+  line: number;
+}
+
+/**
+ * Represents a parsed SQL structure (CTE, statement, macro, config).
+ */
+interface SqlChunkInfo {
+  content: string;
+  type: string;
+  name?: string;
+  startLine: number;
+  endLine: number;
+  dependencies: SqlDependency[];
 }
 
 /**
@@ -404,6 +429,11 @@ export class LanguageParser {
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
           metricData.parserType = PARSER_TYPE_TEXT;
+        } else if (langConfig.name === LANG_SQL) {
+          const result = this.parseSql(filePath, gitBranch, relativePath);
+          chunks = result.chunks;
+          metricData.chunksSkipped += result.chunksSkipped;
+          metricData.parserType = PARSER_TYPE_SQL;
         } else {
           chunks = [];
         }
@@ -591,6 +621,579 @@ export class LanguageParser {
     relativePath: string
   ): { chunks: CodeChunk[]; chunksSkipped: number } {
     return this.parseByLines(filePath, gitBranch, relativePath, LANG_JSON);
+  }
+
+  /**
+   * Parses SQL files with dbt/Jinja awareness.
+   * Extracts CTEs, statements, macros, and dependencies including:
+   * - dbt ref() references
+   * - dbt source() references
+   * - Macro calls
+   * - Standard SQL table references from FROM/JOIN clauses
+   *
+   * @param filePath - Absolute path to the file
+   * @param gitBranch - Git branch name
+   * @param relativePath - Relative path from repository root
+   * @returns Object with chunks array and chunksSkipped count
+   */
+  private parseSql(
+    filePath: string,
+    gitBranch: string,
+    relativePath: string
+  ): { chunks: CodeChunk[]; chunksSkipped: number } {
+    const { content, gitFileHash, timestamp } = this.readFileWithMetadata(filePath);
+
+    const chunks: CodeChunk[] = [];
+    let chunksSkipped = 0;
+
+    // Extract dependencies from the entire file
+    const dependencies = this.extractSqlDependencies(content);
+
+    // Check if this is a dbt macro file
+    const macroBlocks = this.extractDbtMacros(content);
+    if (macroBlocks.length > 0) {
+      // Parse as macro file - create a chunk per macro
+      for (const macro of macroBlocks) {
+        if (!this.validateChunkSize(macro.content, filePath)) {
+          chunksSkipped++;
+          continue;
+        }
+
+        const chunk = this.createSqlChunk({
+          content: macro.content,
+          relativePath,
+          gitFileHash,
+          gitBranch,
+          startLine: macro.startLine,
+          endLine: macro.endLine,
+          timestamp,
+          kind: 'macro',
+          name: macro.name,
+          dependencies: macro.dependencies,
+        });
+        chunks.push(chunk);
+      }
+
+      return { chunks, chunksSkipped };
+    }
+
+    // For model/query files, extract SQL structures
+    const sqlChunks = this.extractSqlStructures(content, dependencies);
+
+    if (sqlChunks.length === 0) {
+      // Fallback: treat as whole file if no structures detected
+      if (!this.validateChunkSize(content, filePath)) {
+        return { chunks: [], chunksSkipped: 1 };
+      }
+
+      const lines = content.split('\n');
+      const chunk = this.createSqlChunk({
+        content,
+        relativePath,
+        gitFileHash,
+        gitBranch,
+        startLine: 1,
+        endLine: lines.length,
+        timestamp,
+        kind: 'statement',
+        dependencies,
+      });
+      return { chunks: [chunk], chunksSkipped: 0 };
+    }
+
+    // Create chunks from extracted structures
+    for (const sqlChunk of sqlChunks) {
+      if (!this.validateChunkSize(sqlChunk.content, filePath)) {
+        chunksSkipped++;
+        continue;
+      }
+
+      chunks.push(
+        this.createSqlChunk({
+          content: sqlChunk.content,
+          relativePath,
+          gitFileHash,
+          gitBranch,
+          startLine: sqlChunk.startLine,
+          endLine: sqlChunk.endLine,
+          timestamp,
+          kind: sqlChunk.type,
+          name: sqlChunk.name,
+          dependencies: sqlChunk.dependencies,
+        })
+      );
+    }
+
+    return { chunks, chunksSkipped };
+  }
+
+  /**
+   * Extracts dbt/Jinja dependencies from SQL content.
+   * Handles ref(), source(), macro calls, and table references.
+   *
+   * @param content - The SQL file content
+   * @param lineOffset - Offset to add to line numbers (for macro chunks)
+   * @returns Array of SqlDependency objects
+   */
+  private extractSqlDependencies(content: string, lineOffset: number = 0): SqlDependency[] {
+    const dependencies: SqlDependency[] = [];
+    const lines = content.split('\n');
+
+    // Pattern for {{ ref('model_name') }} or {{ ref("model_name") }}
+    const refPattern = /\{\{\s*ref\s*\(\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
+
+    // Pattern for {{ source('source_name', 'table_name') }}
+    const sourcePattern = /\{\{\s*source\s*\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
+
+    // Pattern for {{ macro_name(...) }} or {{ namespace.macro_name(...) }}
+    // Captures optional namespace prefix and macro name
+    const macroPattern = /\{\{\s*(?:([a-zA-Z_][a-zA-Z0-9_]*)\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+    const builtinMacros = new Set([
+      'ref',
+      'source',
+      'config',
+      'this',
+      'var',
+      'env_var',
+      'target',
+      'adapter',
+      'return',
+      'log',
+      'exceptions',
+      'run_query',
+      'statement',
+      'set',
+      'do',
+      'if',
+      'for',
+      'elif',
+      'else',
+      'endif',
+      'endfor',
+      'macro',
+      'endmacro',
+      'call',
+      'block',
+      'filter',
+    ]);
+    // Namespaces that contain built-in helpers (e.g., dbt.date_trunc)
+    const builtinNamespaces = new Set(['dbt', 'adapter', 'exceptions']);
+
+    // Pattern for FROM/JOIN table references (handles schema.table)
+    // Excludes Jinja expressions that start with {{
+    const tablePattern = /\b(?:FROM|JOIN)\s+(?!\{\{)([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)\b/gi;
+
+    lines.forEach((line, index) => {
+      const lineNum = index + 1 + lineOffset;
+
+      // Extract refs
+      let match;
+      while ((match = refPattern.exec(line)) !== null) {
+        dependencies.push({
+          type: 'ref',
+          name: match[1],
+          line: lineNum,
+        });
+      }
+      refPattern.lastIndex = 0;
+
+      // Extract sources
+      while ((match = sourcePattern.exec(line)) !== null) {
+        dependencies.push({
+          type: 'source',
+          schema: match[1],
+          name: match[2],
+          line: lineNum,
+        });
+      }
+      sourcePattern.lastIndex = 0;
+
+      // Extract macro calls (handles {{ macro() }} and {{ namespace.macro() }})
+      while ((match = macroPattern.exec(line)) !== null) {
+        const namespace = match[1]; // Optional namespace (e.g., 'dbt')
+        const macroName = match[2]; // Macro name
+
+        // Skip if it's a builtin namespace (dbt.*, adapter.*, exceptions.*)
+        if (namespace && builtinNamespaces.has(namespace.toLowerCase())) {
+          continue;
+        }
+        // Skip if it's a builtin macro without namespace
+        if (!namespace && builtinMacros.has(macroName.toLowerCase())) {
+          continue;
+        }
+
+        dependencies.push({
+          type: 'macro',
+          name: namespace ? `${namespace}.${macroName}` : macroName,
+          line: lineNum,
+        });
+      }
+      macroPattern.lastIndex = 0;
+
+      // Extract table references (only non-Jinja ones)
+      while ((match = tablePattern.exec(line)) !== null) {
+        if (match[1]) {
+          const parts = match[1].split('.');
+          dependencies.push({
+            type: 'table',
+            name: parts[parts.length - 1],
+            schema: parts.length > 1 ? parts[0] : undefined,
+            line: lineNum,
+          });
+        }
+      }
+      tablePattern.lastIndex = 0;
+    });
+
+    return dependencies;
+  }
+
+  /**
+   * Extracts SQL structures (CTEs, statements) from content.
+   * Handles WITH clauses, SELECT/INSERT/UPDATE/DELETE, CREATE statements.
+   *
+   * @param content - The SQL file content
+   * @param allDependencies - All dependencies extracted from the file
+   * @returns Array of SqlChunkInfo objects
+   */
+  private extractSqlStructures(content: string, allDependencies: SqlDependency[]): SqlChunkInfo[] {
+    const chunks: SqlChunkInfo[] = [];
+    const lines = content.split('\n');
+
+    // Pattern to detect CTE definitions: name AS (
+    const ctePattern = /^\s*,?\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+[Aa][Ss]\s*\(/;
+
+    // Pattern to detect main query start (end of WITH clause)
+    const mainQueryPattern = /^\s*(SELECT|INSERT|UPDATE|DELETE|MERGE)\b/i;
+
+    // Pattern to detect CREATE statements
+    const createPattern =
+      /^\s*CREATE\s+(OR\s+REPLACE\s+)?(TABLE|VIEW|FUNCTION|PROCEDURE|MATERIALIZED\s+VIEW|SCHEMA|INDEX)/i;
+
+    // Pattern to detect WITH clause start
+    const withPattern = /^\s*WITH\b/i;
+
+    // Pattern to detect dbt config block
+    const configPattern = /\{\{\s*config\s*\(/;
+
+    // Track parsing state
+    let inWith = false;
+    let currentCte: { name: string; startLine: number; content: string[]; parenDepth: number } | null = null;
+    let mainStatementStart: number | null = null;
+    let mainStatementContent: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineNum = i + 1;
+
+      // Skip empty lines and comments at the start
+      if (mainStatementStart === null && !inWith && /^\s*(--|\/\*|\s*$)/.test(line)) {
+        continue;
+      }
+
+      // Check for WITH clause start
+      if (withPattern.test(line) && !inWith) {
+        inWith = true;
+
+        // Check if CTE name is on the same line (e.g., "WITH source AS (")
+        const afterWith = line.replace(/^\s*WITH\s*/i, '');
+        const cteMatch = afterWith.match(ctePattern);
+        if (cteMatch) {
+          currentCte = {
+            name: cteMatch[1],
+            startLine: lineNum,
+            content: [line],
+            parenDepth: (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length,
+          };
+        }
+        continue;
+      }
+
+      // Process CTEs
+      if (inWith) {
+        // Check for new CTE
+        if (!currentCte) {
+          const cteMatch = line.match(ctePattern);
+          if (cteMatch) {
+            currentCte = {
+              name: cteMatch[1],
+              startLine: lineNum,
+              content: [line],
+              parenDepth: (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length,
+            };
+            continue;
+          }
+        }
+
+        // Track current CTE
+        if (currentCte) {
+          currentCte.content.push(line);
+          currentCte.parenDepth += (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length;
+
+          // CTE ends when parentheses balance
+          if (currentCte.parenDepth <= 0) {
+            const cteContent = currentCte.content.join('\n');
+            const cteDeps = allDependencies.filter((d) => d.line >= currentCte!.startLine && d.line <= lineNum);
+
+            chunks.push({
+              content: cteContent,
+              type: 'cte',
+              name: currentCte.name,
+              startLine: currentCte.startLine,
+              endLine: lineNum,
+              dependencies: cteDeps,
+            });
+
+            currentCte = null;
+          }
+          continue;
+        }
+
+        // Check for main query start (end of WITH clause)
+        if (mainQueryPattern.test(line)) {
+          inWith = false;
+          mainStatementStart = lineNum;
+          mainStatementContent = [line];
+        }
+        continue;
+      }
+
+      // Check for CREATE statements
+      if (createPattern.test(line)) {
+        if (mainStatementStart !== null) {
+          // Save previous statement
+          const stmtContent = mainStatementContent.join('\n');
+          const stmtDeps = allDependencies.filter((d) => d.line >= mainStatementStart! && d.line <= i);
+          chunks.push({
+            content: stmtContent,
+            type: 'statement',
+            startLine: mainStatementStart,
+            endLine: i,
+            dependencies: stmtDeps,
+          });
+        }
+        mainStatementStart = lineNum;
+        mainStatementContent = [line];
+
+        // Check if this CREATE statement ends on the same line (has semicolon)
+        if (line.includes(';')) {
+          const stmtContent = mainStatementContent.join('\n');
+          const stmtDeps = allDependencies.filter((d) => d.line === lineNum);
+          chunks.push({
+            content: stmtContent,
+            type: 'statement',
+            startLine: mainStatementStart,
+            endLine: lineNum,
+            dependencies: stmtDeps,
+          });
+          mainStatementStart = null;
+          mainStatementContent = [];
+        }
+        continue;
+      }
+
+      // Check for standalone SELECT/INSERT/UPDATE/DELETE (not part of WITH)
+      if (mainQueryPattern.test(line) && mainStatementStart === null) {
+        mainStatementStart = lineNum;
+        mainStatementContent = [line];
+        continue;
+      }
+
+      // Check for statement end (semicolon) to finalize current CREATE/SELECT statement
+      if (mainStatementStart !== null && line.includes(';') && !inWith) {
+        mainStatementContent.push(line);
+        const stmtContent = mainStatementContent.join('\n');
+        const stmtDeps = allDependencies.filter((d) => d.line >= mainStatementStart! && d.line <= lineNum);
+        chunks.push({
+          content: stmtContent,
+          type: 'statement',
+          startLine: mainStatementStart,
+          endLine: lineNum,
+          dependencies: stmtDeps,
+        });
+        mainStatementStart = null;
+        mainStatementContent = [];
+        continue;
+      }
+
+      // Check for dbt config block as first content
+      if (configPattern.test(line) && chunks.length === 0 && mainStatementStart === null) {
+        // Find the end of the config block
+        let configEnd = i;
+        let braceDepth = (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length;
+        const configLines = [line];
+
+        while (braceDepth > 0 && configEnd < lines.length - 1) {
+          configEnd++;
+          configLines.push(lines[configEnd]);
+          braceDepth += (lines[configEnd].match(/\(/g) || []).length - (lines[configEnd].match(/\)/g) || []).length;
+        }
+
+        chunks.push({
+          content: configLines.join('\n'),
+          type: 'config',
+          startLine: lineNum,
+          endLine: configEnd + 1,
+          dependencies: [],
+        });
+
+        i = configEnd;
+        continue;
+      }
+
+      // Continue building current statement
+      if (mainStatementStart !== null) {
+        mainStatementContent.push(line);
+      }
+    }
+
+    // Finalize any remaining statement
+    if (mainStatementStart !== null && mainStatementContent.length > 0) {
+      const stmtContent = mainStatementContent.join('\n');
+      const stmtDeps = allDependencies.filter((d) => d.line >= mainStatementStart! && d.line <= lines.length);
+      chunks.push({
+        content: stmtContent,
+        type: 'statement',
+        startLine: mainStatementStart,
+        endLine: lines.length,
+        dependencies: stmtDeps,
+      });
+    }
+
+    return chunks;
+  }
+
+  /**
+   * Extracts dbt macro definitions from content.
+   * Handles {% macro name(...) %} ... {% endmacro %} blocks.
+   *
+   * @param content - The SQL file content
+   * @returns Array of SqlChunkInfo objects for each macro
+   */
+  private extractDbtMacros(content: string): SqlChunkInfo[] {
+    const macros: SqlChunkInfo[] = [];
+    const lines = content.split('\n');
+
+    // Pattern for macro start: {% macro name(args) %} or {% macro name %}
+    // Supports both macros with arguments and without
+    const macroStartPattern = /\{%[-\s]*macro\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:\(|%\}|-?%\})/;
+
+    // Pattern for macro end: {% endmacro %} or {%- endmacro -%}
+    const macroEndPattern = /\{%[-\s]*endmacro\s*[-]?%\}/;
+
+    let currentMacro: { name: string; startLine: number; content: string[] } | null = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineNum = i + 1;
+
+      if (currentMacro) {
+        currentMacro.content.push(line);
+
+        if (macroEndPattern.test(line)) {
+          const macroContent = currentMacro.content.join('\n');
+          // Pass line offset so dependency line numbers are relative to file, not macro
+          const macroDeps = this.extractSqlDependencies(macroContent, currentMacro.startLine - 1);
+
+          macros.push({
+            content: macroContent,
+            type: 'macro',
+            name: currentMacro.name,
+            startLine: currentMacro.startLine,
+            endLine: lineNum,
+            dependencies: macroDeps,
+          });
+
+          currentMacro = null;
+        }
+      } else {
+        const startMatch = line.match(macroStartPattern);
+        if (startMatch) {
+          currentMacro = {
+            name: startMatch[1],
+            startLine: lineNum,
+            content: [line],
+          };
+        }
+      }
+    }
+
+    return macros;
+  }
+
+  /**
+   * Creates a CodeChunk for SQL content with dependency information.
+   *
+   * @param params - Parameters for SQL chunk creation
+   * @returns Complete CodeChunk object with semantic_text
+   */
+  private createSqlChunk(params: {
+    content: string;
+    relativePath: string;
+    gitFileHash: string;
+    gitBranch: string;
+    startLine: number;
+    endLine: number;
+    timestamp: string;
+    kind: string;
+    name?: string;
+    dependencies: SqlDependency[];
+  }): CodeChunk {
+    const chunkHash = createChunkHash({
+      type: CHUNK_TYPE_CODE,
+      language: LANG_SQL,
+      relativePath: params.relativePath,
+      gitBranch: params.gitBranch,
+      gitFileHash: params.gitFileHash,
+      startLine: params.startLine,
+      endLine: params.endLine,
+      startIndex: 0,
+      endIndex: params.content.length,
+      content: params.content,
+    });
+    const directoryInfo = extractDirectoryInfo(params.relativePath);
+
+    // Convert SQL dependencies to imports format
+    const imports = params.dependencies
+      .filter((d) => d.type === 'ref' || d.type === 'source')
+      .map((d) => ({
+        path: d.type === 'ref' ? `ref:${d.name}` : `source:${d.schema}.${d.name}`,
+        type: 'file' as const,
+        symbols: [d.name],
+      }));
+
+    // Create symbols from dependency types
+    // Use fully-qualified names when schema is available to avoid collisions
+    const symbols: SymbolInfo[] = params.dependencies.map((d) => ({
+      name: d.schema ? `${d.schema}.${d.name}` : d.name,
+      kind: `sql.${d.type}`,
+      line: d.line,
+    }));
+
+    const baseChunk: Omit<CodeChunk, 'semantic_text' | 'code_vector'> = {
+      type: CHUNK_TYPE_CODE,
+      language: LANG_SQL,
+      kind: params.kind,
+      imports,
+      symbols,
+      exports: [],
+      containerPath: params.name || '',
+      filePath: params.relativePath,
+      ...directoryInfo,
+      git_file_hash: params.gitFileHash,
+      git_branch: params.gitBranch,
+      chunk_hash: chunkHash,
+      startLine: params.startLine,
+      endLine: params.endLine,
+      content: params.content,
+      created_at: params.timestamp,
+      updated_at: params.timestamp,
+    };
+
+    return {
+      ...baseChunk,
+      semantic_text: this.prepareSemanticText(baseChunk),
+    };
   }
 
   private parseWithTreeSitter(
