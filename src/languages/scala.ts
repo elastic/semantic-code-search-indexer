@@ -12,10 +12,15 @@ export const scalaConfig: LanguageConfiguration = {
     '(function_definition) @function',
     '(class_definition) @class',
     '(object_definition) @object',
+    '(trait_definition) @trait',
+    '(enum_definition) @enum',
     '(comment) @comment',
     '(block_comment) @comment',
   ],
-  importQueries: ['(import_declaration path: (identifier) @import.path)'],
+  // Scala import paths are flat sequences of identifiers in the tree-sitter AST
+  // (no single wrapper node like Java's scoped_identifier), so structured import
+  // metadata extraction is not supported. Imports still appear in chunk content
+  // via the (import_declaration) query above.
   symbolQueries: [
     '(class_definition name: (identifier) @class.name)',
     '(object_definition name: (identifier) @object.name)',

@@ -354,29 +354,64 @@ object Main {
     }
   });
 
-  it('should parse C fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, '../fixtures/c.c');
-    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/c.c');
+  it('should parse Scala fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/scala.scala');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/scala.scala');
+    expect(result.chunks.length).toBeGreaterThan(0);
+    expect(result.chunks[0].language).toBe('scala');
+    expect(result.metrics.parserType).toBe('tree-sitter');
     expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
   });
 
-  it('should extract symbols from C fixtures correctly', () => {
-    const filePath = path.resolve(__dirname, '../fixtures/c.c');
-    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/c.c');
+  it('should extract symbols from Scala fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/scala.scala');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/scala.scala');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
     expect(allSymbols).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'add', kind: 'function.name' }),
-        expect.objectContaining({ name: 'test_function', kind: 'function.name' }),
+        expect.objectContaining({ name: 'Greeter', kind: 'trait.name' }),
+        expect.objectContaining({ name: 'Person', kind: 'class.name' }),
+        expect.objectContaining({ name: 'HelloWorld', kind: 'object.name' }),
+        expect.objectContaining({ name: 'greet', kind: 'function.name' }),
         expect.objectContaining({ name: 'main', kind: 'function.name' }),
-        expect.objectContaining({ name: 'add', kind: 'function.call' }),
-        expect.objectContaining({ name: 'printf', kind: 'function.call' }),
-        expect.objectContaining({ name: 'Point', kind: 'struct.name' }),
-        expect.objectContaining({ name: 'Data', kind: 'union.name' }),
-        expect.objectContaining({ name: 'Color', kind: 'enum.name' }),
-        expect.objectContaining({ name: 'Point_t', kind: 'type.name' }),
-        expect.objectContaining({ name: 'global_var', kind: 'variable.name' }),
-        expect.objectContaining({ name: 'point', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'greeting', kind: 'variable.name' }),
+        expect.objectContaining({ name: 'counter', kind: 'variable.name' }),
+      ])
+    );
+  });
+
+  it('should extract exports from Scala fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/scala.scala');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/scala.scala');
+    const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
+    expect(allExports).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'HelloWorld' }),
+        expect.objectContaining({ name: 'Greeter' }),
+        expect.objectContaining({ name: 'Person' }),
+      ])
+    );
+  });
+
+  it('should parse HCL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/hcl.tf');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/hcl.tf');
+    expect(result.chunks.length).toBeGreaterThan(0);
+    expect(result.chunks[0].language).toBe('hcl');
+    expect(result.metrics.parserType).toBe('tree-sitter');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
+  });
+
+  it('should extract symbols from HCL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/hcl.tf');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/hcl.tf');
+    const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
+    expect(allSymbols).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'resource', kind: 'block.type' }),
+        expect.objectContaining({ name: 'variable', kind: 'block.type' }),
+        expect.objectContaining({ name: 'output', kind: 'block.type' }),
+        expect.objectContaining({ name: 'locals', kind: 'block.type' }),
       ])
     );
   });
