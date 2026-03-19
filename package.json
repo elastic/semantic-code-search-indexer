@@ -18,7 +18,7 @@
     "queue:retry-failed": "ts-node src/index.ts queue:retry-failed",
     "queue:list-failed": "ts-node src/index.ts queue:list-failed",
     "dump-tree": "ts-node src/index.ts dump-tree",
-    "test": "OTEL_SERVICE_NAME= OTEL_RESOURCE_ATTRIBUTES= vitest run",
+    "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run tests/unit/**",

@@ -7,7 +7,8 @@ export const hclConfig: LanguageConfiguration = {
   parser: hcl,
   queries: ['(block) @block', '(attribute) @attribute', '(function_call) @function_call', '(comment) @comment'],
   symbolQueries: [
-    '(block (identifier) @block.name)',
+    '(block (identifier) @block.type)',
+    '(block (string_lit) @block.label)',
     '(attribute (identifier) @attribute.name)',
     '(function_call (identifier) @function.call)',
   ],
