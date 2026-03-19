@@ -17,10 +17,10 @@ export const scalaConfig: LanguageConfiguration = {
     '(comment) @comment',
     '(block_comment) @comment',
   ],
-  // Scala import paths are flat sequences of identifiers in the tree-sitter AST
-  // (no single wrapper node like Java's scoped_identifier), so structured import
-  // metadata extraction is not supported. Imports still appear in chunk content
-  // via the (import_declaration) query above.
+  // Scala import paths are flat identifier sequences with no single wrapper node
+  // (unlike Java's scoped_identifier). Capturing the whole import_declaration node
+  // and stripping the leading "import " keyword gives the full dotted path reliably.
+  importQueries: ['(import_declaration) @import.path'],
   symbolQueries: [
     '(class_definition name: (identifier) @class.name)',
     '(object_definition name: (identifier) @object.name)',

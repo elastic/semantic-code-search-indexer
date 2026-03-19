@@ -635,7 +635,9 @@ export class LanguageParser {
 
         for (const capture of match.captures) {
           if (capture.name === IMPORT_CAPTURE_NAMES.PATH) {
-            importPath = capture.node.text.replace(/['"]/g, '');
+            // Strip quotes (e.g. Go/Python string literals) and leading keyword
+            // (e.g. Scala captures the whole import_declaration node).
+            importPath = capture.node.text.replace(/['"]/g, '').replace(/^import\s+/, '').trim();
             pathFound = true;
           } else if (capture.name === IMPORT_CAPTURE_NAMES.SYMBOL) {
             symbols.push(capture.node.text);

@@ -380,6 +380,17 @@ object Main {
     );
   });
 
+  it('should extract imports from Scala fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/scala.scala');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/scala.scala');
+    const allImports = result.chunks.flatMap((chunk) => chunk.imports || []);
+    expect(allImports).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: 'scala.collection.mutable.ListBuffer' }),
+      ])
+    );
+  });
+
   it('should extract exports from Scala fixtures correctly', () => {
     const filePath = path.resolve(__dirname, '../fixtures/scala.scala');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/scala.scala');

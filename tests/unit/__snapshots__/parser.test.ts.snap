@@ -9841,7 +9841,13 @@ exports[`LanguageParser > should parse Scala fixtures correctly 1`] = `
     "filePath": "tests/fixtures/scala.scala",
     "git_branch": "main",
     "git_file_hash": "0ef731495489c5fbbe834070053ae557864404b4",
-    "imports": [],
+    "imports": [
+      {
+        "path": "scala.collection.mutable.ListBuffer",
+        "symbols": [],
+        "type": "module",
+      },
+    ],
     "kind": "import_declaration",
     "language": "scala",
     "semantic_text": "language: scala
