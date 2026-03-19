@@ -14,6 +14,8 @@ import { handlebarsConfig } from './handlebars';
 import { cConfig } from './c';
 import { cppConfig } from './cpp';
 import { bashConfig } from './bash';
+import { scalaConfig } from './scala';
+import { hclConfig } from './hcl';
 import { LanguageConfiguration } from '../utils/parser';
 import {
   validateLanguageConfiguration,
@@ -37,6 +39,8 @@ export const languageConfigurations = {
   c: cConfig,
   cpp: cppConfig,
   bash: bashConfig,
+  scala: scalaConfig,
+  hcl: hclConfig,
 } as const;
 
 /**
