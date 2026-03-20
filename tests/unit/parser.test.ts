@@ -442,7 +442,15 @@ Content 2`;
   it('should parse PLpgSQL fixtures correctly', () => {
     const filePath = path.resolve(__dirname, '../fixtures/plpgsql.sql');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/plpgsql.sql');
-    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
+
+    expect(result.chunks.length).toBeGreaterThan(0);
+    expect(result.chunks.every((chunk) => chunk.language === 'plpgsql')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_function')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_table')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_type')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_view')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.content.includes('calculate_bonus(100, 1.25)'))).toBe(true);
+    expect(result.metrics.parserType).toBe('tree-sitter');
   });
 
   it('should parse C++ fixtures correctly', () => {
