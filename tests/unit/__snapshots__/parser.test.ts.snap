@@ -9504,6 +9504,241 @@ This is another paragraph.
 ]
 `;
 
+exports[`LanguageParser > should parse PLpgSQL fixtures correctly 1`] = `
+[
+  {
+    "chunk_hash": "7532810589e16686ea1bdd29781d441d91f39dbc21079b7ab4412b5202df1075",
+    "containerPath": "",
+    "content": "-- PLpgSQL fixture for parser tests",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 1,
+    "exports": [],
+    "filePath": "tests/fixtures/plpgsql.sql",
+    "git_branch": "main",
+    "git_file_hash": "2fca3e07cf5c8ae311ecdbfe64c89a8ae8d3b884",
+    "imports": [],
+    "kind": "comment",
+    "language": "plpgsql",
+    "semantic_text": "language: plpgsql
+kind: comment
+
+-- PLpgSQL fixture for parser tests",
+    "startLine": 1,
+    "symbols": [],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "86d2af1627ba1b59c6712d912d0882ac36f46302b7f1645a8ac3324c901b6837",
+    "containerPath": "",
+    "content": "CREATE TYPE status_enum AS ENUM ('active', 'inactive')",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 2,
+    "exports": [
+      {
+        "name": "status_enum",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/plpgsql.sql",
+    "git_branch": "main",
+    "git_file_hash": "2fca3e07cf5c8ae311ecdbfe64c89a8ae8d3b884",
+    "imports": [],
+    "kind": "create_type",
+    "language": "plpgsql",
+    "semantic_text": "language: plpgsql
+kind: create_type
+
+CREATE TYPE status_enum AS ENUM ('active', 'inactive')",
+    "startLine": 2,
+    "symbols": [
+      {
+        "kind": "type.name",
+        "line": 2,
+        "name": "status_enum",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "58dca34acb6892274f3da2fe5f08ff7c21ee81464a6245d05ea5f961fe86cdfb",
+    "containerPath": "",
+    "content": "CREATE TABLE accounts (
+  account_id SERIAL PRIMARY KEY,
+  owner_name TEXT NOT NULL,
+  status status_enum NOT NULL DEFAULT 'active',
+  balance NUMERIC(12, 2) NOT NULL DEFAULT 0
+)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 9,
+    "exports": [
+      {
+        "name": "accounts",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/plpgsql.sql",
+    "git_branch": "main",
+    "git_file_hash": "2fca3e07cf5c8ae311ecdbfe64c89a8ae8d3b884",
+    "imports": [],
+    "kind": "create_table",
+    "language": "plpgsql",
+    "semantic_text": "language: plpgsql
+kind: create_table
+
+CREATE TABLE accounts (
+  account_id SERIAL PRIMARY KEY,
+  owner_name TEXT NOT NULL,
+  status status_enum NOT NULL DEFAULT 'active',
+  balance NUMERIC(12, 2) NOT NULL DEFAULT 0
+)",
+    "startLine": 4,
+    "symbols": [
+      {
+        "kind": "table.name",
+        "line": 4,
+        "name": "accounts",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "36d6be09744926d7845851b9595946e146f4ed609d63a52450b4c99374da7f5f",
+    "containerPath": "",
+    "content": "CREATE OR REPLACE FUNCTION calculate_bonus(base_amount NUMERIC, multiplier NUMERIC)
+RETURNS NUMERIC
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN base_amount * multiplier;
+END;
+$$",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 18,
+    "exports": [
+      {
+        "name": "calculate_bonus",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/plpgsql.sql",
+    "git_branch": "main",
+    "git_file_hash": "2fca3e07cf5c8ae311ecdbfe64c89a8ae8d3b884",
+    "imports": [],
+    "kind": "create_function",
+    "language": "plpgsql",
+    "semantic_text": "language: plpgsql
+kind: create_function
+
+CREATE OR REPLACE FUNCTION calculate_bonus(base_amount NUMERIC, multiplier NUMERIC)
+RETURNS NUMERIC
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN base_amount * multiplier;
+END;
+$$",
+    "startLine": 11,
+    "symbols": [
+      {
+        "kind": "function.name",
+        "line": 11,
+        "name": "calculate_bonus",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "fe6133d2bf92d1b6624038a7d4b912b395a22da6947e1a63a429b55b42b6de06",
+    "containerPath": "",
+    "content": "CREATE VIEW active_accounts AS
+SELECT account_id, owner_name, balance
+FROM accounts
+WHERE status = 'active'",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 23,
+    "exports": [
+      {
+        "name": "active_accounts",
+        "type": "named",
+      },
+    ],
+    "filePath": "tests/fixtures/plpgsql.sql",
+    "git_branch": "main",
+    "git_file_hash": "2fca3e07cf5c8ae311ecdbfe64c89a8ae8d3b884",
+    "imports": [],
+    "kind": "create_view",
+    "language": "plpgsql",
+    "semantic_text": "language: plpgsql
+kind: create_view
+
+CREATE VIEW active_accounts AS
+SELECT account_id, owner_name, balance
+FROM accounts
+WHERE status = 'active'",
+    "startLine": 20,
+    "symbols": [
+      {
+        "kind": "view.name",
+        "line": 20,
+        "name": "active_accounts",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+  {
+    "chunk_hash": "755ae962a59d1afb00907b9ec58f93561e24634fa8f88a4908dcddec27fb1de8",
+    "containerPath": "",
+    "content": "calculate_bonus(100, 1.25)",
+    "created_at": "[TIMESTAMP]",
+    "directoryDepth": 2,
+    "directoryName": "fixtures",
+    "directoryPath": "tests/fixtures",
+    "endLine": 25,
+    "exports": [],
+    "filePath": "tests/fixtures/plpgsql.sql",
+    "git_branch": "main",
+    "git_file_hash": "2fca3e07cf5c8ae311ecdbfe64c89a8ae8d3b884",
+    "imports": [],
+    "kind": "invocation",
+    "language": "plpgsql",
+    "semantic_text": "language: plpgsql
+kind: invocation
+
+calculate_bonus(100, 1.25)",
+    "startLine": 25,
+    "symbols": [
+      {
+        "kind": "function.call",
+        "line": 25,
+        "name": "calculate_bonus",
+      },
+    ],
+    "type": "code",
+    "updated_at": "[TIMESTAMP]",
+  },
+]
+`;
+
 exports[`LanguageParser > should parse Properties fixtures correctly 1`] = `
 [
   {

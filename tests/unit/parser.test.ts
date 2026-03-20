@@ -27,6 +27,7 @@ const TEST_LANGUAGES = [
   'bash',
   'scala',
   'hcl',
+  'plpgsql',
 ].join(',');
 
 describe('LanguageParser', () => {
@@ -86,7 +87,7 @@ describe('LanguageParser', () => {
     });
 
     it('should parse Markdown with section delimiter (---)', () =>
-      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\n---\n' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/markdown_sections.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown_sections.md');
 
@@ -109,7 +110,7 @@ describe('LanguageParser', () => {
       }));
 
     it('should parse Markdown with custom delimiter (===)', () =>
-      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n===\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\n===\n' }, () => {
         const testContent = `Part 1
 Content here
 
@@ -139,7 +140,7 @@ Final content`;
       }));
 
     it('should handle markdown with no delimiter matches', () =>
-      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\n---\n' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
 
@@ -148,7 +149,7 @@ Final content`;
       }));
 
     it('should filter empty chunks when using custom delimiter', () =>
-      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\\n---\\n' }, () => {
+      withTestEnv({ SCS_IDXR_MARKDOWN_CHUNK_DELIMITER: '\n---\n' }, () => {
         const testContent = `Content 1
 
 ---
@@ -269,23 +270,16 @@ Content 2`;
     const filePath = path.resolve(__dirname, '../fixtures/handlebars.hbs');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/handlebars.hbs');
 
-    // Verify exactly one chunk was created (whole file approach)
     expect(result.chunks.length).toBe(1);
-
-    // Verify language is set correctly
     expect(result.chunks[0].language).toBe('handlebars');
-
-    // Verify parser type
     expect(result.metrics.parserType).toBe('handlebars');
 
-    // Verify both static content and Handlebars expressions are captured
     const content = result.chunks[0].content;
     expect(content).toContain('metricsets');
     expect(content).toContain('{{');
     expect(content).toContain('{{#each hosts}}');
     expect(content).toContain('{{path}}');
 
-    // Verify line numbers span the entire file
     expect(result.chunks[0].startLine).toBe(1);
     expect(result.chunks[0].endLine).toBeGreaterThan(1);
   });
@@ -329,6 +323,14 @@ Content 2`;
 
   it('should recognize .hcl file extension', () => {
     assertExtensionRecognized(`locals {\n  environment = "dev"\n}`, '.hcl', 'hcl');
+  });
+
+  it('should recognize .sql file extension as plpgsql', () => {
+    const sqlFile = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(sqlFile, 'main', 'tests/fixtures/plpgsql.sql');
+    expect(result.chunks.length).toBeGreaterThan(0);
+    expect(result.chunks[0].language).toBe('plpgsql');
+    expect(result.metrics.parserType).toBe('tree-sitter');
   });
 
   it('should parse Scala fixtures correctly', () => {
@@ -406,6 +408,43 @@ Content 2`;
     );
   });
 
+  it('should extract symbols from PLpgSQL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/plpgsql.sql');
+    const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
+
+    expect(allSymbols).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'status_enum', kind: 'type.name' }),
+        expect.objectContaining({ name: 'accounts', kind: 'table.name' }),
+        expect.objectContaining({ name: 'active_accounts', kind: 'view.name' }),
+        expect.objectContaining({ name: 'calculate_bonus', kind: 'function.name' }),
+        expect.objectContaining({ name: 'calculate_bonus', kind: 'function.call' }),
+      ])
+    );
+  });
+
+  it('should extract exports from PLpgSQL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/plpgsql.sql');
+    const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
+
+    expect(allExports).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'status_enum', type: 'named' }),
+        expect.objectContaining({ name: 'accounts', type: 'named' }),
+        expect.objectContaining({ name: 'active_accounts', type: 'named' }),
+        expect.objectContaining({ name: 'calculate_bonus', type: 'named' }),
+      ])
+    );
+  });
+
+  it('should parse PLpgSQL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/plpgsql.sql');
+    expect(cleanTimestamps(result.chunks)).toMatchSnapshot();
+  });
+
   it('should parse C++ fixtures correctly', () => {
     const filePath = path.resolve(__dirname, '../fixtures/cpp.cpp');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/cpp.cpp');
@@ -417,22 +456,15 @@ Content 2`;
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/cpp.cpp');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
 
-    // Basic checks - verify key symbols are extracted
     expect(allSymbols).toEqual(
       expect.arrayContaining([
-        // Classes and structs
         expect.objectContaining({ name: 'MyClass', kind: 'class.name' }),
         expect.objectContaining({ name: 'Point', kind: 'struct.name' }),
-
-        // Namespace
         expect.objectContaining({ name: 'MyNamespace', kind: 'namespace.name' }),
-
-        // Template method inside class
         expect.objectContaining({ name: 'templateMethod', kind: 'function.name' }),
       ])
     );
 
-    // Verify we have a reasonable number of symbols
     expect(allSymbols.length).toBeGreaterThan(10);
   });
 
@@ -448,7 +480,6 @@ Content 2`;
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
     expect(allSymbols).toEqual(
       expect.arrayContaining([
-        // Function names
         expect.objectContaining({ name: 'greet', kind: 'function.name' }),
         expect.objectContaining({ name: 'process_files', kind: 'function.name' }),
         expect.objectContaining({ name: 'calculate', kind: 'function.name' }),
@@ -457,8 +488,6 @@ Content 2`;
         expect.objectContaining({ name: 'parse_args', kind: 'function.name' }),
         expect.objectContaining({ name: 'show_help', kind: 'function.name' }),
         expect.objectContaining({ name: 'main', kind: 'function.name' }),
-
-        // Variable names
         expect.objectContaining({ name: 'SCRIPT_DIR', kind: 'variable.name' }),
         expect.objectContaining({ name: 'VERSION', kind: 'variable.name' }),
         expect.objectContaining({ name: 'VERBOSE', kind: 'variable.name' }),
@@ -491,11 +520,8 @@ local LOCAL_VAR="local"`;
     try {
       const result = parser.parseFile(tempFile, 'main', 'temp_bash_export_test.sh');
       const allExports = result.chunks.flatMap((chunk) => chunk.exports);
-
-      // Get unique export names
       const uniqueExports = Array.from(new Set(allExports.map((e) => e?.name)));
 
-      // Should only capture EXPORTED_VAR, not READONLY_VAR or LOCAL_VAR
       expect(uniqueExports).toHaveLength(1);
       expect(uniqueExports[0]).toBe('EXPORTED_VAR');
     } finally {
@@ -515,7 +541,6 @@ echo \${arr[0]}`;
       const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
       const arrUsages = allSymbols.filter((s) => s?.name === 'arr' && s?.kind === 'variable.usage');
 
-      // Should capture arr from both ${arr[@]} and ${arr[0]}
       expect(arrUsages.length).toBeGreaterThanOrEqual(2);
     } finally {
       fs.unlinkSync(tempFile);
@@ -534,7 +559,6 @@ export -f my_func`;
       const result = parser.parseFile(tempFile, 'main', 'temp_bash_export_f_test.sh');
       const allExports = result.chunks.flatMap((chunk) => chunk.exports);
 
-      // Should capture my_func from 'export -f my_func'
       expect(allExports.some((e) => e?.name === 'my_func')).toBe(true);
     } finally {
       fs.unlinkSync(tempFile);
@@ -546,7 +570,6 @@ export -f my_func`;
       const filePath = path.resolve(__dirname, '../fixtures/large_file.json');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/large_file.json');
 
-      // The file fits in one chunk (5 lines < default 15), but that chunk exceeds 50 bytes
       expect(result.chunks.length).toBe(0);
       expect(result.metrics.chunksSkipped).toBe(1);
     }));
@@ -557,7 +580,6 @@ export -f my_func`;
 
     expect(result.chunks.length).toBeGreaterThan(0);
 
-    // All chunks should have directory information
     result.chunks.forEach((chunk) => {
       expect(chunk.directoryPath).toBe('tests/fixtures');
       expect(chunk.directoryName).toBe('fixtures');
@@ -571,7 +593,6 @@ export -f my_func`;
 
     expect(result.chunks.length).toBeGreaterThan(0);
 
-    // Root-level files should have empty directory path and depth 0
     result.chunks.forEach((chunk) => {
       expect(chunk.directoryPath).toBe('');
       expect(chunk.directoryName).toBe('');
@@ -585,7 +606,6 @@ export -f my_func`;
 
     expect(result.chunks.length).toBeGreaterThan(0);
 
-    // Nested files should have correct directory information
     result.chunks.forEach((chunk) => {
       expect(chunk.directoryPath).toBe('src/utils/helpers');
       expect(chunk.directoryName).toBe('helpers');
@@ -599,14 +619,10 @@ export -f my_func`;
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
-        // json.json has 32 lines. With 10-line chunks and 2-line overlap (step=8):
-        // Chunk 1: 1-10, Chunk 2: 9-18, Chunk 3: 17-26, Chunk 4: 25-32
         expect(result.chunks.length).toBeGreaterThan(1);
-
         expect(result.chunks[0].startLine).toBe(1);
         expect(result.chunks[0].endLine).toBe(10);
 
-        // Second chunk should overlap by 2 lines (start at line 10 - 2 + 1 = 9)
         if (result.chunks.length > 1) {
           expect(result.chunks[1].startLine).toBe(9);
         }
@@ -617,33 +633,24 @@ export -f my_func`;
         const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
 
-        // yaml.yml has 8 lines. With 5-line chunks and 1-line overlap (step=4):
-        // Chunk 1: 1-5, Chunk 2: 5-8
         expect(result.chunks.length).toBe(2);
-
         expect(result.chunks[0].startLine).toBe(1);
         expect(result.chunks[0].endLine).toBe(5);
-
-        expect(result.chunks[1].startLine).toBe(5); // 1 + step(4) = 5
+        expect(result.chunks[1].startLine).toBe(5);
         expect(result.chunks[1].endLine).toBe(8);
-
-        // Verify document separator is included naturally
         expect(result.chunks[0].content).toContain('---');
       }));
 
     it('skips oversized JSON chunks', () =>
-      // Set very small chunk size to force skipping
       withTestEnv({ SCS_IDXR_MAX_CHUNK_SIZE_BYTES: '10', SCS_IDXR_DEFAULT_CHUNK_LINES: '15' }, () => {
         const filePath = path.resolve(__dirname, '../fixtures/json.json');
         const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
-        // All chunks should be skipped due to size limit
         expect(result.chunks.length).toBe(0);
         expect(result.metrics.chunksSkipped).toBeGreaterThan(0);
       }));
 
     it('parses text files with paragraphs using paragraph strategy', () => {
-      // Create a fixture with paragraphs
       const testContent = `First paragraph.
 This is part of the first paragraph.
 
@@ -657,7 +664,6 @@ Third paragraph.`;
       try {
         const result = parser.parseFile(tempFile, 'main', 'temp_paragraphs.txt');
 
-        // Should use paragraph-based chunking and create 3 chunks
         expect(result.chunks.length).toBe(3);
         expect(result.chunks[0].content).toContain('First paragraph');
         expect(result.chunks[1].content).toContain('Second paragraph');
@@ -670,7 +676,6 @@ Third paragraph.`;
     });
 
     it('falls back to line-based chunking for text without paragraphs', () => {
-      // Create a fixture without paragraphs (no double newlines)
       const testContent = `Line 1
 Line 2
 Line 3
@@ -696,13 +701,10 @@ Line 18`;
       try {
         const result = parser.parseFile(tempFile, 'main', 'temp_no_paragraphs.txt');
 
-        // Should fall back to line-based chunking
-        // With default 15 lines per chunk and 3-line overlap (step=12):
-        // Chunk 1: 1-15, Chunk 2: 13-18
         expect(result.chunks.length).toBe(2);
         expect(result.chunks[0].startLine).toBe(1);
         expect(result.chunks[0].endLine).toBe(15);
-        expect(result.chunks[1].startLine).toBe(13); // 1 + 12 = 13
+        expect(result.chunks[1].startLine).toBe(13);
       } finally {
         if (fs.existsSync(tempFile)) {
           fs.unlinkSync(tempFile);
@@ -716,39 +718,29 @@ Line 18`;
       const filePath = path.resolve(__dirname, '../fixtures/markdown.md');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/markdown.md');
 
-      // First chunk should start at line 1 (heading)
       expect(result.chunks[0].startLine).toBe(1);
       expect(result.chunks[0].endLine).toBe(1);
-
-      // Second chunk should start at line 3 (paragraph after empty line)
       expect(result.chunks[1].startLine).toBe(3);
       expect(result.chunks[1].endLine).toBe(3);
-
-      // Third chunk should start at line 5 (heading)
       expect(result.chunks[2].startLine).toBe(5);
       expect(result.chunks[2].endLine).toBe(5);
-
-      // Fourth chunk should start at line 7 (paragraph)
       expect(result.chunks[3].startLine).toBe(7);
-      expect(result.chunks[3].endLine).toBe(8); // Includes the newline
+      expect(result.chunks[3].endLine).toBe(8);
     });
 
     it('should calculate correct line numbers for YAML multi-document files', () => {
       const filePath = path.resolve(__dirname, '../fixtures/yaml.yml');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/yaml.yml');
 
-      // With line-based chunking, the entire YAML file (8 lines) fits in one chunk (default 15 lines)
       expect(result.chunks.length).toBe(1);
       expect(result.chunks[0].startLine).toBe(1);
       expect(result.chunks[0].endLine).toBe(8);
-      // Verify it contains content from both documents
       expect(result.chunks[0].content).toContain('document: one');
       expect(result.chunks[0].content).toContain('document: two');
-      expect(result.chunks[0].content).toContain('---'); // document separator
+      expect(result.chunks[0].content).toContain('---');
     });
 
     it('should handle duplicate content correctly in line number calculation', () => {
-      // Create a test file with duplicate content to test the fix
       const testContent = `First paragraph
 
 Second paragraph
@@ -763,26 +755,16 @@ Third paragraph`;
       try {
         const result = parser.parseFile(testFilePath, 'main', 'tests/fixtures/duplicate_test.txt');
 
-        // Should have 4 chunks
         expect(result.chunks.length).toBe(4);
-
-        // First occurrence of "First paragraph" should be at line 1
         expect(result.chunks[0].startLine).toBe(1);
         expect(result.chunks[0].content).toBe('First paragraph');
-
-        // "Second paragraph" should be at line 3
         expect(result.chunks[1].startLine).toBe(3);
         expect(result.chunks[1].content).toBe('Second paragraph');
-
-        // Second occurrence of "First paragraph" should be at line 5
         expect(result.chunks[2].startLine).toBe(5);
         expect(result.chunks[2].content).toBe('First paragraph');
-
-        // "Third paragraph" should be at line 7
         expect(result.chunks[3].startLine).toBe(7);
         expect(result.chunks[3].content).toBe('Third paragraph');
       } finally {
-        // Clean up test file
         if (fs.existsSync(testFilePath)) {
           fs.unlinkSync(testFilePath);
         }
@@ -793,15 +775,9 @@ Third paragraph`;
       const filePath = path.resolve(__dirname, '../fixtures/json.json');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/json.json');
 
-      // With line-based chunking (default 15 lines per chunk, 3 line overlap), json.json (32 lines) will be split into chunks
-      // Chunk 1: lines 1-15, Chunk 2: lines 13-27, Chunk 3: lines 25-32 (or similar based on step size)
       expect(result.chunks.length).toBeGreaterThan(0);
-
-      // First chunk should start at line 1
       expect(result.chunks[0].startLine).toBe(1);
       expect(result.chunks[0].endLine).toBeLessThanOrEqual(15);
-
-      // Verify chunks contain actual JSON content
       expect(result.chunks[0].content).toContain('{');
     });
 
@@ -809,7 +785,6 @@ Third paragraph`;
       const filePath = path.resolve(__dirname, '../fixtures/text.txt');
       const result = parser.parseFile(filePath, 'main', 'tests/fixtures/text.txt');
 
-      // Single line text file
       expect(result.chunks.length).toBe(1);
       expect(result.chunks[0].startLine).toBe(1);
       expect(result.chunks[0].endLine).toBe(1);
@@ -823,11 +798,9 @@ Third paragraph`;
       expect(result.chunks[0].content).toBe('Repeat me');
       expect(result.chunks[0].startLine).toBe(1);
       expect(result.chunks[0].endLine).toBe(1);
-
       expect(result.chunks[1].content).toBe('Repeat me');
       expect(result.chunks[1].startLine).toBe(3);
       expect(result.chunks[1].endLine).toBe(3);
-
       expect(result.chunks[2].content).toBe('Repeat me');
       expect(result.chunks[2].startLine).toBe(5);
       expect(result.chunks[2].endLine).toBe(5);
@@ -841,7 +814,6 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Check that we have the expected exports
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'MyClass', type: 'named' }),
@@ -860,7 +832,6 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Check that we have the expected exports
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'MyClass', type: 'named' }),
@@ -877,7 +848,6 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Python should export top-level functions, classes, and uppercase constants
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'MyClass', type: 'named' }),
@@ -893,7 +863,6 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Should only export items in __all__
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'public_function', type: 'named' }),
@@ -901,11 +870,8 @@ Third paragraph`;
         ])
       );
 
-      // Should NOT export items not in __all__
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: '_private_helper' })]));
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'SECRET_CONSTANT' })]));
-
-      // Verify we have exactly 2 exports
       expect(allExports.length).toBe(2);
     });
 
@@ -915,7 +881,6 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Should handle trailing commas and multiline __all__
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'function_one', type: 'named' }),
@@ -923,9 +888,7 @@ Third paragraph`;
         ])
       );
 
-      // Should not export items not in __all__
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'not_exported' })]));
-
       expect(allExports.length).toBe(2);
     });
 
@@ -935,10 +898,7 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Empty __all__ should export nothing
       expect(allExports.length).toBe(0);
-
-      // Verify functions and classes exist but are not exported
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'my_function' })]));
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'MyClass' })]));
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'MY_CONSTANT' })]));
@@ -950,12 +910,8 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Should use the last __all__ assignment
       expect(allExports).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'bar', type: 'named' })]));
-
-      // Should NOT export items from the first __all__
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'foo' })]));
-
       expect(allExports.length).toBe(1);
     });
 
@@ -965,17 +921,11 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Should export the existing function that's in __all__
       expect(allExports).toEqual(
         expect.arrayContaining([expect.objectContaining({ name: 'existing_function', type: 'named' })])
       );
 
-      // Should NOT export functions not in __all__
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'not_in_all' })]));
-
-      // Note: nonexistent_function won't appear because there's no definition for it
-      // The filtering logic only filters out items that have definitions but aren't in __all__
-      // Items in __all__ that don't have definitions simply won't be found by the export queries
       expect(allExports.length).toBe(1);
     });
 
@@ -985,7 +935,6 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Java should export public declarations
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'MyClass', type: 'named' }),
@@ -993,7 +942,6 @@ Third paragraph`;
         ])
       );
 
-      // Should not export private methods
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'privateMethod' })]));
     });
 
@@ -1003,7 +951,6 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Go should export capitalized identifiers
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'Hello', type: 'named' }),
@@ -1012,7 +959,6 @@ Third paragraph`;
         ])
       );
 
-      // Should not export lowercase identifiers
       expect(allExports).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'privateFunc' })]));
     });
 
@@ -1022,21 +968,10 @@ Third paragraph`;
 
       const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
 
-      // Should capture re-exports with aliasing (captures the alias)
       expect(allExports).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'bar', type: 'named' })]));
-
-      // Should capture namespace re-exports
       expect(allExports).toEqual(expect.arrayContaining([expect.objectContaining({ name: '*', type: 'namespace' })]));
-
-      // Should capture named exports
       expect(allExports).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'a', type: 'named' })]));
-
-      // Should capture default exports
-      // Note: For "export default class B {}", both named and default exports are captured
-      // This is expected behavior as documented in EXPORTS_IMPLEMENTATION.md
       expect(allExports).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'B', type: 'default' })]));
-
-      // Should capture re-exported symbols
       expect(allExports).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: 'util', type: 'named' }),
