@@ -16,7 +16,7 @@ import { LanguageConfiguration } from '../utils/parser';
  */
 export const sqlConfig: LanguageConfiguration = {
   name: 'sql',
-  fileSuffixes: ['.sql'],
+  fileSuffixes: ['.sql', '.sql.j2', '.sql.jinja'],
   parser: null, // Custom parser for SQL + dbt/Jinja support
   queries: [],
 };

@@ -172,6 +172,55 @@ interface SqlChunkInfo {
   dependencies: SqlDependency[];
 }
 
+// Module-level constants for SQL dependency extraction (hoisted for reuse)
+const SQL_BUILTIN_MACROS = new Set([
+  'ref',
+  'source',
+  'config',
+  'this',
+  'var',
+  'env_var',
+  'target',
+  'adapter',
+  'return',
+  'log',
+  'exceptions',
+  'run_query',
+  'statement',
+  'set',
+  'do',
+  'if',
+  'for',
+  'elif',
+  'else',
+  'endif',
+  'endfor',
+  'macro',
+  'endmacro',
+  'call',
+  'block',
+  'filter',
+]);
+// Namespaces that contain built-in helpers (e.g., dbt.date_trunc)
+const SQL_BUILTIN_NAMESPACES = new Set(['dbt', 'adapter', 'exceptions']);
+
+// Pattern for {{ ref('model_name') }} or {{ ref("model_name") }}
+const SQL_REF_PATTERN = /\{\{\s*ref\s*\(\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
+// Pattern for {{ source('source_name', 'table_name') }}
+const SQL_SOURCE_PATTERN = /\{\{\s*source\s*\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
+// Pattern for {{ macro_name(...) }} or {{ namespace.macro_name(...) }}
+const SQL_MACRO_PATTERN = /\{\{\s*(?:([a-zA-Z_][a-zA-Z0-9_]*)\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+// Pattern for FROM/JOIN table references (handles schema.table), excludes Jinja expressions
+const SQL_TABLE_PATTERN = /\b(?:FROM|JOIN)\s+(?!\{\{)([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)\b/gi;
+
+/**
+ * Strips single-quoted string literals and line comments from a SQL line
+ * before counting parentheses, to avoid false depth changes inside strings/comments.
+ */
+function stripSqlLineContent(line: string): string {
+  return line.replace(/'[^']*'/g, "''").replace(/--.*$/, '');
+}
+
 /**
  * Base structure for parser metric data
  */
@@ -645,9 +694,6 @@ export class LanguageParser {
     const chunks: CodeChunk[] = [];
     let chunksSkipped = 0;
 
-    // Extract dependencies from the entire file
-    const dependencies = this.extractSqlDependencies(content);
-
     // Check if this is a dbt macro file
     const macroBlocks = this.extractDbtMacros(content);
     if (macroBlocks.length > 0) {
@@ -676,7 +722,8 @@ export class LanguageParser {
       return { chunks, chunksSkipped };
     }
 
-    // For model/query files, extract SQL structures
+    // For model/query files, extract dependencies then SQL structures
+    const dependencies = this.extractSqlDependencies(content);
     const sqlChunks = this.extractSqlStructures(content, dependencies);
 
     if (sqlChunks.length === 0) {
@@ -738,66 +785,22 @@ export class LanguageParser {
     const dependencies: SqlDependency[] = [];
     const lines = content.split('\n');
 
-    // Pattern for {{ ref('model_name') }} or {{ ref("model_name") }}
-    const refPattern = /\{\{\s*ref\s*\(\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
-
-    // Pattern for {{ source('source_name', 'table_name') }}
-    const sourcePattern = /\{\{\s*source\s*\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
-
-    // Pattern for {{ macro_name(...) }} or {{ namespace.macro_name(...) }}
-    // Captures optional namespace prefix and macro name
-    const macroPattern = /\{\{\s*(?:([a-zA-Z_][a-zA-Z0-9_]*)\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
-    const builtinMacros = new Set([
-      'ref',
-      'source',
-      'config',
-      'this',
-      'var',
-      'env_var',
-      'target',
-      'adapter',
-      'return',
-      'log',
-      'exceptions',
-      'run_query',
-      'statement',
-      'set',
-      'do',
-      'if',
-      'for',
-      'elif',
-      'else',
-      'endif',
-      'endfor',
-      'macro',
-      'endmacro',
-      'call',
-      'block',
-      'filter',
-    ]);
-    // Namespaces that contain built-in helpers (e.g., dbt.date_trunc)
-    const builtinNamespaces = new Set(['dbt', 'adapter', 'exceptions']);
-
-    // Pattern for FROM/JOIN table references (handles schema.table)
-    // Excludes Jinja expressions that start with {{
-    const tablePattern = /\b(?:FROM|JOIN)\s+(?!\{\{)([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)\b/gi;
-
     lines.forEach((line, index) => {
       const lineNum = index + 1 + lineOffset;
 
       // Extract refs
       let match;
-      while ((match = refPattern.exec(line)) !== null) {
+      while ((match = SQL_REF_PATTERN.exec(line)) !== null) {
         dependencies.push({
           type: 'ref',
           name: match[1],
           line: lineNum,
         });
       }
-      refPattern.lastIndex = 0;
+      SQL_REF_PATTERN.lastIndex = 0;
 
       // Extract sources
-      while ((match = sourcePattern.exec(line)) !== null) {
+      while ((match = SQL_SOURCE_PATTERN.exec(line)) !== null) {
         dependencies.push({
           type: 'source',
           schema: match[1],
@@ -805,19 +808,19 @@ export class LanguageParser {
           line: lineNum,
         });
       }
-      sourcePattern.lastIndex = 0;
+      SQL_SOURCE_PATTERN.lastIndex = 0;
 
       // Extract macro calls (handles {{ macro() }} and {{ namespace.macro() }})
-      while ((match = macroPattern.exec(line)) !== null) {
+      while ((match = SQL_MACRO_PATTERN.exec(line)) !== null) {
         const namespace = match[1]; // Optional namespace (e.g., 'dbt')
         const macroName = match[2]; // Macro name
 
         // Skip if it's a builtin namespace (dbt.*, adapter.*, exceptions.*)
-        if (namespace && builtinNamespaces.has(namespace.toLowerCase())) {
+        if (namespace && SQL_BUILTIN_NAMESPACES.has(namespace.toLowerCase())) {
           continue;
         }
         // Skip if it's a builtin macro without namespace
-        if (!namespace && builtinMacros.has(macroName.toLowerCase())) {
+        if (!namespace && SQL_BUILTIN_MACROS.has(macroName.toLowerCase())) {
           continue;
         }
 
@@ -827,10 +830,10 @@ export class LanguageParser {
           line: lineNum,
         });
       }
-      macroPattern.lastIndex = 0;
+      SQL_MACRO_PATTERN.lastIndex = 0;
 
       // Extract table references (only non-Jinja ones)
-      while ((match = tablePattern.exec(line)) !== null) {
+      while ((match = SQL_TABLE_PATTERN.exec(line)) !== null) {
         if (match[1]) {
           const parts = match[1].split('.');
           dependencies.push({
@@ -841,7 +844,7 @@ export class LanguageParser {
           });
         }
       }
-      tablePattern.lastIndex = 0;
+      SQL_TABLE_PATTERN.lastIndex = 0;
     });
 
     return dependencies;
@@ -898,11 +901,12 @@ export class LanguageParser {
         const afterWith = line.replace(/^\s*WITH\s*/i, '');
         const cteMatch = afterWith.match(ctePattern);
         if (cteMatch) {
+          const stripped = stripSqlLineContent(line);
           currentCte = {
             name: cteMatch[1],
             startLine: lineNum,
             content: [line],
-            parenDepth: (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length,
+            parenDepth: (stripped.match(/\(/g) || []).length - (stripped.match(/\)/g) || []).length,
           };
         }
         continue;
@@ -914,11 +918,12 @@ export class LanguageParser {
         if (!currentCte) {
           const cteMatch = line.match(ctePattern);
           if (cteMatch) {
+            const stripped = stripSqlLineContent(line);
             currentCte = {
               name: cteMatch[1],
               startLine: lineNum,
               content: [line],
-              parenDepth: (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length,
+              parenDepth: (stripped.match(/\(/g) || []).length - (stripped.match(/\)/g) || []).length,
             };
             continue;
           }
@@ -927,7 +932,8 @@ export class LanguageParser {
         // Track current CTE
         if (currentCte) {
           currentCte.content.push(line);
-          currentCte.parenDepth += (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length;
+          const stripped = stripSqlLineContent(line);
+          currentCte.parenDepth += (stripped.match(/\(/g) || []).length - (stripped.match(/\)/g) || []).length;
 
           // CTE ends when parentheses balance
           if (currentCte.parenDepth <= 0) {
@@ -1019,13 +1025,15 @@ export class LanguageParser {
       if (configPattern.test(line) && chunks.length === 0 && mainStatementStart === null) {
         // Find the end of the config block
         let configEnd = i;
-        let braceDepth = (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length;
+        const strippedFirst = stripSqlLineContent(line);
+        let braceDepth = (strippedFirst.match(/\(/g) || []).length - (strippedFirst.match(/\)/g) || []).length;
         const configLines = [line];
 
         while (braceDepth > 0 && configEnd < lines.length - 1) {
           configEnd++;
           configLines.push(lines[configEnd]);
-          braceDepth += (lines[configEnd].match(/\(/g) || []).length - (lines[configEnd].match(/\)/g) || []).length;
+          const strippedConfig = stripSqlLineContent(lines[configEnd]);
+          braceDepth += (strippedConfig.match(/\(/g) || []).length - (strippedConfig.match(/\)/g) || []).length;
         }
 
         chunks.push({
@@ -1057,6 +1065,14 @@ export class LanguageParser {
         endLine: lines.length,
         dependencies: stmtDeps,
       });
+    }
+
+    // Exclude CTE aliases from sql.table dependencies to avoid false references
+    const cteNames = new Set(chunks.filter((c) => c.type === 'cte' && c.name).map((c) => c.name!));
+    if (cteNames.size > 0) {
+      for (const chunk of chunks) {
+        chunk.dependencies = chunk.dependencies.filter((d) => d.type !== 'table' || !cteNames.has(d.name));
+      }
     }
 
     return chunks;
