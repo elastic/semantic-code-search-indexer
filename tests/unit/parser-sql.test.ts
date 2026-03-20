@@ -185,4 +185,38 @@ describe('SQL Parser', () => {
       });
     });
   });
+
+  describe('SQL Edge Cases', () => {
+    let result: ParseResult;
+
+    beforeAll(() => {
+      const filePath = path.resolve(__dirname, '../fixtures/sql_edge_cases.sql');
+      result = parser.parseFile(filePath, 'main', 'queries/edge_cases.sql');
+    });
+
+    it('should preserve CREATE preamble for CREATE VIEW AS WITH pattern', () => {
+      // The CREATE VIEW chunk must contain the CREATE VIEW keyword, not be silently dropped
+      const allContent = result.chunks.map((c) => c.content).join('\n');
+      expect(allContent.toLowerCase()).toContain('create view active_summary');
+    });
+
+    it('should produce separate chunks for consecutive single-line statements', () => {
+      const singleLineChunks = result.chunks.filter(
+        (c) => c.content.trim() === 'SELECT 1;' || c.content.trim() === 'SELECT 2;'
+      );
+      expect(singleLineChunks.length).toBe(2);
+    });
+
+    it('should extract table names from quoted identifiers', () => {
+      const allSymbols = result.chunks.flatMap((c) => c.symbols || []);
+      const tableSymbols = allSymbols.filter((s) => s.kind === 'sql.table');
+      // Quotes should be stripped: "analytics"."orders" -> name=orders, schema=analytics
+      expect(tableSymbols).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'orders', kind: 'sql.table' }),
+          expect.objectContaining({ name: 'users', kind: 'sql.table' }),
+        ])
+      );
+    });
+  });
 });

@@ -210,15 +210,25 @@ const SQL_REF_PATTERN = /\{\{\s*ref\s*\(\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
 const SQL_SOURCE_PATTERN = /\{\{\s*source\s*\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)\s*\}\}/g;
 // Pattern for {{ macro_name(...) }} or {{ namespace.macro_name(...) }}
 const SQL_MACRO_PATTERN = /\{\{\s*(?:([a-zA-Z_][a-zA-Z0-9_]*)\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
-// Pattern for FROM/JOIN table references (handles schema.table), excludes Jinja expressions
-const SQL_TABLE_PATTERN = /\b(?:FROM|JOIN)\s+(?!\{\{)([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)\b/gi;
+// Pattern for FROM/JOIN table references, excludes Jinja expressions.
+// Supports unquoted (table, schema.table), double-quoted ("schema"."table"),
+// backtick-quoted (`schema`.`table`), and bracket-quoted ([schema].[table]) identifiers.
+const SQL_TABLE_PATTERN =
+  /\b(?:FROM|JOIN)\s+(?!\{\{)((?:"[^"]+"|`[^`]+`|\[[^\]]+\]|[a-zA-Z_][a-zA-Z0-9_]*)(?:\.(?:"[^"]+"|`[^`]+`|\[[^\]]+\]|[a-zA-Z_][a-zA-Z0-9_]*))*)\b/gi;
 
 /**
- * Strips single-quoted string literals and line comments from a SQL line
- * before counting parentheses, to avoid false depth changes inside strings/comments.
+ * Strips string literals and line comments from a SQL line before counting
+ * parentheses, to avoid false depth changes inside strings/comments.
+ * Handles escaped single quotes ('') and double-quoted identifiers.
  */
 function stripSqlLineContent(line: string): string {
-  return line.replace(/'[^']*'/g, "''").replace(/--.*$/, '');
+  // Strip single-quoted strings, handling escaped quotes ('')
+  let stripped = line.replace(/'(?:[^']|'')*'/g, '');
+  // Strip double-quoted identifiers (which may contain parens)
+  stripped = stripped.replace(/"(?:[^"]|"")*"/g, '');
+  // Strip line comments
+  stripped = stripped.replace(/--.*$/, '');
+  return stripped;
 }
 
 /**
@@ -835,7 +845,9 @@ export class LanguageParser {
       // Extract table references (only non-Jinja ones)
       while ((match = SQL_TABLE_PATTERN.exec(line)) !== null) {
         if (match[1]) {
-          const parts = match[1].split('.');
+          // Strip surrounding quotes/brackets from each identifier part
+          const stripIdQuotes = (s: string) => s.replace(/^["'`\[]|["'`\]]$/g, '');
+          const parts = match[1].split('.').map(stripIdQuotes);
           dependencies.push({
             type: 'table',
             name: parts[parts.length - 1],
@@ -893,8 +905,9 @@ export class LanguageParser {
         continue;
       }
 
-      // Check for WITH clause start
-      if (withPattern.test(line) && !inWith) {
+      // Check for WITH clause start (only when not already inside a statement,
+      // so that CREATE VIEW v AS WITH ... keeps the CREATE as the statement opener)
+      if (withPattern.test(line) && !inWith && mainStatementStart === null) {
         inWith = true;
 
         // Check if CTE name is on the same line (e.g., "WITH source AS (")
@@ -1001,6 +1014,21 @@ export class LanguageParser {
       if (mainQueryPattern.test(line) && mainStatementStart === null) {
         mainStatementStart = lineNum;
         mainStatementContent = [line];
+
+        // Check if this statement ends on the same line (has semicolon), same as CREATE handling
+        if (line.includes(';')) {
+          const stmtContent = mainStatementContent.join('\n');
+          const stmtDeps = allDependencies.filter((d) => d.line === lineNum);
+          chunks.push({
+            content: stmtContent,
+            type: 'statement',
+            startLine: mainStatementStart,
+            endLine: lineNum,
+            dependencies: stmtDeps,
+          });
+          mainStatementStart = null;
+          mainStatementContent = [];
+        }
         continue;
       }
 
