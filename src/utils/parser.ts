@@ -230,7 +230,8 @@ function stripSqlLineContent(line: string): string {
   // Strip backtick-quoted identifiers (BigQuery/MySQL style, may contain parens)
   stripped = stripped.replace(/`(?:[^`]|``)*`/g, '');
   // Strip square-bracketed identifiers (SQL Server style, may contain parens)
-  stripped = stripped.replace(/\[[^\]]*\]/g, '');
+  // Handle ]] escape sequences for literal ] inside brackets
+  stripped = stripped.replace(/\[(?:[^\]]|\]\])*\]/g, '');
   // Strip line comments
   stripped = stripped.replace(/--.*$/, '');
   return stripped;
@@ -920,12 +921,46 @@ export class LanguageParser {
         const cteMatch = afterWith.match(ctePattern);
         if (cteMatch) {
           const stripped = stripSqlLineContent(line);
+          const depth = (stripped.match(/\(/g) || []).length - (stripped.match(/\)/g) || []).length;
           currentCte = {
             name: cteMatch[1],
             startLine: lineNum,
             content: [line],
-            parenDepth: (stripped.match(/\(/g) || []).length - (stripped.match(/\)/g) || []).length,
+            parenDepth: depth,
           };
+
+          // If the CTE is complete on the same line (parens balanced), finalize it immediately
+          if (depth <= 0) {
+            const cteDeps = allDependencies.filter((d) => d.line === lineNum);
+            chunks.push({
+              content: line,
+              type: 'cte',
+              name: currentCte.name,
+              startLine: lineNum,
+              endLine: lineNum,
+              dependencies: cteDeps,
+            });
+            currentCte = null;
+
+            // Check if the main query also starts on this line
+            if (mainQueryPattern.test(afterWith.replace(ctePattern, '').replace(/\(.*\)/, ''))) {
+              inWith = false;
+              mainStatementStart = lineNum;
+              mainStatementContent = [line];
+              if (line.includes(';')) {
+                const stmtDeps = allDependencies.filter((d) => d.line === lineNum);
+                chunks.push({
+                  content: line,
+                  type: 'statement',
+                  startLine: lineNum,
+                  endLine: lineNum,
+                  dependencies: stmtDeps,
+                });
+                mainStatementStart = null;
+                mainStatementContent = [];
+              }
+            }
+          }
         }
         continue;
       }
@@ -977,6 +1012,21 @@ export class LanguageParser {
           inWith = false;
           mainStatementStart = lineNum;
           mainStatementContent = [line];
+
+          // Check if this statement ends on the same line (has semicolon)
+          if (line.includes(';')) {
+            const stmtContent = mainStatementContent.join('\n');
+            const stmtDeps = allDependencies.filter((d) => d.line === lineNum);
+            chunks.push({
+              content: stmtContent,
+              type: 'statement',
+              startLine: mainStatementStart,
+              endLine: lineNum,
+              dependencies: stmtDeps,
+            });
+            mainStatementStart = null;
+            mainStatementContent = [];
+          }
         }
         continue;
       }
@@ -1212,7 +1262,7 @@ export class LanguageParser {
     const imports = params.dependencies
       .filter((d) => d.type === 'ref' || d.type === 'source')
       .map((d) => ({
-        path: d.type === 'ref' ? `ref:${d.name}` : `source:${d.schema}.${d.name}`,
+        path: d.type === 'ref' ? `ref:${d.name}` : `source:${d.schema ?? 'unknown'}.${d.name}`,
         type: 'file' as const,
         symbols: [d.name],
       }));
