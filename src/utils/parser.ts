@@ -229,6 +229,8 @@ function stripSqlLineContent(line: string): string {
   stripped = stripped.replace(/"(?:[^"]|"")*"/g, '');
   // Strip backtick-quoted identifiers (BigQuery/MySQL style, may contain parens)
   stripped = stripped.replace(/`(?:[^`]|``)*`/g, '');
+  // Strip square-bracketed identifiers (SQL Server style, may contain parens)
+  stripped = stripped.replace(/\[[^\]]*\]/g, '');
   // Strip line comments
   stripped = stripped.replace(/--.*$/, '');
   return stripped;
@@ -1162,6 +1164,13 @@ export class LanguageParser {
           };
         }
       }
+    }
+
+    // Warn if a macro block was never closed — indicates a malformed file
+    if (currentMacro) {
+      logger.warn(
+        `Unclosed macro '${currentMacro.name}' starting at line ${currentMacro.startLine} — macro content will not be indexed`
+      );
     }
 
     return macros;
