@@ -929,7 +929,12 @@ export class LanguageParser {
             parenDepth: depth,
           };
 
-          // If the CTE is complete on the same line (parens balanced), finalize it immediately
+          // If the CTE is complete on the same line (parens balanced), finalize it immediately.
+          // Note: for single-line CTEs that also contain the main query (e.g.,
+          // "WITH a AS (SELECT 1) SELECT * FROM a;"), both the CTE chunk and the
+          // statement chunk will use the full line as content. Precisely splitting at
+          // the CTE closing paren would require character-level tracking; this semantic
+          // overlap is accepted as an edge case since single-line CTEs are uncommon.
           if (depth <= 0) {
             const cteDeps = allDependencies.filter((d) => d.line === lineNum);
             chunks.push({
@@ -1041,7 +1046,7 @@ export class LanguageParser {
             content: stmtContent,
             type: 'statement',
             startLine: mainStatementStart,
-            endLine: i,
+            endLine: lineNum - 1,
             dependencies: stmtDeps,
           });
         }
