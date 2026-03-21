@@ -219,13 +219,16 @@ const SQL_TABLE_PATTERN =
 /**
  * Strips string literals and line comments from a SQL line before counting
  * parentheses, to avoid false depth changes inside strings/comments.
- * Handles escaped single quotes ('') and double-quoted identifiers.
+ * Handles escaped single quotes (''), double-quoted identifiers, and
+ * backtick-quoted identifiers (BigQuery/MySQL style).
  */
 function stripSqlLineContent(line: string): string {
   // Strip single-quoted strings, handling escaped quotes ('')
   let stripped = line.replace(/'(?:[^']|'')*'/g, '');
   // Strip double-quoted identifiers (which may contain parens)
   stripped = stripped.replace(/"(?:[^"]|"")*"/g, '');
+  // Strip backtick-quoted identifiers (BigQuery/MySQL style, may contain parens)
+  stripped = stripped.replace(/`(?:[^`]|``)*`/g, '');
   // Strip line comments
   stripped = stripped.replace(/--.*$/, '');
   return stripped;
@@ -851,7 +854,7 @@ export class LanguageParser {
           dependencies.push({
             type: 'table',
             name: parts[parts.length - 1],
-            schema: parts.length > 1 ? parts[0] : undefined,
+            schema: parts.length > 1 ? parts.slice(0, -1).join('.') : undefined,
             line: lineNum,
           });
         }
@@ -981,7 +984,7 @@ export class LanguageParser {
         if (mainStatementStart !== null) {
           // Save previous statement
           const stmtContent = mainStatementContent.join('\n');
-          const stmtDeps = allDependencies.filter((d) => d.line >= mainStatementStart! && d.line <= i);
+          const stmtDeps = allDependencies.filter((d) => d.line >= mainStatementStart! && d.line < lineNum);
           chunks.push({
             content: stmtContent,
             type: 'statement',
@@ -1085,7 +1088,7 @@ export class LanguageParser {
     // Finalize any remaining statement
     if (mainStatementStart !== null && mainStatementContent.length > 0) {
       const stmtContent = mainStatementContent.join('\n');
-      const stmtDeps = allDependencies.filter((d) => d.line >= mainStatementStart! && d.line <= lines.length);
+      const stmtDeps = allDependencies.filter((d) => d.line >= mainStatementStart!);
       chunks.push({
         content: stmtContent,
         type: 'statement',
