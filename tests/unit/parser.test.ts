@@ -464,15 +464,22 @@ Content 2`;
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/cpp.cpp');
     const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
 
+    // Basic checks - verify key symbols are extracted
     expect(allSymbols).toEqual(
       expect.arrayContaining([
+        // Classes and structs
         expect.objectContaining({ name: 'MyClass', kind: 'class.name' }),
         expect.objectContaining({ name: 'Point', kind: 'struct.name' }),
+
+        // Namespace
         expect.objectContaining({ name: 'MyNamespace', kind: 'namespace.name' }),
+
+        // Template method inside class
         expect.objectContaining({ name: 'templateMethod', kind: 'function.name' }),
       ])
     );
 
+    // Verify we have a reasonable number of symbols
     expect(allSymbols.length).toBeGreaterThan(10);
   });
 
