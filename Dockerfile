@@ -1,6 +1,6 @@
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
-RUN apk add --no-cache python3 make g++ git
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --include=dev
@@ -10,11 +10,15 @@ RUN npm run build
 RUN npm ci --only=production && npm cache clean --force
 
 
-FROM node:22-alpine AS production
+FROM node:22-slim AS production
 
-RUN apk add --no-cache git github-cli
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S indexer -u 1001 -G nodejs
+RUN apt-get update && apt-get install -y --no-install-recommends git curl ca-certificates && \
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && apt-get install -y --no-install-recommends gh && \
+    apt-get purge -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+RUN groupadd -g 1001 nodejs && \
+    useradd -m -u 1001 -g nodejs indexer
 WORKDIR /app
 
 ENV GIT_AUTHOR_NAME=obltmachine

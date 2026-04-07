@@ -27,6 +27,7 @@ const TEST_LANGUAGES = [
   'bash',
   'scala',
   'hcl',
+  'plpgsql',
 ].join(',');
 
 describe('LanguageParser', () => {
@@ -331,6 +332,14 @@ Content 2`;
     assertExtensionRecognized(`locals {\n  environment = "dev"\n}`, '.hcl', 'hcl');
   });
 
+  it('should recognize .sql file extension as plpgsql', () => {
+    const sqlFile = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(sqlFile, 'main', 'tests/fixtures/plpgsql.sql');
+    expect(result.chunks.length).toBeGreaterThan(0);
+    expect(result.chunks[0].language).toBe('plpgsql');
+    expect(result.metrics.parserType).toBe('tree-sitter');
+  });
+
   it('should parse Scala fixtures correctly', () => {
     const filePath = path.resolve(__dirname, '../fixtures/scala.scala');
     const result = parser.parseFile(filePath, 'main', 'tests/fixtures/scala.scala');
@@ -404,6 +413,51 @@ Content 2`;
         expect.objectContaining({ name: 'description', kind: 'attribute.name' }),
       ])
     );
+  });
+
+  it('should extract symbols from PLpgSQL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/plpgsql.sql');
+    const allSymbols = result.chunks.flatMap((chunk) => chunk.symbols);
+
+    expect(allSymbols).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'status_enum', kind: 'type.name' }),
+        expect.objectContaining({ name: 'accounts', kind: 'table.name' }),
+        expect.objectContaining({ name: 'active_accounts', kind: 'view.name' }),
+        expect.objectContaining({ name: 'calculate_bonus', kind: 'function.name' }),
+        expect.objectContaining({ name: 'calculate_bonus', kind: 'function.call' }),
+      ])
+    );
+  });
+
+  it('should extract exports from PLpgSQL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/plpgsql.sql');
+    const allExports = result.chunks.flatMap((chunk) => chunk.exports || []);
+
+    expect(allExports).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'status_enum', type: 'named' }),
+        expect.objectContaining({ name: 'accounts', type: 'named' }),
+        expect.objectContaining({ name: 'active_accounts', type: 'named' }),
+        expect.objectContaining({ name: 'calculate_bonus', type: 'named' }),
+      ])
+    );
+  });
+
+  it('should parse PLpgSQL fixtures correctly', () => {
+    const filePath = path.resolve(__dirname, '../fixtures/plpgsql.sql');
+    const result = parser.parseFile(filePath, 'main', 'tests/fixtures/plpgsql.sql');
+
+    expect(result.chunks.length).toBeGreaterThan(0);
+    expect(result.chunks.every((chunk) => chunk.language === 'plpgsql')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_function')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_table')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_type')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.kind === 'create_view')).toBe(true);
+    expect(result.chunks.some((chunk) => chunk.content.includes('calculate_bonus(100, 1.25)'))).toBe(true);
+    expect(result.metrics.parserType).toBe('tree-sitter');
   });
 
   it('should parse C++ fixtures correctly', () => {
