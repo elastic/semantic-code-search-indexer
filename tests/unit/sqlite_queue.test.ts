@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
+import os from 'os';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 import { SqliteQueue } from '../../src/utils/sqlite_queue';
 import { CodeChunk } from '../../src/utils/elasticsearch';
@@ -53,15 +54,13 @@ const MOCK_CHUNK_2: CodeChunk = {
 };
 
 describe('SqliteQueue', () => {
-  const queueDir = '.test-queue';
-  const dbPath = path.join(queueDir, 'queue.db');
+  let queueDir: string;
+  let dbPath: string;
   let queue: SqliteQueue;
 
   beforeEach(async () => {
-    if (fs.existsSync(queueDir)) {
-      fs.rmSync(queueDir, { recursive: true, force: true });
-    }
-    fs.mkdirSync(queueDir, { recursive: true });
+    queueDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sqlite-queue-test-'));
+    dbPath = path.join(queueDir, 'queue.db');
     queue = new SqliteQueue({ dbPath });
     await queue.initialize();
   });
@@ -71,10 +70,6 @@ describe('SqliteQueue', () => {
     if (fs.existsSync(queueDir)) {
       fs.rmSync(queueDir, { recursive: true, force: true });
     }
-  });
-
-  afterAll(() => {
-    // No need to close here as it's handled in afterEach
   });
 
   it('should dequeue multiple documents', async () => {
