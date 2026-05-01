@@ -5,6 +5,8 @@ export const goConfig: LanguageConfiguration = {
   name: 'go',
   fileSuffixes: ['.go'],
   parser: go,
+  parserType: 'tree-sitter',
+  metricParserType: 'tree-sitter',
   queries: [
     '(import_declaration) @import',
     '(if_statement) @if',

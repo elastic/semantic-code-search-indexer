@@ -11,6 +11,8 @@ export const cConfig: LanguageConfiguration = {
   name: 'c',
   fileSuffixes: ['.c', '.h'],
   parser: c,
+  parserType: 'tree-sitter',
+  metricParserType: 'tree-sitter',
   queries: [
     '(preproc_include) @import',
     '(declaration) @variable',

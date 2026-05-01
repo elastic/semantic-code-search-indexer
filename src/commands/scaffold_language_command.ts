@@ -127,6 +127,8 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
       name: languageName,
       fileSuffixes: validExtensions,
       parser: null,
+      parserType: options.parser ? 'tree-sitter' : 'line-based',
+      metricParserType: options.parser ? 'tree-sitter' : 'text',
       queries: [],
     };
 

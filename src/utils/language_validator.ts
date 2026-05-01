@@ -107,6 +107,53 @@ export function validateLanguageConfiguration(
     });
   }
 
+  // Validate parserType presence
+  const VALID_PARSER_TYPES = ['tree-sitter', 'delimiter', 'line-based', 'whole-file', 'paragraph'];
+  if (!config.parserType) {
+    errors.push({
+      field: 'parserType',
+      message: 'parserType is required',
+    });
+  } else if (!VALID_PARSER_TYPES.includes(config.parserType)) {
+    errors.push({
+      field: 'parserType',
+      message: `parserType "${config.parserType}" is not a recognized value. Expected one of: ${VALID_PARSER_TYPES.join(', ')}`,
+    });
+  }
+
+  // Validate parserType / parser consistency
+  if (config.parserType === 'tree-sitter' && config.parser === null) {
+    errors.push({
+      field: 'parserType',
+      message: 'parserType is "tree-sitter" but parser is null — a tree-sitter parser is required',
+    });
+  }
+  if (
+    config.parserType &&
+    config.parserType !== 'tree-sitter' &&
+    config.parser !== null &&
+    config.parser !== undefined
+  ) {
+    errors.push({
+      field: 'parserType',
+      message: `parserType is "${config.parserType}" but a tree-sitter parser is set — the parser will be ignored`,
+    });
+  }
+
+  // Validate metricParserType
+  const VALID_METRIC_PARSER_TYPES = ['tree-sitter', 'markdown', 'yaml', 'json', 'text', 'handlebars'];
+  if (!config.metricParserType) {
+    errors.push({
+      field: 'metricParserType',
+      message: 'metricParserType is required',
+    });
+  } else if (!VALID_METRIC_PARSER_TYPES.includes(config.metricParserType)) {
+    errors.push({
+      field: 'metricParserType',
+      message: `metricParserType "${config.metricParserType}" is not a recognized value. Expected one of: ${VALID_METRIC_PARSER_TYPES.join(', ')}. Adding a new metric value should be a deliberate decision.`,
+    });
+  }
+
   return errors;
 }
 

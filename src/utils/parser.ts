@@ -8,23 +8,9 @@ import { languageConfigurations, parseLanguageNames } from '../languages';
 import { CodeChunk, SymbolInfo, ExportInfo } from './elasticsearch';
 import { indexingConfig } from '../config';
 import { logger } from './logger';
-import {
-  CHUNK_TYPE_CODE,
-  CHUNK_TYPE_DOC,
-  LANG_MARKDOWN,
-  LANG_YAML,
-  LANG_JSON,
-  LANG_TEXT,
-  LANG_GRADLE,
-  LANG_HANDLEBARS,
-  PARSER_TYPE_MARKDOWN,
-  PARSER_TYPE_YAML,
-  PARSER_TYPE_JSON,
-  PARSER_TYPE_TEXT,
-  PARSER_TYPE_HANDLEBARS,
-  PARSER_TYPE_TREE_SITTER,
-} from './constants';
+import { CHUNK_TYPE_CODE, CHUNK_TYPE_DOC, LANG_TEXT } from './constants';
 import { isSharedExtensionAllowed } from './shared_extensions';
+import { resolveBashImport, filterPythonExportsByAll, isBashExportDeclaration } from './language_helpers';
 
 const { Query } = Parser;
 
@@ -103,6 +89,18 @@ function extractDirectoryInfo(filePath: string): {
   };
 }
 
+/**
+ * Declares how a language's files are parsed.
+ * Used by `parseFile()` to dispatch to the correct parsing strategy.
+ */
+export type ParserType = 'tree-sitter' | 'delimiter' | 'line-based' | 'whole-file' | 'paragraph';
+
+/**
+ * The value recorded in `metricData.parserType` for observability.
+ * Decoupled from `ParserType` to preserve existing metric/dashboard values.
+ */
+export type MetricParserType = 'tree-sitter' | 'markdown' | 'yaml' | 'json' | 'text' | 'handlebars';
+
 export interface LanguageConfiguration {
   name: string;
   fileSuffixes: string[];
@@ -110,6 +108,8 @@ export interface LanguageConfiguration {
   // for the language parser object, making it impractical to type this map statically.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parser: any; // This can be a tree-sitter parser or null for custom parsers
+  parserType: ParserType;
+  metricParserType: MetricParserType;
   queries: string[];
   importQueries?: string[];
   symbolQueries?: string[];
@@ -377,41 +377,56 @@ export class LanguageParser {
 
     try {
       let chunks: CodeChunk[];
+      let result: { chunks: CodeChunk[]; chunksSkipped: number };
 
-      if (langConfig.parser === null) {
-        if (langConfig.name === LANG_MARKDOWN) {
-          const result = this.parseMarkdown(filePath, gitBranch, relativePath);
+      metricData.parserType = langConfig.metricParserType;
+
+      switch (langConfig.parserType) {
+        case 'tree-sitter':
+          result = this.parseWithTreeSitter(filePath, gitBranch, relativePath, langConfig);
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
-          metricData.parserType = PARSER_TYPE_MARKDOWN;
-        } else if (langConfig.name === LANG_YAML) {
-          const result = this.parseYaml(filePath, gitBranch, relativePath);
+          break;
+
+        case 'delimiter':
+          result = this.parseParagraphs(
+            filePath,
+            gitBranch,
+            relativePath,
+            langConfig.metricParserType,
+            indexingConfig.markdownChunkDelimiter
+          );
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
-          metricData.parserType = PARSER_TYPE_YAML;
-        } else if (langConfig.name === LANG_JSON) {
-          const result = this.parseJson(filePath, gitBranch, relativePath);
+          break;
+
+        case 'line-based':
+          result = this.parseByLines(filePath, gitBranch, relativePath, langConfig.metricParserType);
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
-          metricData.parserType = PARSER_TYPE_JSON;
-        } else if (langConfig.name === LANG_HANDLEBARS) {
-          const result = this.parseHandlebars(filePath, gitBranch, relativePath);
+          break;
+
+        case 'whole-file':
+          result = this.parseWholeFile(filePath, gitBranch, relativePath, langConfig.metricParserType);
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
-          metricData.parserType = PARSER_TYPE_HANDLEBARS;
-        } else if (langConfig.name === LANG_TEXT || langConfig.name === LANG_GRADLE) {
-          const result = this.parseText(filePath, gitBranch, relativePath);
+          break;
+
+        case 'paragraph':
+          // Note: parseText() hardcodes LANG_TEXT for hash stability.
+          // Gradle chunks have always been labeled 'text'. Changing this
+          // would alter chunk hashes and require reindexing.
+          result = this.parseText(filePath, gitBranch, relativePath);
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
-          metricData.parserType = PARSER_TYPE_TEXT;
-        } else {
+          break;
+
+        default:
+          logger.warn(
+            `Unrecognized parserType "${(langConfig as LanguageConfiguration).parserType}" for language "${langConfig.name}". File will produce zero chunks.`
+          );
           chunks = [];
-        }
-      } else {
-        const result = this.parseWithTreeSitter(filePath, gitBranch, relativePath, langConfig);
-        chunks = result.chunks;
-        metricData.chunksSkipped += result.chunksSkipped;
-        metricData.parserType = PARSER_TYPE_TREE_SITTER;
+          break;
       }
 
       metricData.filesProcessed = 1;
@@ -518,81 +533,6 @@ export class LanguageParser {
     return this.parseByLines(filePath, gitBranch, relativePath, LANG_TEXT);
   }
 
-  /**
-   * Parses Markdown files by splitting content into chunks based on configured delimiter.
-   * Each chunk represents a logical section separated by the delimiter.
-   * The delimiter can be configured via SCS_IDXR_MARKDOWN_CHUNK_DELIMITER environment variable.
-   *
-   * @param filePath - Absolute path to the file
-   * @param gitBranch - Git branch name
-   * @param relativePath - Relative path from repository root
-   * @returns Object with chunks array and chunksSkipped count
-   */
-  private parseMarkdown(
-    filePath: string,
-    gitBranch: string,
-    relativePath: string
-  ): { chunks: CodeChunk[]; chunksSkipped: number } {
-    return this.parseParagraphs(
-      filePath,
-      gitBranch,
-      relativePath,
-      LANG_MARKDOWN,
-      indexingConfig.markdownChunkDelimiter
-    );
-  }
-
-  /**
-   * Parses Handlebars files by treating the entire file as a single chunk.
-   * This preserves the full template context for better semantic search.
-   *
-   * @param filePath - Absolute path to the file
-   * @param gitBranch - Git branch name
-   * @param relativePath - Relative path from repository root
-   * @returns Object with chunks array and chunksSkipped count
-   */
-  private parseHandlebars(
-    filePath: string,
-    gitBranch: string,
-    relativePath: string
-  ): { chunks: CodeChunk[]; chunksSkipped: number } {
-    return this.parseWholeFile(filePath, gitBranch, relativePath, LANG_HANDLEBARS);
-  }
-
-  /**
-   * Parses YAML files by creating fixed-size line-based chunks with overlap.
-   * This provides more context than single-line chunks while maintaining manageable size.
-   *
-   * @param filePath - Absolute path to the file
-   * @param gitBranch - Git branch name
-   * @param relativePath - Relative path from repository root
-   * @returns Object with chunks array and chunksSkipped count
-   */
-  private parseYaml(
-    filePath: string,
-    gitBranch: string,
-    relativePath: string
-  ): { chunks: CodeChunk[]; chunksSkipped: number } {
-    return this.parseByLines(filePath, gitBranch, relativePath, LANG_YAML);
-  }
-
-  /**
-   * Parses JSON files by creating fixed-size line-based chunks with overlap.
-   * This prevents large JSON values from creating oversized chunks.
-   *
-   * @param filePath - Absolute path to the file
-   * @param gitBranch - Git branch name
-   * @param relativePath - Relative path from repository root
-   * @returns Object with chunks array and chunksSkipped count
-   */
-  private parseJson(
-    filePath: string,
-    gitBranch: string,
-    relativePath: string
-  ): { chunks: CodeChunk[]; chunksSkipped: number } {
-    return this.parseByLines(filePath, gitBranch, relativePath, LANG_JSON);
-  }
-
   private parseWithTreeSitter(
     filePath: string,
     gitBranch: string,
@@ -656,16 +596,11 @@ export class LanguageParser {
           }
 
           let type: 'module' | 'file' = 'module';
-          // Bash `source` / `.` statements treat paths as file paths, even without a leading `./`.
-          // We normalize non-absolute paths to be repo-root-relative for consistency in indexing/tests.
           if (langConfig.name === 'bash') {
-            type = 'file';
-            if (!path.isAbsolute(importPath)) {
-              const resolvedPath = path.resolve(path.dirname(filePath), importPath);
-              // Use execFileSync to prevent shell injection from special characters in directory paths
-              const gitRoot = getGitRoot(path.dirname(filePath));
-              importPath = path.relative(gitRoot, resolvedPath);
-            }
+            const gitRoot = getGitRoot(path.dirname(filePath));
+            const resolved = resolveBashImport(importPath, filePath, gitRoot);
+            importPath = resolved.path;
+            type = resolved.type;
           } else if (importPath.startsWith('.')) {
             const resolvedPath = path.resolve(path.dirname(filePath), importPath);
             // Use execFileSync to prevent shell injection from special characters in directory paths
@@ -698,48 +633,8 @@ export class LanguageParser {
     }
 
     // For Python, check if __all__ is defined and use it as the authoritative export list
-    let pythonAllSet: Set<string> | null = null;
-    if (langConfig.name === 'python') {
-      try {
-        const allQuery = new Query(
-          langConfig.parser,
-          '(assignment left: (identifier) @all_name (#eq? @all_name "__all__") right: (list) @all_list)'
-        );
-        const allMatches = allQuery.matches(tree.rootNode);
-
-        if (allMatches.length > 0) {
-          // Use the last __all__ assignment if there are multiple
-          const lastMatch = allMatches[allMatches.length - 1];
-          const listNode = lastMatch.captures.find((c) => c.name === 'all_list')?.node;
-          if (listNode) {
-            const pythonAllList: string[] = [];
-            // Extract string literals from the list
-            // This handles standard Python strings (single/double quoted)
-            // Note: f-strings, raw strings, and other special formats may not be extracted correctly
-            for (let i = 0; i < listNode.namedChildCount; i++) {
-              const child = listNode.namedChild(i);
-              if (child && child.type === 'string') {
-                // Standard Python strings have structure: string_start, string_content, string_end
-                // For simple strings without prefixes, the content is at index 1
-                const stringContent = child.child(1);
-                if (stringContent && stringContent.type === 'string_content') {
-                  pythonAllList.push(stringContent.text);
-                } else {
-                  // If the expected structure is not found, log a warning and skip
-                  logger.warn(`Unexpected string structure in __all__ at index ${i}: ${child.toString()}`);
-                }
-              }
-            }
-            // Use a Set for O(1) lookup performance
-            pythonAllSet = new Set(pythonAllList);
-          }
-        }
-      } catch (error) {
-        logger.warn(`Failed to parse Python __all__: ${error instanceof Error ? error.message : String(error)}`);
-        // Fall back to pattern-based detection
-        pythonAllSet = null;
-      }
-    }
+    const pythonAllSet: Set<string> | null =
+      langConfig.name === 'python' ? filterPythonExportsByAll(tree, langConfig.parser) : null;
 
     const exportsByLine: { [line: number]: ExportInfo[] } = {};
     if (langConfig.exportQueries) {
@@ -803,33 +698,8 @@ export class LanguageParser {
           if (langConfig.name === 'bash') {
             const nameCapture = match.captures.find((c) => c.name === EXPORT_CAPTURE_NAMES.NAME);
             if (nameCapture) {
-              // Navigate to declaration_command node:
-              // 'export VAR=value': variable_name -> variable_assignment -> declaration_command
-              // 'export -f funcname': variable_name -> declaration_command
-              let declNode = nameCapture.node.parent;
-
-              // Handle variable assignment case: variable_name -> variable_assignment -> declaration_command
-              if (declNode?.type === 'variable_assignment') {
-                declNode = declNode.parent;
-              }
-
-              if (declNode && declNode.type === 'declaration_command') {
-                const firstChild = declNode.child(0);
-                if (firstChild) {
-                  // Only accept 'export' keyword, reject readonly/local/declare
-                  if (firstChild.type !== 'export') {
-                    continue; // Skip - not an actual export statement
-                  }
-                  // For 'export -f funcname', verify -f flag is present
-                  if (match.captures.some((c) => c.name === 'flag')) {
-                    const wordNode = Array.from({ length: declNode.childCount }, (_, i) => declNode.child(i)).find(
-                      (child) => child?.type === 'word'
-                    );
-                    if (!wordNode || wordNode.text !== '-f') {
-                      continue; // Skip - not 'export -f'
-                    }
-                  }
-                }
+              if (!isBashExportDeclaration(match, nameCapture)) {
+                continue; // Skip - not an actual export statement
               }
             }
           }

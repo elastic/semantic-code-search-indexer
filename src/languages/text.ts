@@ -4,5 +4,7 @@ export const textConfig: LanguageConfiguration = {
   name: 'text',
   fileSuffixes: ['.txt'],
   parser: null,
+  parserType: 'paragraph',
+  metricParserType: 'text',
   queries: [],
 };

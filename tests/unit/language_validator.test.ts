@@ -7,6 +7,8 @@ describe('validateLanguageConfiguration', () => {
     name: 'test_language',
     fileSuffixes: ['.test'],
     parser: null,
+    parserType: 'line-based',
+    metricParserType: 'text',
     queries: [],
   };
 
@@ -15,6 +17,8 @@ describe('validateLanguageConfiguration', () => {
       name: 'existing_language',
       fileSuffixes: ['.existing'],
       parser: null,
+      parserType: 'line-based',
+      metricParserType: 'text',
       queries: [],
     },
   ];
@@ -132,12 +136,16 @@ describe('validateLanguageConfiguration', () => {
         name: 'c',
         fileSuffixes: ['.h'],
         parser: null,
+        parserType: 'tree-sitter',
+        metricParserType: 'tree-sitter',
         queries: [],
       };
       const cppConfig: LanguageConfiguration = {
         name: 'cpp',
         fileSuffixes: ['.h'],
         parser: null,
+        parserType: 'tree-sitter',
+        metricParserType: 'tree-sitter',
         queries: [],
       };
 
@@ -151,12 +159,16 @@ describe('validateLanguageConfiguration', () => {
         name: 'c',
         fileSuffixes: ['.h'],
         parser: null,
+        parserType: 'tree-sitter',
+        metricParserType: 'tree-sitter',
         queries: [],
       };
       const otherConfig: LanguageConfiguration = {
         name: 'conflict_h_lang',
         fileSuffixes: ['.h'],
         parser: null,
+        parserType: 'tree-sitter',
+        metricParserType: 'tree-sitter',
         queries: [],
       };
 
@@ -173,6 +185,8 @@ describe('validateLanguageConfiguration', () => {
           name: 'existing_language',
           fileSuffixes: ['.ext1', '.ext2'],
           parser: null,
+          parserType: 'line-based',
+          metricParserType: 'text',
           queries: [],
         },
       ];
@@ -210,6 +224,72 @@ describe('validateLanguageConfiguration', () => {
     });
   });
 
+  describe('parserType validation', () => {
+    it('should pass for valid parserType', () => {
+      const config = { ...validConfig, parserType: 'line-based' as const };
+      const errors = validateLanguageConfiguration(config, existingConfigs);
+      const parserTypeErrors = errors.filter((e) => e.field === 'parserType');
+      expect(parserTypeErrors).toEqual([]);
+    });
+
+    it('should fail when parserType is missing', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const config = { ...validConfig, parserType: '' as any };
+      const errors = validateLanguageConfiguration(config, existingConfigs);
+      expect(errors).toContainEqual({
+        field: 'parserType',
+        message: 'parserType is required',
+      });
+    });
+
+    it('should fail when parserType is tree-sitter but parser is null', () => {
+      const config = { ...validConfig, parserType: 'tree-sitter' as const, parser: null };
+      const errors = validateLanguageConfiguration(config, existingConfigs);
+      expect(errors).toContainEqual({
+        field: 'parserType',
+        message: 'parserType is "tree-sitter" but parser is null — a tree-sitter parser is required',
+      });
+    });
+
+    it('should warn when non-tree-sitter parserType has a parser set', () => {
+      const config = { ...validConfig, parserType: 'line-based' as const, parser: {} };
+      const errors = validateLanguageConfiguration(config, existingConfigs);
+      expect(errors).toContainEqual({
+        field: 'parserType',
+        message: 'parserType is "line-based" but a tree-sitter parser is set — the parser will be ignored',
+      });
+    });
+  });
+
+  describe('metricParserType validation', () => {
+    it('should pass for valid metricParserType', () => {
+      const config = { ...validConfig, metricParserType: 'text' as const };
+      const errors = validateLanguageConfiguration(config, existingConfigs);
+      const metricErrors = errors.filter((e) => e.field === 'metricParserType');
+      expect(metricErrors).toEqual([]);
+    });
+
+    it('should fail when metricParserType is missing', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const config = { ...validConfig, metricParserType: '' as any };
+      const errors = validateLanguageConfiguration(config, existingConfigs);
+      expect(errors).toContainEqual({
+        field: 'metricParserType',
+        message: 'metricParserType is required',
+      });
+    });
+
+    it('should fail when metricParserType is unrecognized', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const config = { ...validConfig, metricParserType: 'unknown_type' as any };
+      const errors = validateLanguageConfiguration(config, existingConfigs);
+      expect(errors).toContainEqual({
+        field: 'metricParserType',
+        message: expect.stringContaining('is not a recognized value'),
+      });
+    });
+  });
+
   describe('queries validation with tree-sitter parser', () => {
     it('should pass for valid configurations without tree-sitter parser', () => {
       const config = { ...validConfig, parser: null, queries: [] };
@@ -230,12 +310,16 @@ describe('validateLanguageConfigurations', () => {
         name: 'lang1',
         fileSuffixes: ['.l1'],
         parser: null,
+        parserType: 'line-based' as const,
+        metricParserType: 'text' as const,
         queries: [],
       },
       lang2: {
         name: 'lang2',
         fileSuffixes: ['.l2'],
         parser: null,
+        parserType: 'line-based' as const,
+        metricParserType: 'text' as const,
         queries: [],
       },
     };
@@ -249,12 +333,16 @@ describe('validateLanguageConfigurations', () => {
         name: 'Invalid1', // Should be lowercase
         fileSuffixes: ['.i1'],
         parser: null,
+        parserType: 'line-based' as const,
+        metricParserType: 'text' as const,
         queries: [],
       },
       invalid2: {
         name: 'invalid2',
         fileSuffixes: [], // Empty array
         parser: null,
+        parserType: 'line-based' as const,
+        metricParserType: 'text' as const,
         queries: [],
       },
     };
@@ -271,12 +359,16 @@ describe('validateLanguageConfigurations', () => {
         name: 'lang1',
         fileSuffixes: ['.shared'],
         parser: null,
+        parserType: 'line-based' as const,
+        metricParserType: 'text' as const,
         queries: [],
       },
       lang2: {
         name: 'lang2',
         fileSuffixes: ['.shared'], // Duplicate extension
         parser: null,
+        parserType: 'line-based' as const,
+        metricParserType: 'text' as const,
         queries: [],
       },
     };
