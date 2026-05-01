@@ -119,22 +119,29 @@ export function isBashExportDeclaration(match: Parser.QueryMatch, nameCapture: P
     declNode = declNode.parent;
   }
 
-  if (declNode && declNode.type === 'declaration_command') {
-    const firstChild = declNode.child(0);
-    if (firstChild) {
-      // Only accept 'export' keyword, reject readonly/local/declare
-      if (firstChild.type !== 'export') {
-        return false;
-      }
-      // For 'export -f funcname', verify -f flag is present
-      if (match.captures.some((c: Parser.QueryCapture) => c.name === 'flag')) {
-        const wordNode = Array.from({ length: declNode.childCount }, (_, i) => declNode!.child(i)).find(
-          (child) => child?.type === 'word'
-        );
-        if (!wordNode || wordNode.text !== '-f') {
-          return false;
-        }
-      }
+  if (!declNode || declNode.type !== 'declaration_command') {
+    // If we can't find a declaration_command ancestor, conservatively allow through
+    // (preserves pre-refactor behavior where only explicit non-export keywords were rejected)
+    return true;
+  }
+
+  const firstChild = declNode.child(0);
+  if (!firstChild) {
+    return true;
+  }
+
+  // Only accept 'export' keyword, reject readonly/local/declare
+  if (firstChild.type !== 'export') {
+    return false;
+  }
+
+  // For 'export -f funcname', verify -f flag is present
+  if (match.captures.some((c: Parser.QueryCapture) => c.name === 'flag')) {
+    const wordNode = Array.from({ length: declNode.childCount }, (_, i) => declNode!.child(i)).find(
+      (child) => child?.type === 'word'
+    );
+    if (!wordNode || wordNode.text !== '-f') {
+      return false;
     }
   }
 

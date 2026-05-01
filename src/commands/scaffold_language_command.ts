@@ -123,12 +123,13 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
     console.log(`✓ Created language configuration: ${filePath}`);
 
     // Validate the generated configuration
+    const isTreeSitter = !!options.parser;
     const mockConfig: LanguageConfiguration = {
       name: languageName,
       fileSuffixes: validExtensions,
       parser: null,
-      parserType: options.parser ? 'tree-sitter' : 'line-based',
-      metricParserType: options.parser ? 'tree-sitter' : 'text',
+      parserType: isTreeSitter ? 'tree-sitter' : 'line-based',
+      metricParserType: isTreeSitter ? 'tree-sitter' : 'text',
       queries: [],
     };
 
