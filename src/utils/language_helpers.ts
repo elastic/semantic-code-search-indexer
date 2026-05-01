@@ -51,9 +51,15 @@ export function filterPythonExportsByAll(
   parser: any
 ): Set<string> | null {
   try {
+    // Match both list and tuple forms: __all__ = ["a", "b"] or __all__ = ("a", "b")
     const allQuery = new Query(
       parser,
-      '(assignment left: (identifier) @all_name (#eq? @all_name "__all__") right: (list) @all_list)'
+      `
+      (assignment
+        left: (identifier) @all_name
+        (#eq? @all_name "__all__")
+        right: [(list) (tuple)] @all_list)
+      `
     );
     const allMatches = allQuery.matches(tree.rootNode);
 
@@ -69,9 +75,9 @@ export function filterPythonExportsByAll(
     }
 
     const pythonAllList: string[] = [];
-    // Extract string literals from the list
-    // This handles standard Python strings (single/double quoted)
-    // Note: f-strings, raw strings, and other special formats may not be extracted correctly
+    // Extract string literals from the list/tuple.
+    // If any entry can't be parsed (non-string child, unexpected string structure),
+    // bail out and return null so all exports are included (safe fallback).
     for (let i = 0; i < listNode.namedChildCount; i++) {
       const child = listNode.namedChild(i);
       if (child && child.type === 'string') {
@@ -81,9 +87,13 @@ export function filterPythonExportsByAll(
         if (stringContent && stringContent.type === 'string_content') {
           pythonAllList.push(stringContent.text);
         } else {
-          // If the expected structure is not found, log a warning and skip
+          // Unsupported string format: cannot safely determine __all__ contents
           logger.warn(`Unexpected string structure in __all__ at index ${i}: ${child.toString()}`);
+          return null;
         }
+      } else if (child) {
+        // Non-string child (e.g., variable reference, expression): cannot safely determine __all__ contents
+        return null;
       }
     }
     // Use a Set for O(1) lookup performance

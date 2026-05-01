@@ -1,13 +1,26 @@
 // src/utils/language_validator.ts
-import type { LanguageConfiguration } from './parser';
+import type { LanguageConfiguration, ParserType, MetricParserType } from './parser';
 import Parser from 'tree-sitter';
 import { isSharedExtensionAllowed } from './shared_extensions';
 
 /** Valid values for `LanguageConfiguration.parserType` */
-const VALID_PARSER_TYPES = ['tree-sitter', 'delimiter', 'line-based', 'whole-file', 'paragraph'];
+const VALID_PARSER_TYPES: ReadonlyArray<ParserType> = [
+  'tree-sitter',
+  'delimiter',
+  'line-based',
+  'whole-file',
+  'paragraph',
+];
 
 /** Valid values for `LanguageConfiguration.metricParserType` */
-const VALID_METRIC_PARSER_TYPES = ['tree-sitter', 'markdown', 'yaml', 'json', 'text', 'handlebars'];
+const VALID_METRIC_PARSER_TYPES: ReadonlyArray<MetricParserType> = [
+  'tree-sitter',
+  'markdown',
+  'yaml',
+  'json',
+  'text',
+  'handlebars',
+];
 
 /**
  * Represents a validation error for a language configuration

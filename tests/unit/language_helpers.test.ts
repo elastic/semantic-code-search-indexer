@@ -18,6 +18,11 @@ describe('language_helpers', () => {
       expect(result).toEqual({ path: 'scripts/utils.sh', type: 'file' });
     });
 
+    it('should resolve parent-relative paths to be git-root-relative', () => {
+      const result = resolveBashImport('../lib/utils.sh', '/home/user/project/scripts/main.sh', '/home/user/project');
+      expect(result).toEqual({ path: 'lib/utils.sh', type: 'file' });
+    });
+
     it('should always return type "file"', () => {
       const result = resolveBashImport('some_module', '/home/user/project/script.sh', '/home/user/project');
       expect(result.type).toBe('file');

@@ -136,16 +136,16 @@ describe('validateLanguageConfiguration', () => {
         name: 'c',
         fileSuffixes: ['.h'],
         parser: null,
-        parserType: 'tree-sitter',
-        metricParserType: 'tree-sitter',
+        parserType: 'line-based',
+        metricParserType: 'text',
         queries: [],
       };
       const cppConfig: LanguageConfiguration = {
         name: 'cpp',
         fileSuffixes: ['.h'],
         parser: null,
-        parserType: 'tree-sitter',
-        metricParserType: 'tree-sitter',
+        parserType: 'line-based',
+        metricParserType: 'text',
         queries: [],
       };
 
@@ -159,16 +159,16 @@ describe('validateLanguageConfiguration', () => {
         name: 'c',
         fileSuffixes: ['.h'],
         parser: null,
-        parserType: 'tree-sitter',
-        metricParserType: 'tree-sitter',
+        parserType: 'line-based',
+        metricParserType: 'text',
         queries: [],
       };
       const otherConfig: LanguageConfiguration = {
         name: 'conflict_h_lang',
         fileSuffixes: ['.h'],
         parser: null,
-        parserType: 'tree-sitter',
-        metricParserType: 'tree-sitter',
+        parserType: 'line-based',
+        metricParserType: 'text',
         queries: [],
       };
 
