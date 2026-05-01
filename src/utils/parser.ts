@@ -423,7 +423,7 @@ export class LanguageParser {
 
         default:
           logger.warn(
-            `Unrecognized parserType "${(langConfig as LanguageConfiguration).parserType}" for language "${langConfig.name}". File will produce zero chunks.`
+            `Unrecognized parserType "${langConfig.parserType}" for language "${langConfig.name}". File will produce zero chunks.`
           );
           chunks = [];
           break;

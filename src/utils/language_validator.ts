@@ -3,6 +3,12 @@ import type { LanguageConfiguration } from './parser';
 import Parser from 'tree-sitter';
 import { isSharedExtensionAllowed } from './shared_extensions';
 
+/** Valid values for `LanguageConfiguration.parserType` */
+const VALID_PARSER_TYPES = ['tree-sitter', 'delimiter', 'line-based', 'whole-file', 'paragraph'];
+
+/** Valid values for `LanguageConfiguration.metricParserType` */
+const VALID_METRIC_PARSER_TYPES = ['tree-sitter', 'markdown', 'yaml', 'json', 'text', 'handlebars'];
+
 /**
  * Represents a validation error for a language configuration
  */
@@ -108,7 +114,6 @@ export function validateLanguageConfiguration(
   }
 
   // Validate parserType presence
-  const VALID_PARSER_TYPES = ['tree-sitter', 'delimiter', 'line-based', 'whole-file', 'paragraph'];
   if (!config.parserType) {
     errors.push({
       field: 'parserType',
@@ -141,7 +146,6 @@ export function validateLanguageConfiguration(
   }
 
   // Validate metricParserType
-  const VALID_METRIC_PARSER_TYPES = ['tree-sitter', 'markdown', 'yaml', 'json', 'text', 'handlebars'];
   if (!config.metricParserType) {
     errors.push({
       field: 'metricParserType',
