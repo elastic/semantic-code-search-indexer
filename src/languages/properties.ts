@@ -6,7 +6,6 @@ export const propertiesConfig: LanguageConfiguration = {
   fileSuffixes: ['.properties'],
   parser: properties,
   parserType: 'tree-sitter',
-  metricParserType: 'tree-sitter',
   queries: ['(property) @property', '(comment) @comment'],
   symbolQueries: ['(property (key) @property.key)', '(property (value) @property.value)'],
 };

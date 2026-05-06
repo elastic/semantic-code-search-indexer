@@ -17,7 +17,6 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
   fileSuffixes: [{{FILE_EXTENSIONS}}],
   parser: {{TREE_SITTER_PACKAGE_VAR}},
   parserType: 'tree-sitter',
-  metricParserType: 'tree-sitter',
   
   // General queries for code structure
   // See existing language configs (typescript.ts, python.ts) for examples

@@ -5,6 +5,5 @@ export const yamlConfig: LanguageConfiguration = {
   fileSuffixes: ['.yml', '.yaml'],
   parser: null, // Indicates a custom parser should be used
   parserType: 'line-based',
-  metricParserType: 'yaml',
   queries: [],
 };

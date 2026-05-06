@@ -91,15 +91,10 @@ function extractDirectoryInfo(filePath: string): {
 
 /**
  * Declares how a language's files are parsed.
- * Used by `parseFile()` to dispatch to the correct parsing strategy.
+ * Used by `parseFile()` to dispatch to the correct parsing strategy
+ * and recorded in `metricData.parserType` for observability.
  */
 export type ParserType = 'tree-sitter' | 'delimiter' | 'line-based' | 'whole-file' | 'paragraph';
-
-/**
- * The value recorded in `metricData.parserType` for observability.
- * Decoupled from `ParserType` to preserve existing metric/dashboard values.
- */
-export type MetricParserType = 'tree-sitter' | 'markdown' | 'yaml' | 'json' | 'text' | 'handlebars';
 
 export interface LanguageConfiguration {
   name: string;
@@ -109,7 +104,6 @@ export interface LanguageConfiguration {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parser: any; // This can be a tree-sitter parser or null for custom parsers
   parserType: ParserType;
-  metricParserType: MetricParserType;
   queries: string[];
   importQueries?: string[];
   symbolQueries?: string[];
@@ -379,7 +373,7 @@ export class LanguageParser {
       let chunks: CodeChunk[];
       let result: { chunks: CodeChunk[]; chunksSkipped: number };
 
-      metricData.parserType = langConfig.metricParserType;
+      metricData.parserType = langConfig.parserType;
 
       switch (langConfig.parserType) {
         case 'tree-sitter':
@@ -393,7 +387,7 @@ export class LanguageParser {
             filePath,
             gitBranch,
             relativePath,
-            langConfig.metricParserType,
+            langConfig.name,
             indexingConfig.markdownChunkDelimiter
           );
           chunks = result.chunks;
@@ -401,13 +395,13 @@ export class LanguageParser {
           break;
 
         case 'line-based':
-          result = this.parseByLines(filePath, gitBranch, relativePath, langConfig.metricParserType);
+          result = this.parseByLines(filePath, gitBranch, relativePath, langConfig.name);
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
           break;
 
         case 'whole-file':
-          result = this.parseWholeFile(filePath, gitBranch, relativePath, langConfig.metricParserType);
+          result = this.parseWholeFile(filePath, gitBranch, relativePath, langConfig.name);
           chunks = result.chunks;
           metricData.chunksSkipped += result.chunksSkipped;
           break;

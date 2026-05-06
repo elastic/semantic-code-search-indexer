@@ -1,5 +1,5 @@
 // src/utils/language_validator.ts
-import type { LanguageConfiguration, ParserType, MetricParserType } from './parser';
+import type { LanguageConfiguration, ParserType } from './parser';
 import Parser from 'tree-sitter';
 import { isSharedExtensionAllowed } from './shared_extensions';
 
@@ -10,16 +10,6 @@ const VALID_PARSER_TYPES: ReadonlyArray<ParserType> = [
   'line-based',
   'whole-file',
   'paragraph',
-];
-
-/** Valid values for `LanguageConfiguration.metricParserType` */
-const VALID_METRIC_PARSER_TYPES: ReadonlyArray<MetricParserType> = [
-  'tree-sitter',
-  'markdown',
-  'yaml',
-  'json',
-  'text',
-  'handlebars',
 ];
 
 /**
@@ -156,19 +146,6 @@ export function validateLanguageConfiguration(
     errors.push({
       field: 'parserType',
       message: `parserType is "${config.parserType}" but a tree-sitter parser is set — the parser will be ignored`,
-    });
-  }
-
-  // Validate metricParserType
-  if (!config.metricParserType) {
-    errors.push({
-      field: 'metricParserType',
-      message: 'metricParserType is required',
-    });
-  } else if (!VALID_METRIC_PARSER_TYPES.includes(config.metricParserType)) {
-    errors.push({
-      field: 'metricParserType',
-      message: `metricParserType "${config.metricParserType}" is not a recognized value. Expected one of: ${VALID_METRIC_PARSER_TYPES.join(', ')}. Adding a new metric value should be a deliberate decision.`,
     });
   }
 

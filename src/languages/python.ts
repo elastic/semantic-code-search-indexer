@@ -6,7 +6,6 @@ export const pythonConfig: LanguageConfiguration = {
   fileSuffixes: ['.py'],
   parser: python,
   parserType: 'tree-sitter',
-  metricParserType: 'tree-sitter',
   queries: [
     '(import_statement) @import',
     '(import_from_statement) @import_from',

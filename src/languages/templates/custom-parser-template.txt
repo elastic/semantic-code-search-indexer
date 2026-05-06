@@ -21,6 +21,5 @@ export const {{LANGUAGE_NAME}}Config: LanguageConfiguration = {
   fileSuffixes: [{{FILE_EXTENSIONS}}],
   parser: null, // Indicates a custom parser should be used
   parserType: 'line-based',
-  metricParserType: 'text',
   queries: [],  // No tree-sitter queries for custom parsers
 };

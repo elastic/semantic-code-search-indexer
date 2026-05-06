@@ -6,7 +6,6 @@ export const hclConfig: LanguageConfiguration = {
   fileSuffixes: ['.tf', '.hcl'],
   parser: hcl,
   parserType: 'tree-sitter',
-  metricParserType: 'tree-sitter',
   queries: ['(block) @block', '(attribute) @attribute', '(function_call) @function_call', '(comment) @comment'],
   symbolQueries: [
     '(block (identifier) @block.type)',

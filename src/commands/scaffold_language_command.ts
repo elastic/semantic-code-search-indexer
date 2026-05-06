@@ -131,7 +131,6 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parser: isTreeSitter ? ({} as any) : null, // sentinel to satisfy consistency check; actual parser provided by generated file
       parserType: isTreeSitter ? 'tree-sitter' : 'line-based',
-      metricParserType: isTreeSitter ? 'tree-sitter' : 'text',
       queries: [],
     };
 

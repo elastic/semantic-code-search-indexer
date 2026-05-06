@@ -6,7 +6,6 @@ export const scalaConfig: LanguageConfiguration = {
   fileSuffixes: ['.scala'],
   parser: scala,
   parserType: 'tree-sitter',
-  metricParserType: 'tree-sitter',
   queries: [
     '(import_declaration) @import',
     '(if_expression) @if',

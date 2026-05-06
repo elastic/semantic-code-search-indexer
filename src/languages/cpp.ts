@@ -12,7 +12,6 @@ export const cppConfig: LanguageConfiguration = {
   fileSuffixes: ['.cpp', '.hpp', '.cc', '.cxx', '.h'],
   parser: cpp,
   parserType: 'tree-sitter',
-  metricParserType: 'tree-sitter',
   queries: [
     // Preprocessor directives
     '(preproc_include) @import',

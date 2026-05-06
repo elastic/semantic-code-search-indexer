@@ -8,7 +8,6 @@ describe('validateLanguageConfiguration', () => {
     fileSuffixes: ['.test'],
     parser: null,
     parserType: 'line-based',
-    metricParserType: 'text',
     queries: [],
   };
 
@@ -18,7 +17,6 @@ describe('validateLanguageConfiguration', () => {
       fileSuffixes: ['.existing'],
       parser: null,
       parserType: 'line-based',
-      metricParserType: 'text',
       queries: [],
     },
   ];
@@ -137,7 +135,6 @@ describe('validateLanguageConfiguration', () => {
         fileSuffixes: ['.h'],
         parser: null,
         parserType: 'line-based',
-        metricParserType: 'text',
         queries: [],
       };
       const cppConfig: LanguageConfiguration = {
@@ -145,7 +142,6 @@ describe('validateLanguageConfiguration', () => {
         fileSuffixes: ['.h'],
         parser: null,
         parserType: 'line-based',
-        metricParserType: 'text',
         queries: [],
       };
 
@@ -160,7 +156,6 @@ describe('validateLanguageConfiguration', () => {
         fileSuffixes: ['.h'],
         parser: null,
         parserType: 'line-based',
-        metricParserType: 'text',
         queries: [],
       };
       const otherConfig: LanguageConfiguration = {
@@ -168,7 +163,6 @@ describe('validateLanguageConfiguration', () => {
         fileSuffixes: ['.h'],
         parser: null,
         parserType: 'line-based',
-        metricParserType: 'text',
         queries: [],
       };
 
@@ -186,7 +180,6 @@ describe('validateLanguageConfiguration', () => {
           fileSuffixes: ['.ext1', '.ext2'],
           parser: null,
           parserType: 'line-based',
-          metricParserType: 'text',
           queries: [],
         },
       ];
@@ -261,35 +254,6 @@ describe('validateLanguageConfiguration', () => {
     });
   });
 
-  describe('metricParserType validation', () => {
-    it('should pass for valid metricParserType', () => {
-      const config = { ...validConfig, metricParserType: 'text' as const };
-      const errors = validateLanguageConfiguration(config, existingConfigs);
-      const metricErrors = errors.filter((e) => e.field === 'metricParserType');
-      expect(metricErrors).toEqual([]);
-    });
-
-    it('should fail when metricParserType is missing', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const config = { ...validConfig, metricParserType: '' as any };
-      const errors = validateLanguageConfiguration(config, existingConfigs);
-      expect(errors).toContainEqual({
-        field: 'metricParserType',
-        message: 'metricParserType is required',
-      });
-    });
-
-    it('should fail when metricParserType is unrecognized', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const config = { ...validConfig, metricParserType: 'unknown_type' as any };
-      const errors = validateLanguageConfiguration(config, existingConfigs);
-      expect(errors).toContainEqual({
-        field: 'metricParserType',
-        message: expect.stringContaining('is not a recognized value'),
-      });
-    });
-  });
-
   describe('queries validation with tree-sitter parser', () => {
     it('should pass for valid configurations without tree-sitter parser', () => {
       const config = { ...validConfig, parser: null, queries: [] };
@@ -311,7 +275,6 @@ describe('validateLanguageConfigurations', () => {
         fileSuffixes: ['.l1'],
         parser: null,
         parserType: 'line-based' as const,
-        metricParserType: 'text' as const,
         queries: [],
       },
       lang2: {
@@ -319,7 +282,6 @@ describe('validateLanguageConfigurations', () => {
         fileSuffixes: ['.l2'],
         parser: null,
         parserType: 'line-based' as const,
-        metricParserType: 'text' as const,
         queries: [],
       },
     };
@@ -334,7 +296,6 @@ describe('validateLanguageConfigurations', () => {
         fileSuffixes: ['.i1'],
         parser: null,
         parserType: 'line-based' as const,
-        metricParserType: 'text' as const,
         queries: [],
       },
       invalid2: {
@@ -342,7 +303,6 @@ describe('validateLanguageConfigurations', () => {
         fileSuffixes: [], // Empty array
         parser: null,
         parserType: 'line-based' as const,
-        metricParserType: 'text' as const,
         queries: [],
       },
     };
@@ -360,7 +320,6 @@ describe('validateLanguageConfigurations', () => {
         fileSuffixes: ['.shared'],
         parser: null,
         parserType: 'line-based' as const,
-        metricParserType: 'text' as const,
         queries: [],
       },
       lang2: {
@@ -368,7 +327,6 @@ describe('validateLanguageConfigurations', () => {
         fileSuffixes: ['.shared'], // Duplicate extension
         parser: null,
         parserType: 'line-based' as const,
-        metricParserType: 'text' as const,
         queries: [],
       },
     };

@@ -5,6 +5,5 @@ export const handlebarsConfig: LanguageConfiguration = {
   fileSuffixes: ['.hbs', '.handlebars'],
   parser: null, // Indicates a custom parser should be used
   parserType: 'whole-file',
-  metricParserType: 'handlebars',
   queries: [],
 };

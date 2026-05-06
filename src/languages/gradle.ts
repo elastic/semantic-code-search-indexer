@@ -5,6 +5,5 @@ export const gradleConfig: LanguageConfiguration = {
   fileSuffixes: ['.gradle', '.gradle.kts'],
   parser: null,
   parserType: 'paragraph',
-  metricParserType: 'text',
   queries: [],
 };

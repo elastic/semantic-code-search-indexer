@@ -126,14 +126,11 @@ export function validateAllLanguageConfigurations(): Record<string, ValidationEr
   return results;
 }
 
-// Structural assertion: every language config must have parserType and metricParserType
+// Structural assertion: every language config must have parserType
 (function assertParserTypes() {
   for (const [name, config] of Object.entries(languageConfigurations)) {
     if (!config.parserType) {
       throw new Error(`Language config "${name}" is missing required field "parserType"`);
-    }
-    if (!config.metricParserType) {
-      throw new Error(`Language config "${name}" is missing required field "metricParserType"`);
     }
   }
 })();

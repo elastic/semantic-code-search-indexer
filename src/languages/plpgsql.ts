@@ -6,7 +6,6 @@ export const plpgsqlConfig: LanguageConfiguration = {
   fileSuffixes: ['.sql', '.pgsql', '.plpgsql'],
   parser: sql,
   parserType: 'tree-sitter',
-  metricParserType: 'tree-sitter',
   queries: [
     '(create_function) @function',
     '(create_table) @table',

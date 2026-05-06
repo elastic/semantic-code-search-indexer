@@ -6,6 +6,5 @@ export const markdown: LanguageConfiguration = {
   fileSuffixes: ['.md', '.mdx'],
   parser: null, // Markdown is not parsed with tree-sitter in the same way
   parserType: 'delimiter',
-  metricParserType: 'markdown',
   queries: [],
 };
