@@ -1,7 +1,16 @@
 // src/utils/language_validator.ts
-import type { LanguageConfiguration } from './parser';
+import type { LanguageConfiguration, ParserType } from './parser';
 import Parser from 'tree-sitter';
 import { isSharedExtensionAllowed } from './shared_extensions';
+
+/** Valid values for `LanguageConfiguration.parserType` */
+const VALID_PARSER_TYPES: ReadonlyArray<ParserType> = [
+  'tree-sitter',
+  'delimiter',
+  'line-based',
+  'whole-file',
+  'paragraph',
+];
 
 /**
  * Represents a validation error for a language configuration
@@ -80,8 +89,9 @@ export function validateLanguageConfiguration(
     });
   }
 
-  // Validate queries format if tree-sitter parser is used
-  if (config.parser !== null && config.queries) {
+  // Validate queries format only for tree-sitter configs — non-tree-sitter configs
+  // may carry a non-null parser that is ignored, so compiling queries against it is misleading.
+  if (config.parserType === 'tree-sitter' && config.parser !== null && config.queries) {
     config.queries.forEach((query, index) => {
       if (config.parser !== null) {
         try {
@@ -104,6 +114,38 @@ export function validateLanguageConfiguration(
     errors.push({
       field: 'parser',
       message: 'Parser field is required (use null for custom parsers)',
+    });
+  }
+
+  // Validate parserType presence
+  if (!config.parserType) {
+    errors.push({
+      field: 'parserType',
+      message: 'parserType is required',
+    });
+  } else if (!VALID_PARSER_TYPES.includes(config.parserType)) {
+    errors.push({
+      field: 'parserType',
+      message: `parserType "${config.parserType}" is not a recognized value. Expected one of: ${VALID_PARSER_TYPES.join(', ')}`,
+    });
+  }
+
+  // Validate parserType / parser consistency
+  if (config.parserType === 'tree-sitter' && config.parser === null) {
+    errors.push({
+      field: 'parserType',
+      message: 'parserType is "tree-sitter" but parser is null — a tree-sitter parser is required',
+    });
+  }
+  if (
+    config.parserType &&
+    config.parserType !== 'tree-sitter' &&
+    config.parser !== null &&
+    config.parser !== undefined
+  ) {
+    errors.push({
+      field: 'parserType',
+      message: `parserType is "${config.parserType}" but a tree-sitter parser is set — the parser will be ignored`,
     });
   }
 

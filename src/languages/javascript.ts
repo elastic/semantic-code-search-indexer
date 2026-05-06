@@ -6,6 +6,7 @@ export const javascript: LanguageConfiguration = {
   name: 'javascript',
   fileSuffixes: ['.js', '.jsx'],
   parser: js,
+  parserType: 'tree-sitter',
   queries: [
     '(import_statement) @import',
     '(lexical_declaration) @variable',

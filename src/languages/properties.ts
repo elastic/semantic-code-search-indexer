@@ -5,6 +5,7 @@ export const propertiesConfig: LanguageConfiguration = {
   name: 'properties',
   fileSuffixes: ['.properties'],
   parser: properties,
+  parserType: 'tree-sitter',
   queries: ['(property) @property', '(comment) @comment'],
   symbolQueries: ['(property (key) @property.key)', '(property (value) @property.value)'],
 };

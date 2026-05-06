@@ -11,6 +11,7 @@ export const bashConfig: LanguageConfiguration = {
   name: 'bash',
   fileSuffixes: ['.sh', '.bash', '.zsh', '.ksh', '.bats'],
   parser: bash,
+  parserType: 'tree-sitter',
 
   queries: [
     '(function_definition) @function',

@@ -5,6 +5,7 @@ export const javaConfig: LanguageConfiguration = {
   name: 'java',
   fileSuffixes: ['.java'],
   parser: java,
+  parserType: 'tree-sitter',
   queries: [
     '(import_declaration) @import',
     '(if_statement) @if',

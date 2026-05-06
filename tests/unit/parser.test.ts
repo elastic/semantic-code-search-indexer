@@ -83,7 +83,7 @@ describe('LanguageParser', () => {
 
       // Should create 4 chunks with paragraph-based splitting
       expect(result.chunks.length).toBe(4);
-      expect(result.metrics.parserType).toBe('markdown');
+      expect(result.metrics.parserType).toBe('delimiter');
     });
 
     it('should parse Markdown with section delimiter (---)', () =>
@@ -277,7 +277,7 @@ Content 2`;
     expect(result.chunks[0].language).toBe('handlebars');
 
     // Verify parser type
-    expect(result.metrics.parserType).toBe('handlebars');
+    expect(result.metrics.parserType).toBe('whole-file');
 
     // Verify both static content and Handlebars expressions are captured
     const content = result.chunks[0].content;

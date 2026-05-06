@@ -6,6 +6,7 @@ export const typescript: LanguageConfiguration = {
   name: 'typescript',
   fileSuffixes: ['.ts', '.tsx'],
   parser: ts.typescript,
+  parserType: 'tree-sitter',
   queries: [
     '(import_statement) @import',
     '(lexical_declaration) @variable',

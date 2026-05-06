@@ -5,6 +5,7 @@ export const pythonConfig: LanguageConfiguration = {
   name: 'python',
   fileSuffixes: ['.py'],
   parser: python,
+  parserType: 'tree-sitter',
   queries: [
     '(import_statement) @import',
     '(import_from_statement) @import_from',
