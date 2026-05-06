@@ -43,12 +43,14 @@ export function resolveBashImport(
  *
  * @param tree - The parsed tree-sitter tree for the Python file
  * @param parser - The tree-sitter Python language parser
+ * @param filePath - File path for contextual log messages
  * @returns A Set of exported names, or null if __all__ is not defined
  */
 export function filterPythonExportsByAll(
   tree: Parser.Tree,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parser: any
+  parser: any,
+  filePath?: string
 ): Set<string> | null {
   try {
     // Match both list and tuple forms: __all__ = ["a", "b"] or __all__ = ("a", "b")
@@ -88,7 +90,9 @@ export function filterPythonExportsByAll(
           pythonAllList.push(stringContent.text);
         } else {
           // Unsupported string format: cannot safely determine __all__ contents
-          logger.warn(`Unexpected string structure in __all__ at index ${i}: ${child.toString()}`);
+          logger.warn(
+            `Unexpected string structure in __all__ at index ${i}${filePath ? ` in ${filePath}` : ''}: ${child.toString()}`
+          );
           return null;
         }
       } else if (child) {
@@ -99,7 +103,9 @@ export function filterPythonExportsByAll(
     // Use a Set for O(1) lookup performance
     return new Set(pythonAllList);
   } catch (error) {
-    logger.warn(`Failed to parse Python __all__: ${error instanceof Error ? error.message : String(error)}`);
+    logger.warn(
+      `Failed to parse Python __all__${filePath ? ` in ${filePath}` : ''}: ${error instanceof Error ? error.message : String(error)}`
+    );
     // Fall back to pattern-based detection — all exports included
     return null;
   }

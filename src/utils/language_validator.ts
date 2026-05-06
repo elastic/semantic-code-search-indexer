@@ -99,8 +99,9 @@ export function validateLanguageConfiguration(
     });
   }
 
-  // Validate queries format if tree-sitter parser is used
-  if (config.parser !== null && config.queries) {
+  // Validate queries format only for tree-sitter configs — non-tree-sitter configs
+  // may carry a non-null parser that is ignored, so compiling queries against it is misleading.
+  if (config.parserType === 'tree-sitter' && config.parser !== null && config.queries) {
     config.queries.forEach((query, index) => {
       if (config.parser !== null) {
         try {

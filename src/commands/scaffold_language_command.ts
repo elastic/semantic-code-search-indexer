@@ -123,7 +123,8 @@ async function scaffoldLanguage(options: ScaffoldOptions) {
     console.log(`✓ Created language configuration: ${filePath}`);
 
     // Validate the generated configuration
-    const isTreeSitter = !!options.parser;
+    // Derive from isCustomParser (not options.parser) so --custom --parser flags stay aligned
+    const isTreeSitter = !isCustomParser;
     const mockConfig: LanguageConfiguration = {
       name: languageName,
       fileSuffixes: validExtensions,

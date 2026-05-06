@@ -634,7 +634,7 @@ export class LanguageParser {
 
     // For Python, check if __all__ is defined and use it as the authoritative export list
     const pythonAllSet: Set<string> | null =
-      langConfig.name === 'python' ? filterPythonExportsByAll(tree, langConfig.parser) : null;
+      langConfig.name === 'python' ? filterPythonExportsByAll(tree, langConfig.parser, filePath) : null;
 
     const exportsByLine: { [line: number]: ExportInfo[] } = {};
     if (langConfig.exportQueries) {
