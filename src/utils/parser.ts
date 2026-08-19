@@ -885,13 +885,16 @@ export class LanguageParser {
         let containerPath = '';
         let parent = node.parent;
         if (parent) {
-          if (parent.type === 'class_body') {
+          if (parent.type === 'class_body' || parent.type === 'declaration_list') {
             parent = parent.parent;
           }
 
           if (
             parent &&
             (parent.type === 'class_declaration' ||
+              parent.type === 'interface_declaration' ||
+              parent.type === 'struct_declaration' ||
+              parent.type === 'record_declaration' ||
               parent.type === 'function_declaration' ||
               parent.type === 'class_definition')
           ) {

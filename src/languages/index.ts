@@ -17,6 +17,7 @@ import { bashConfig } from './bash';
 import { scalaConfig } from './scala';
 import { hclConfig } from './hcl';
 import { plpgsqlConfig } from './plpgsql';
+import { csharpConfig } from './csharp';
 import { LanguageConfiguration } from '../utils/parser';
 import {
   validateLanguageConfiguration,
@@ -43,6 +44,7 @@ export const languageConfigurations = {
   scala: scalaConfig,
   hcl: hclConfig,
   plpgsql: plpgsqlConfig,
+  csharp: csharpConfig,
 } as const;
 
 /**
